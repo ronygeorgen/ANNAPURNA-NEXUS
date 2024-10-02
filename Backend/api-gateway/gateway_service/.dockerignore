@@ -1,0 +1,16 @@
+# Ignore .env files
+.env
+
+# Ignore virtual environment
+venvapi/
+
+# Ignore Python cache files
+__pycache__/
+*.pyc
+*.pyo
+
+# Ignore node_modules if any
+node_modules/
+
+# Ignore logs
+*.log
