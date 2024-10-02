@@ -1,0 +1,80 @@
+# name: CI/CD Pipeline
+
+# on:
+#   push:
+#     branches: [ main ]
+#   pull_request:
+#     branches: [ main ]
+
+# jobs:
+#   test:
+#     runs-on: ubuntu-latest
+#     steps:
+#     - uses: actions/checkout@v2
+
+#     - name: Set up Python
+#       uses: actions/setup-python@v2
+#       with:
+#         python-version: '3.9'
+
+#     - name: Install backend dependencies
+#       run: |
+#         python -m pip install --upgrade pip
+#         pip install -r backend/requirements.txt
+
+#     - name: Run backend tests
+#       run: |
+#         cd backend
+#         python manage.py test
+
+#     - name: Set up Node.js
+#       uses: actions/setup-node@v2
+#       with:
+#         node-version: '14'
+
+#     - name: Install frontend dependencies
+#       run: |
+#         cd frontend
+#         npm install
+
+#     - name: Run frontend tests
+#       run: |
+#         cd frontend
+#         npm test
+
+#   build:
+#     needs: test
+#     runs-on: ubuntu-latest
+#     steps:
+#     - uses: actions/checkout@v2
+
+#     - name: Build backend Docker images
+#       run: |
+#         cd backend
+#         docker build -t user-service ./user-service
+#         docker build -t ration-shop-service ./ration-shop-service
+#         docker build -t order-service ./order-service
+#         docker build -t notification-service ./notification-service
+#         docker build -t stock-service ./stock-service
+
+#     - name: Build frontend Docker image
+#       run: |
+#         cd frontend
+#         docker build -t frontend .
+
+#   deploy:
+#     needs: build
+#     runs-on: ubuntu-latest
+#     if: github.ref == 'refs/heads/main'
+#     steps:
+#     - name: Deploy to Kubernetes
+#       run: |
+#         # Add your Kubernetes deployment commands here
+#         # For example:
+#         # kubectl apply -f backend/kubernetes/
+
+#     - name: Deploy frontend
+#       run: |
+#         # Add your frontend deployment commands here
+#         # For example:
+#         # kubectl apply -f frontend/kubernetes/deployment.yaml

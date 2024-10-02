@@ -1,5 +1,7 @@
 # Virtual Environment
 venv/
+Backend/api-gateway/venvapi/
+
 
 # Python cache files
 __pycache__/
