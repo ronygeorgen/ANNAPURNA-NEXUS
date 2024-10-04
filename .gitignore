@@ -2,6 +2,7 @@
 venv/
 Backend/api-gateway/venvapi/
 
+
 # Python cache files
 __pycache__/
 *.pyc
