@@ -25,3 +25,4 @@ class RegisterView(View):
 
 # Don't forget to add this view to your urls.py
 # path('register/', RegisterView.as_view(), name='register'),
+# hgjhgkhgkhg
