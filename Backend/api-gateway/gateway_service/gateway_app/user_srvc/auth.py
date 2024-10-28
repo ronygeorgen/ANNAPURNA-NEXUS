@@ -1,19 +1,150 @@
 import json
-from urllib import response
-from django.conf import settings
 from django.http import JsonResponse
 import requests
-from rest_framework.views import APIView
-import environ
 import os
 
+
 def register(request):
-    try:
-        json_data = json.loads(request.body)
-    except json.JSONDecodeError:
-        return JsonResponse({'error': 'Invalid JSON'}, status=400)
-    
-    response = requests.post(
-        f"http://{os.environ.get('USER_SVC_ADDRESS')}/register/",json=json_data
-    )
-    return JsonResponse(response.json())
+    if request.method == 'POST':
+        try:
+            json_data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+
+        try:
+            user_service_url = os.environ.get('USER_SVC_ADDRESS', 'http://localhost:8001/user/register/')
+            response = requests.post(user_service_url, json=json_data)
+            gateway_response = JsonResponse(response.json(), status=response.status_code)
+
+            for cookie in response.cookies:
+                gateway_response.set_cookie(
+                    key=cookie.name, 
+                    value=cookie.value, 
+                    httponly=cookie.has_nonstandard_attr('HttpOnly'),
+                    secure=cookie.secure,
+                    samesite=cookie.get_nonstandard_attr('SameSite')
+                )
+            
+            return gateway_response
+
+        except requests.RequestException as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    else:
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+
+def login(request):
+    if request.method == 'POST':
+        try:
+            json_data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+
+        try:
+            login_service_url = os.environ.get('USER_SVC_ADDRESS', 'http://localhost:8001/user/login/')
+            response = requests.post(login_service_url, json=json_data)
+            gateway_response = JsonResponse(response.json(), status=response.status_code)
+
+            for cookie in response.cookies:
+                gateway_response.set_cookie(
+                    key=cookie.name, 
+                    value=cookie.value, 
+                    httponly=cookie.has_nonstandard_attr('HttpOnly'),
+                    secure=cookie.secure,
+                    samesite=cookie.get_nonstandard_attr('SameSite')
+                )
+            
+            return gateway_response
+        except requests.RequestException as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    else:
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+def loginAdmin(request):
+    if request.method == 'POST':
+        try:
+            json_data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+        
+        try:
+            login_service_url = os.environ.get('USER_SVC_ADDRESS', 'http://localhost:8001/user/admin-login/')
+            response = requests.post(login_service_url, json=json_data)
+            gateway_response = JsonResponse(response.json(), status=response.status_code)
+
+            for cookie in response.cookies:
+                gateway_response.set_cookie(
+                    key=cookie.name, 
+                    value=cookie.value, 
+                    httponly=cookie.has_nonstandard_attr('HttpOnly'),
+                    secure=cookie.secure,
+                    samesite=cookie.get_nonstandard_attr('SameSite')
+                )
+            
+            return gateway_response
+        except requests.RequestException as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    else:
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+def loginSubAdmin(request):
+    if request.method == 'POST':
+        try:
+            json_data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+        
+        try:
+            login_service_url = os.environ.get('USER_SVC_ADDRESS', 'http://localhost:8001/user/sub-admin-login/')
+            response = requests.post(login_service_url, json=json_data)
+            gateway_response = JsonResponse(response.json(), status=response.status_code)
+
+            for cookie in response.cookies:
+                gateway_response.set_cookie(
+                    key=cookie.name, 
+                    value=cookie.value, 
+                    httponly=cookie.has_nonstandard_attr('HttpOnly'),
+                    secure=cookie.secure,
+                    samesite=cookie.get_nonstandard_attr('SameSite')
+                )
+            
+            return gateway_response
+        except requests.RequestException as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    else:
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+def create_sub_admin(request):
+    if request.method == 'POST':
+        try:
+            json_data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+
+        try:
+            access_token = request.COOKIES.get('access_token')
+            # print(access_token)
+
+            if not access_token:
+                return JsonResponse({'error': 'Authorization credentials not founddd'}, status=401)
+
+            create_sub_admin_url = os.environ.get('USER_SVC_ADDRESS', 'http://localhost:8001/user/create-sub-admin/')
+
+            headers = {
+                'Authorization': f'Bearer {access_token}',  
+                'Content-Type': 'application/json',
+            }
+
+            response = requests.post(create_sub_admin_url, json=json_data, headers=headers)
+
+            try:
+                response_data = response.json()
+            except ValueError:
+                response_data = {}
+
+            return JsonResponse(response_data, status=response.status_code)
+
+        except requests.RequestException as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    else:
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
