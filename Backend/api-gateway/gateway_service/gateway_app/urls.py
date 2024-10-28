@@ -1,5 +1,10 @@
-from django.urls import include, path
-from . import views
+from django.urls import path
+from .views import RegisterView, LoginView, LogoutView,AdminLoginView, CreateSubAdminView, SubAdminLoginView
 urlpatterns = [
-    path('register/',views.register.as_view(), name = 'register')
+    path('user/register/', RegisterView.as_view(), name = 'register'),
+    path('user/login/', LoginView.as_view(), name='login'),
+    path('logout/', LogoutView.as_view(), name='logout'),
+    path('user/admin-login/', AdminLoginView.as_view(), name='admin-login'),
+    path('user/create-sub-admin/', CreateSubAdminView.as_view(), name='create-sub-admin'),
+    path('user/sub-admin-login/', SubAdminLoginView.as_view(), name='create-sub-admin')
 ]
