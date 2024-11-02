@@ -15,6 +15,7 @@ import SubAdminManagementPage from './pages/SubAdminManagement';
 import SubAdminLoginPage from './pages/SubAdminLogin';
 import SubAdminDashboardPage from './pages/SubAdminDashboard';
 import SubAdminProtectedRoute from './components/protectedRoute/SubAdminProtectedRoute';
+import CreateRationShopPage from './pages/CreateRationShops';
 
 const App = () => {
   const { isAuthenticated, user } = useSelector((state) => state.auth);
@@ -46,6 +47,7 @@ const App = () => {
         <Route path="/admin-login" element={<GuestRoute> <AdminLoginPage /> </GuestRoute>} />
         <Route path="/admin-dashboard" element={<AdminProtectedRoute> <AdminDashboardPage /> </AdminProtectedRoute>} />
         <Route path="/admin-dashboard/sub-admin-management" element={<AdminProtectedRoute> <SubAdminManagementPage /> </AdminProtectedRoute>} />
+        <Route path="/admin-dashboard/create-ration-shop" element={<AdminProtectedRoute> <CreateRationShopPage /> </AdminProtectedRoute>} />
 
         {/* catch all route */}
         <Route path="*" element={<Navigate to="/" replace />} />

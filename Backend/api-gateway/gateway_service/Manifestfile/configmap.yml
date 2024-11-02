@@ -9,3 +9,4 @@ data:
   DATABASE_PORT: "5432"
   CSRF_COOKIE_DOMAIN: ".yourdomain.com"
   USER_SVC_ADDRESS: "user:8000"
+  RATION_SHOP_SVC_ADDRESS: "ration:8002"

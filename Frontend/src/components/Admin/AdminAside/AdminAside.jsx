@@ -1,5 +1,5 @@
 import React from 'react';
-import { BarChart3, Users, ShoppingCart, Settings, LogOut } from 'lucide-react';
+import { BarChart3, Users, ShoppingCart, Settings, LogOut, Store } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 
 function AdminAside({ handleLogout }) {
@@ -30,6 +30,12 @@ function AdminAside({ handleLogout }) {
             <Link to="/admin-dashboard/sub-admin-management" className={`flex items-center p-2 rounded-lg hover:bg-teal-700 hover:bg-opacity-75 transition-all duration-200 ${isActive('/admin-dashboard/sub-admin-management')}`}>
               <Users className="mr-3 h-5 w-5" />
               <span>Sub-Admins</span>
+            </Link>
+          </li>
+          <li>
+            <Link to="/admin-dashboard/create-ration-shop" className={`flex items-center p-2 rounded-lg hover:bg-teal-700 hover:bg-opacity-75 transition-all duration-200 ${isActive('/admin-dashboard/create-ration-shop')}`}>
+              <Store className="mr-3 h-5 w-5" />
+              <span>Create Ration Shop</span>
             </Link>
           </li>
           <li>

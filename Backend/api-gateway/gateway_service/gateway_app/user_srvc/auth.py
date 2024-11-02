@@ -12,7 +12,7 @@ def register(request):
             return JsonResponse({'error': 'Invalid JSON'}, status=400)
 
         try:
-            user_service_url = os.environ.get('USER_SVC_ADDRESS', 'http://localhost:8001/user/register/')
+            user_service_url = os.environ.get('USER_SVC_ADDRESS', 'http://localhost:8000/user/register/')
             response = requests.post(user_service_url, json=json_data)
             gateway_response = JsonResponse(response.json(), status=response.status_code)
 
@@ -41,7 +41,7 @@ def login(request):
             return JsonResponse({'error': 'Invalid JSON'}, status=400)
 
         try:
-            login_service_url = os.environ.get('USER_SVC_ADDRESS', 'http://localhost:8001/user/login/')
+            login_service_url = os.environ.get('USER_SVC_ADDRESS', 'http://localhost:8000/user/login/')
             response = requests.post(login_service_url, json=json_data)
             gateway_response = JsonResponse(response.json(), status=response.status_code)
 
@@ -68,7 +68,7 @@ def loginAdmin(request):
             return JsonResponse({'error': 'Invalid JSON'}, status=400)
         
         try:
-            login_service_url = os.environ.get('USER_SVC_ADDRESS', 'http://localhost:8001/user/admin-login/')
+            login_service_url = os.environ.get('USER_SVC_ADDRESS', 'http://localhost:8000/user/admin-login/')
             response = requests.post(login_service_url, json=json_data)
             gateway_response = JsonResponse(response.json(), status=response.status_code)
 
@@ -95,7 +95,7 @@ def loginSubAdmin(request):
             return JsonResponse({'error': 'Invalid JSON'}, status=400)
         
         try:
-            login_service_url = os.environ.get('USER_SVC_ADDRESS', 'http://localhost:8001/user/sub-admin-login/')
+            login_service_url = os.environ.get('USER_SVC_ADDRESS', 'http://localhost:8000/user/sub-admin-login/')
             response = requests.post(login_service_url, json=json_data)
             gateway_response = JsonResponse(response.json(), status=response.status_code)
 
@@ -128,7 +128,7 @@ def create_sub_admin(request):
             if not access_token:
                 return JsonResponse({'error': 'Authorization credentials not founddd'}, status=401)
 
-            create_sub_admin_url = os.environ.get('USER_SVC_ADDRESS', 'http://localhost:8001/user/create-sub-admin/')
+            create_sub_admin_url = os.environ.get('USER_SVC_ADDRESS', 'http://localhost:8000/user/create-sub-admin/')
 
             headers = {
                 'Authorization': f'Bearer {access_token}',  
