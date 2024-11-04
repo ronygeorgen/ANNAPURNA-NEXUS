@@ -22,7 +22,6 @@ def create_ration_shop(request):
                 'Authorization': f'Bearer {access_token}',
                 'Content-Type': 'application/json',
             }
-
             response = requests.post(create_ration_shop_url, json=json_data, headers=headers)
 
             try:
@@ -30,7 +29,20 @@ def create_ration_shop(request):
             except ValueError:
                 response_data = {}
             
-            return JsonResponse(response_data, status=response.status_code)
+            gateway_response = JsonResponse(response_data, status=response.status_code)
+
+            # Forward any new cookies from user service response
+            for cookie in response.cookies:
+                gateway_response.set_cookie(
+                    key=cookie.name,
+                    value=cookie.value,
+                    httponly=cookie.has_nonstandard_attr('HttpOnly'),
+                    secure=cookie.secure,
+                    samesite=cookie.get_nonstandard_attr('SameSite')
+                )
+
+            return gateway_response
+            
         except requests.RequestException as e:
             return JsonResponse({'error': str(e)}, status=500)
     else:
@@ -40,7 +52,7 @@ def get_sub_admins(request):
     if request.method == 'GET':
         try:
             access_token = request.COOKIES.get('access_token')
-            print('access_token:',access_token)
+            # print('access_token:',access_token)
             if not access_token:
                 return JsonResponse({'error': 'Authorization credentials not found'}, status=401)
             
@@ -58,6 +70,19 @@ def get_sub_admins(request):
                 
                 # Directly use the response data
                 response_data = response.json()
+                gateway_response = JsonResponse(response_data, safe=False, status=response.status_code)
+
+                # Forward any new cookies from user service response
+                for cookie in response.cookies:
+                    gateway_response.set_cookie(
+                        key=cookie.name,
+                        value=cookie.value,
+                        httponly=cookie.has_nonstandard_attr('HttpOnly'),
+                        secure=cookie.secure,
+                        samesite=cookie.get_nonstandard_attr('SameSite')
+                    )
+
+                return gateway_response
                 
                 return JsonResponse(response_data, safe=False, status=response.status_code)
             

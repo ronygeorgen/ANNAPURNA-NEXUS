@@ -10,7 +10,7 @@ from datetime import datetime
 class AdminTokenAuthentication(JWTAuthentication):
     def get_validated_token(self, raw_token):
         try:
-            signing_key = str(settings.SIMPLE_JWT['SIGNING_KEY'])
+            signing_key = str(settings.SECRET_KEY)
             
             validated_token = jwt.decode(
                 raw_token,

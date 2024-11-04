@@ -9,6 +9,9 @@ from django.http import JsonResponse
 from django.contrib.auth import authenticate
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.permissions import BasePermission
+import logging
+
+logger = logging.getLogger(__name__)
 
 def get_tokens_for_user(user):
     refresh = RefreshToken.for_user(user)
@@ -151,3 +154,39 @@ class CreateSubAdminView(APIView):
                 }
             }, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class RefreshTokenView(APIView):
+    def post(self, request, *args, **kwargs):
+        refresh_token = request.COOKIES.get('refresh_token')
+        
+        # Debug logging to verify refresh token retrieval
+        if not refresh_token:
+            logger.warning("Refresh token missing in request.")
+            return Response({"error": "Refresh token required"}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        try:
+            refresh = RefreshToken(refresh_token)
+            new_access_token = str(refresh.access_token)
+            
+            response = Response({
+                'message': 'Token refreshed successfully',
+                'access_token': new_access_token  # Send back access token if needed
+            })
+            response.set_cookie(
+                'access_token',
+                new_access_token,
+                httponly=True,
+                secure=True,
+                samesite='Strict'
+            )
+            return response
+            
+        except Exception as e:
+            logger.error(f"Invalid refresh token: {str(e)}")
+            response = Response(
+                {"error": "Invalid refresh token"}, 
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+            response.delete_cookie('access_token')
+            response.delete_cookie('refresh_token')
+            return response

@@ -24,6 +24,8 @@ function CreateRationShop() {
     const fetchOwners = async () => {
       try {
         const response = await api.get('/ration-shop/sub-admins/');
+        console.log('checking vaalues',response);
+        
         setOwners([
           { value: '', label: 'Select an owner' },
           ...response.data
@@ -46,13 +48,14 @@ function CreateRationShop() {
   };
 
   const handleSubmit = async (values, { setSubmitting, setStatus }) => {
+    console.log('Form values on submit:', values);
       try {
         const response = await api.post('/ration-shop/create/',{
             shopName: values.shopName,
-            ownerId: parseInt(values.ownerId),
+            ownerId: values.ownerId,
             mobileNumber: values.mobileNumber,
             location: values.location
-        });
+          });
         setStatus({ success: response.data.message });
       } catch (error) {
         setStatus({ error: error.response.data.error || 'Failed to create ration shop' });

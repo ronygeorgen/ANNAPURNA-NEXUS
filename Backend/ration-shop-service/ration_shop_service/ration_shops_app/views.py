@@ -20,6 +20,7 @@ class SubAdminListView(APIView):
         serializer = SubAdminSerializer(sub_admins, many=True)
         return Response(serializer.data)
 
+# views.py
 class RationShopViewSet(ModelViewSet):
     serializer_class = RationShopSerializer
     permission_classes = [IsAuthenticated, IsAdmin]
@@ -33,24 +34,32 @@ class RationShopViewSet(ModelViewSet):
         if serializer.is_valid():
             try:
                 with transaction.atomic():
-                    admin = AdminAuth.objects.get(admin_id=request.user.admin_id)
+                    # Get the admin from SubAdminAuth
+                    admin = SubAdminAuth.objects.get(sub_admin_id=request.user.admin_id)
+                    
+                    # Let the serializer handle owner assignment
                     shop = serializer.save(created_by=admin)
                     
                     return Response({
                         'message': 'Ration shop created successfully!',
-                        'shop':{
+                        'shop': {
                             'id': shop.shop_id,
                             'name': shop.name,
                             'location': shop.location,
                             'mobileNumber': shop.mobile_number,
-                            'owner':{
+                            'owner': {
                                 'id': shop.owner.sub_admin_id,
-                                'email':shop.owner.email
+                                'email': shop.owner.email
                             }
                         }
                     }, status=status.HTTP_201_CREATED)
             
+            except SubAdminAuth.DoesNotExist:
+                return Response({
+                    'error': 'Invalid admin ID'
+                }, status=status.HTTP_400_BAD_REQUEST)
             except Exception as e:
+                print(e)
                 return Response({
                     'error': str(e)
                 }, status=status.HTTP_400_BAD_REQUEST)
@@ -58,3 +67,4 @@ class RationShopViewSet(ModelViewSet):
         return Response({
             'error': serializer.errors
         }, status=status.HTTP_400_BAD_REQUEST)
+

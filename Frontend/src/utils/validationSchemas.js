@@ -15,7 +15,7 @@ export const LoginSchema = Yup.object().shape({
 export const RationShopSchema = Yup.object().shape({
   shopName: Yup.string()
     .min(3, 'Shop name must be at least 3 characters')
-    .max(20, 'Shop name must not exceed 50 characters')
+    .max(50, 'Shop name must not exceed 50 characters')
     .matches(
       /^[a-zA-Z0-9\s']+$/,
       'Shop name can only contain letters, numbers, and spaces'

@@ -123,10 +123,10 @@ def create_sub_admin(request):
 
         try:
             access_token = request.COOKIES.get('access_token')
-            # print(access_token)
+            # refresh_token = request.COOKIES.get('refresh_token')
 
             if not access_token:
-                return JsonResponse({'error': 'Authorization credentials not founddd'}, status=401)
+                return JsonResponse({'error': 'Authorization credentials not found'}, status=401)
 
             create_sub_admin_url = os.environ.get('USER_SVC_ADDRESS', 'http://localhost:8000/user/create-sub-admin/')
 
@@ -136,13 +136,60 @@ def create_sub_admin(request):
             }
 
             response = requests.post(create_sub_admin_url, json=json_data, headers=headers)
-
+            
+           
             try:
                 response_data = response.json()
             except ValueError:
                 response_data = {}
 
-            return JsonResponse(response_data, status=response.status_code)
+            gateway_response = JsonResponse(response_data, status=response.status_code)
+
+            # Forward any new cookies from user service response
+            for cookie in response.cookies:
+                gateway_response.set_cookie(
+                    key=cookie.name,
+                    value=cookie.value,
+                    httponly=cookie.has_nonstandard_attr('HttpOnly'),
+                    secure=cookie.secure,
+                    samesite=cookie.get_nonstandard_attr('SameSite')
+                )
+
+            return gateway_response
+
+        except requests.RequestException as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    else:
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+def refresh_token(request):
+    if request.method == 'POST':
+        try:
+            refresh_token = request.COOKIES.get('refresh_token')
+            # if not refresh_token:
+            #     return JsonResponse({'error': 'Refresh token required'}, status=401)
+
+            # Forward to user service
+            refresh_url = os.environ.get('USER_SVC_ADDRESS', 'http://localhost:8000/user/refresh-token/')
+            response = requests.post(
+                refresh_url,
+                cookies={'refresh_token': refresh_token}
+            )
+
+            # Create gateway response
+            gateway_response = JsonResponse(response.json(), status=response.status_code)
+
+            # Forward any cookies from user service
+            for cookie in response.cookies:
+                gateway_response.set_cookie(
+                    key=cookie.name,
+                    value=cookie.value,
+                    httponly=cookie.has_nonstandard_attr('HttpOnly'),
+                    secure=cookie.secure,
+                    samesite=cookie.get_nonstandard_attr('SameSite')
+                )
+
+            return gateway_response
 
         except requests.RequestException as e:
             return JsonResponse({'error': str(e)}, status=500)

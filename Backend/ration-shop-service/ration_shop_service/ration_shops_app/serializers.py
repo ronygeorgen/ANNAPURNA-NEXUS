@@ -5,6 +5,7 @@ class RationShopSerializer(serializers.ModelSerializer):
     shopName = serializers.CharField(source='name')
     ownerId = serializers.IntegerField(write_only=True)
     mobileNumber = serializers.CharField(source='mobile_number')
+    print('owner_id',ownerId)
     
     class Meta:
         model = RationShop
@@ -14,6 +15,7 @@ class RationShopSerializer(serializers.ModelSerializer):
         owner_id = validated_data.pop('ownerId')
         name = validated_data.pop('name')
         mobile_number = validated_data.pop('mobile_number')
+        created_by = validated_data.pop('created_by', None)
 
         try:
             owner = SubAdminAuth.objects.get(sub_admin_id=owner_id)
@@ -24,6 +26,7 @@ class RationShopSerializer(serializers.ModelSerializer):
             name=name,
             owner=owner,
             mobile_number=mobile_number,
+            created_by=created_by,
             **validated_data
         )
 
