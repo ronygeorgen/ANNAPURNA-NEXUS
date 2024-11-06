@@ -112,7 +112,12 @@ SIMPLE_JWT = {
 }
 
 KAFKA_BOOTSTRAP_SERVERS = 'localhost:9092'
+
 KAFKA_TOPIC_USER_EVENTS = 'user_events'
+KAFKA_TOPIC_RATION_SHOP_CREATION_EVENTS = 'ration_shop_events'
+
+KAFKA_CONSUMER_GROUP = 'user_service_shop_consumer'
+KAFKA_CLIENT_ID = 'user_service_producer'
 
 
 LOGGING = {

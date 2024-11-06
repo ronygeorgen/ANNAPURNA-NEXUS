@@ -72,3 +72,17 @@ class UserProfile(models.Model):
             return f"{self.user.first_name} {self.user.last_name}"
         else:
             return self.user.email
+
+class RationShop(models.Model):
+    shop_id = models.IntegerField(unique=True)
+    name = models.CharField(max_length=255)  # Changed from shopName for consistency
+    owner = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True, related_name="shops_owned")
+    mobile_number = models.CharField(max_length=15)  # Changed from mobileNumber for consistency
+    location = models.CharField(max_length=255)  # Changed from location for consistency
+    is_active = models.BooleanField(default=True)
+    created_by = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.name

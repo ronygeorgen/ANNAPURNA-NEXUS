@@ -1,17 +1,16 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from .models import Account
+from .models import RationShop
 from confluent_kafka import Producer
 from django.conf import settings
 import json
 
-class KafkaUserProducer:
+class KafkaShopProducer:
     _instance = None
 
     @classmethod
     def get_instance(cls):
         if cls._instance is None:
-            # Confluent Kafka Producer configuration
             config = {
                 'bootstrap.servers': settings.KAFKA_BOOTSTRAP_SERVERS,
                 'acks': 'all',
@@ -24,50 +23,51 @@ class KafkaUserProducer:
     @classmethod
     def close(cls):
         if cls._instance is not None:
-            cls._instance.flush()  # Ensure all messages are sent
+            cls._instance.flush()
             cls._instance.close()
             cls._instance = None
-
+    
     @classmethod
     def delivery_callback(cls, err, msg):
         if err:
             print(f'Message delivery failed: {err}')
         else:
             print(f'Message delivered to {msg.topic()} [{msg.partition()}] at offset {msg.offset()}')
-    
-def publish_user_event(event_type, user_data):
+
+def publish_ration_shop_event(event_type, shop_data):
     try:
-        producer = KafkaUserProducer.get_instance()
-        # Fix: Change sub_admin_data to admin_data based on event type
+        producer = KafkaShopProducer.get_instance()
         message = {
             'event_type': event_type,
-            'sub_admin_data' if 'sub_admin' in event_type else 'admin_data': user_data
+            'shop_data': shop_data
         }
         message_bytes = json.dumps(message).encode('utf-8')
-        
-        print(f"Publishing message: {message}")  # Add debug logging
-        
+        print(f'Publishing message: {message}')
+
         producer.produce(
-            topic=settings.KAFKA_TOPIC_USER_EVENTS,  # Use settings value
+            topic=settings.KAFKA_TOPIC_RATION_SHOP_CREATION_EVENTS,
             value=message_bytes,
-            callback=KafkaUserProducer.delivery_callback
+            callback=KafkaShopProducer.delivery_callback
         )
         producer.poll(0)
-        
+    
     except Exception as e:
-        print(f"Error publishing to Kafka: {str(e)}")
+        print(f"Error publishing to kafka: {str(e)}")
 
-@receiver(post_save, sender=Account)
-def publish_subadmin_changes(sender, instance, created, **kwargs):
-    if instance.is_subadmin:
-        user_data = {
-            'id': instance.id,
-            'email': instance.email,
+@receiver(post_save, sender=RationShop)
+def publish_ration_shop_changes(sender, instance, created, **kwargs):
+    if instance.is_active:
+        owner_account_id = instance.owner.sub_admin_id if instance.owner else None
+        created_by_account_id = instance.created_by.sub_admin_id if instance.created_by else None
+        shop_data = {
+            'id': instance.shop_id,
+            'name': instance.name,
+            'owner_id': owner_account_id,
+            'mobile_number': instance.mobile_number,
+            'location': instance.location,
             'is_active': instance.is_active,
-            'is_subadmin': instance.is_subadmin,
-            'auth_token': instance.auth_token.key if hasattr(instance, 'auth_token') else None,
-            'created_at': instance.date_joined.isoformat()
+            'created_by_id': created_by_account_id,
         }
 
-        event_type = 'sub_admin_created' if created else 'sub_admin_updated'
-        publish_user_event(event_type, user_data)
+        event_type = 'ration_shop_created' if created else 'ration_shop_updated'
+        publish_ration_shop_event(event_type, shop_data)
