@@ -27,25 +27,25 @@ function AdminAside({ handleLogout }) {
             </Link>
           </li>
           <li>
-            <Link to="/admin-dashboard/sub-admin-management" className={`flex items-center p-2 rounded-lg hover:bg-teal-700 hover:bg-opacity-75 transition-all duration-200 ${isActive('/admin-dashboard/sub-admin-management')}`}>
+            <Link to="/sub-admin-management" className={`flex items-center p-2 rounded-lg hover:bg-teal-700 hover:bg-opacity-75 transition-all duration-200 ${isActive('/sub-admin-management')}`}>
               <Users className="mr-3 h-5 w-5" />
               <span>Sub-Admins</span>
             </Link>
           </li>
           <li>
-            <Link to="/admin-dashboard/create-ration-shop" className={`flex items-center p-2 rounded-lg hover:bg-teal-700 hover:bg-opacity-75 transition-all duration-200 ${isActive('/admin-dashboard/create-ration-shop')}`}>
+            <Link to="/create-ration-shop" className={`flex items-center p-2 rounded-lg hover:bg-teal-700 hover:bg-opacity-75 transition-all duration-200 ${isActive('/create-ration-shop')}`}>
               <Store className="mr-3 h-5 w-5" />
               <span>Create Ration Shop</span>
             </Link>
           </li>
           <li>
-            <Link to="/admin-dashboard/products" className={`flex items-center p-2 rounded-lg hover:bg-teal-700 hover:bg-opacity-75 transition-all duration-200 ${isActive('/admin-dashboard/products')}`}>
+            <Link to="/products" className={`flex items-center p-2 rounded-lg hover:bg-teal-700 hover:bg-opacity-75 transition-all duration-200 ${isActive('/products')}`}>
               <ShoppingCart className="mr-3 h-5 w-5" />
               <span>Products</span>
             </Link>
           </li>
           <li>
-            <Link to="/admin-dashboard/settings" className={`flex items-center p-2 rounded-lg hover:bg-teal-700 hover:bg-opacity-75 transition-all duration-200 ${isActive('/admin-dashboard/settings')}`}>
+            <Link to="/settings" className={`flex items-center p-2 rounded-lg hover:bg-teal-700 hover:bg-opacity-75 transition-all duration-200 ${isActive('/settings')}`}>
               <Settings className="mr-3 h-5 w-5" />
               <span>Settings</span>
             </Link>

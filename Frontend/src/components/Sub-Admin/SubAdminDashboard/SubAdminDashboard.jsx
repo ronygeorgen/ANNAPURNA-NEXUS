@@ -4,6 +4,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import { useDispatch, useSelector } from 'react-redux';
 import { logoutUser } from '../../../features/auth/authSlice';
 import { useNavigate, Link } from 'react-router-dom';
+import SubAdminAside from '../SubAdminAside/SubAdminAside';
 
 const data = [
   { name: 'Jan', Stock: 4000, Sales: 2400 },
@@ -78,30 +79,7 @@ function SubAdminDashboard() {
   };
   return (
     <div className="flex h-screen bg-gray-100">
-      <aside className="w-64 bg-teal-500 text-white p-6">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 150" fill="none">
-        <circle cx="50" cy="53" r="40" stroke="#FFF" stroke-width="10"/>
-        <path d="M50 25L75 75H25L50 25Z" fill="#F6AD55"/>
-        <text x="110" y="65" font-family="Arial, sans-serif" font-size="36" font-weight="bold" fill="#F6AD55">ANNAPURNA NEXUS</text>
-      </svg>
-        <nav>
-          <ul className="space-y-2">
-            <li><a href="#" className="flex items-center p-2 bg-teal-600 rounded"><Home className="mr-2" /> Dashboard</a></li>
-            <li><a href="#" className="flex items-center p-2 hover:bg-teal-600 rounded"><CreditCard className="mr-2" /> Registered Cards</a></li>
-            <li><a href="#" className="flex items-center p-2 hover:bg-teal-600 rounded"><ShoppingBag className="mr-2" /> Orders</a></li>
-            <li><a href="#" className="flex items-center p-2 hover:bg-teal-600 rounded"><Package className="mr-2" /> Stock details</a></li>
-            <li><a href="#" className="flex items-center p-2 hover:bg-teal-600 rounded"><Store className="mr-2" /> Ration Shops</a></li>
-            <li><a href="#" className="flex items-center p-2 hover:bg-teal-600 rounded"><Bell className="mr-2" /> Announcements</a></li>
-            <li><a href="#" className="flex items-center p-2 hover:bg-teal-600 rounded"><Phone className="mr-2" /> Contact Admin</a></li>
-            <li><a href="#" className="flex items-center p-2 hover:bg-teal-600 rounded"><User className="mr-2" /> Profile</a></li>
-          </ul>
-        </nav>
-        <div className="mt-auto pt-4 border-t border-teal-400">
-          <a href="#" className="flex items-center p-2 hover:bg-teal-600 rounded text-white" onClick={handleLogout}>
-            <LogOut className="mr-2" /> Logout
-          </a>
-        </div>
-      </aside>
+      <SubAdminAside handleLogout={handleLogout} />
 
       <main className="flex-1 p-8 overflow-auto">
         <div className="flex justify-between items-center mb-8">
