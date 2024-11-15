@@ -1,21 +1,33 @@
-import { configureStore } from "@reduxjs/toolkit";
+import { configureStore, combineReducers } from "@reduxjs/toolkit";
 import { persistStore, persistReducer, FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
 import authReducer from '../features/auth/authSlice';
+import profileReducer from '../features/sub-admin-profile/profileSlice'
 
-
+// Auth persist config
 const persistConfig = {
     key: 'auth',
     storage,
     whitelist: ['user', 'isAuthenticated']
   };
 
+const profilePersistConfig = {
+    key: 'profile',
+    storage,
+    whitelist: ['data']
+}
+
+// Create persisted reducers
 const persistedReducer = persistReducer(persistConfig, authReducer);
+const persistedProfileReducer = persistReducer(profilePersistConfig, profileReducer);
+
+const rootReducers = combineReducers({
+    auth: persistedReducer,
+    profile: persistedProfileReducer,
+});
 
 export  const store = configureStore({
-    reducer: {
-        auth: persistedReducer,
-    },
+    reducer: rootReducers,
     middleware: (getDefaultMiddleware) =>
         getDefaultMiddleware({
             serializableCheck: {

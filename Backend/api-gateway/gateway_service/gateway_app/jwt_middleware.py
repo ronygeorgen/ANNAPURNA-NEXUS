@@ -34,7 +34,7 @@ def jwt_middleware(get_response):
             logger.info("Token decoded successfully.")
             return get_response(request)
         except jwt.ExpiredSignatureError:
-            logger.warning("Token expired.")
+            logger.warning("Token expired. gateway")
             return JsonResponse({'error': 'Token expired'}, status=status.HTTP_401_UNAUTHORIZED)
         except jwt.InvalidTokenError as e:
             # Log specific error for debugging

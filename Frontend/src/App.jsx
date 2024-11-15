@@ -1,6 +1,8 @@
 import React, { useEffect } from 'react';
 import { Routes, Route, useNavigate, Navigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import SignupPage from './pages/Signup';
 import LoginPage from './pages/Login';
 import HomePage from './pages/Home';
@@ -54,6 +56,8 @@ const App = () => {
         {/* catch all route */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+       {/* Toast container to display toast notifications */}
+       <ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
     </PersistGate>
   );
 };

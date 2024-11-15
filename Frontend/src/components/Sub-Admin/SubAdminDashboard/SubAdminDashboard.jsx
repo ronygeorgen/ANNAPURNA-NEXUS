@@ -96,7 +96,7 @@ function SubAdminDashboard() {
             <Settings className="text-gray-500 mr-4" />
             <div className="flex items-center">
               <span className="mr-2 text-sm text-gray-600">Rony</span>
-              <span className="mr-2 text-xs text-gray-400">Sub-Admin</span>
+              {/* <span className="mr-2 text-xs text-gray-400">Sub-Admin</span> */}
               <img src="/api/placeholder/32/32" alt="Profile" className="w-8 h-8 rounded-full" />
             </div>
           </div>

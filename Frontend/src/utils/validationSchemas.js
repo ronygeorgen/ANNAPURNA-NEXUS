@@ -27,3 +27,9 @@ export const RationShopSchema = Yup.object().shape({
     .required('Mobile number is required'),
   location: Yup.string().required('Location is required'),
 });
+
+export const ProfileSchema = Yup.object().shape({
+  shopName: Yup.string().required('Shop name is required'),
+  shopDescription: Yup.string().required('Shop description is required'),
+  location: Yup.string().required('Location is required'),
+});

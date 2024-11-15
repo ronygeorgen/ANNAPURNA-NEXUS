@@ -15,7 +15,7 @@ function SubAdminAside({ handleLogout }) {
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 150" fill="none" className="mb-6">
           <circle cx="50" cy="53" r="40" stroke="#FFF" strokeWidth="10" />
           <path d="M50 25L75 75H25L50 25Z" fill="#F6AD55" />
-          <text x="110" y="65" fontFamily="Arial, sans-serif" fontSize="36" fontWeight="bold" fill="#F6AD55">
+          <text x="110" y="65" fontFamily="Arial, sans-serif" fontSize="36" fontWeight="bold" fill="#FFF">
             ANNAPURNA NEXUS
           </text>
         </svg>

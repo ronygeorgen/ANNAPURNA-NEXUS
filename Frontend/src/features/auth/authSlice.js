@@ -156,24 +156,7 @@ const authSlice = createSlice({
               state.error = action.payload;
               state.isAuthenticated = false;
               state.user = null;
-            })            
-            // .addCase(REHYDRATE, (state, action) => {
-            //     console.log('REHYDRATE action received:', action);
-            //     if (action.payload && action.payload.auth) {
-            //         if (action.payload.auth.accessToken) {
-            //           // console.log('Rehydrated auth state:', action.payload.auth);
-            //           state.user = action.payload.auth.user;
-            //           state.isAuthenticated = true;
-            //           state.isLoading = false;
-            //         } else {
-            //           state.isAuthenticated = false;
-            //           state.user = null;
-            //           state.isLoading = false;
-            //         }
-            //       } else {
-            //         state.isLoading = false;
-            //       }
-            //     });
+            })
     },
 });
 

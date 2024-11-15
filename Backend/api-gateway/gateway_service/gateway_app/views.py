@@ -93,3 +93,50 @@ class RefreshView(APIView):
             return response
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class SubAdminProfileView(APIView):
+    permission_classes = [AllowAny]
+    
+    def get(self, request, *args, **kwargs):
+        try:
+            response = ration_shop.get_sub_admin_profile(request)
+            return response
+        except Exception as e:
+            return Response({'error': str(e)}, status=500)
+    
+    def patch(self, request, *args, **kwargs):
+        try:
+            response = ration_shop.update_sub_admin_profile(request)
+            return response
+        except Exception as e:
+            return Response({'error': str(e)}, status=500)
+
+class SubAdminProfilePictureUploadView(APIView):
+    permission_classes = [AllowAny]
+    
+    def post(self, request, *args, **kwargs):
+        try:
+            response = ration_shop.upload_profile_picture(request)
+            return response
+        except Exception as e:
+            return Response({'error': str(e)}, status=500)
+
+class SubAdminShopImageUploadView(APIView):
+    permission_classes = [AllowAny]
+    
+    def post(self, request, *args, **kwargs):
+        try:
+            response = ration_shop.upload_shop_image(request)
+            return response
+        except Exception as e:
+            return Response({'error': str(e)}, status=500)
+
+class SubAdminShopImageDeleteView(APIView):
+    permission_classes = [AllowAny]
+    
+    def delete(self, request, image_id, *args, **kwargs):
+        try:
+            response = ration_shop.delete_shop_image(request, image_id)
+            return response
+        except Exception as e:
+            return Response({'error': str(e)}, status=500)
