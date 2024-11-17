@@ -17,8 +17,6 @@ class CookieJWTAuthentication(JWTAuthentication):
             return None
         
         try:
-            
-
             validated_token = self.get_validated_token(raw_token)
             user = self.get_user(validated_token)
             return (user, validated_token)
@@ -39,6 +37,33 @@ class CookieJWTAuthentication(JWTAuthentication):
             sub_admin_id=user_id,
         )
         return user
+    
+class UserJWTAuthentication(JWTAuthentication):
+    def authenticate(self, request):
+        access_token = self.get_header(request)
+        raw_token = self.get_raw_token(access_token)
+
+        if not raw_token:
+            return None
+        
+        try:
+            payload = jwt.decode(
+                raw_token,
+                settings.SECRET_KEY,
+                algorithms=['HS256']
+            )
+            return (payload, None)
+        except jwt.ExpiredSignatureError:
+            raise exceptions.AuthenticationFailed('Token has expired')
+        except jwt.InvalidTokenError:
+            raise exceptions.AuthenticationFailed('Invalid token')
+        except Exception as e:
+            raise exceptions.AuthenticationFailed(str(e))
+
+
+
+
+
 
 # class RationShopJWTAuthentication(JWTAuthentication):
 #     def authenticate(self, request):

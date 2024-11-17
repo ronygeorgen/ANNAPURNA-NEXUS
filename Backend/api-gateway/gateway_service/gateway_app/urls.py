@@ -3,7 +3,7 @@ from .views import (RegisterView, LoginView, LogoutView,AdminLoginView,
                     CreateSubAdminView, SubAdminLoginView, CreateRationShopView, 
                     GetSubAdminView, RefreshView, SubAdminProfileView,
                     SubAdminProfilePictureUploadView, SubAdminShopImageUploadView,
-                    SubAdminShopImageDeleteView,)
+                    SubAdminShopImageDeleteView, GetRationShopsAtUserSide)
 urlpatterns = [
     path('user/register/', RegisterView.as_view(), name = 'register'),
     path('user/login/', LoginView.as_view(), name='login'),
@@ -20,4 +20,5 @@ urlpatterns = [
     path('ration-shop/profile/upload_picture/', SubAdminProfilePictureUploadView.as_view()),
     path('ration-shop/profile/upload_shop_image/', SubAdminShopImageUploadView.as_view()),
     path('ration-shop/profile/delete_shop_image/<int:image_id>/', SubAdminShopImageDeleteView.as_view()),
+    path('ration-shop/shops/', GetRationShopsAtUserSide.as_view()),
 ]

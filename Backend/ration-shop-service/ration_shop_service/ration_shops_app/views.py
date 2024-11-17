@@ -7,11 +7,12 @@ from rest_framework import status
 from rest_framework.decorators import action
 from django.db import transaction
 from django.core.cache import cache
-from .authentication import CookieJWTAuthentication
+from .authentication import CookieJWTAuthentication, UserJWTAuthentication
 from .permissions import IsAdmin
 from .models import SubAdminAuth, RationShop, ShopImage
-from .serializers import RationShopProfileSerializer, SubAdminSerializer, RationShopSerializer
+from .serializers import RationShopProfileSerializer, SubAdminSerializer, RationShopSerializer, PublicShopDisplaySerializer
 from rest_framework.parsers import MultiPartParser, FormParser
+from django.db import models
 
 class SubAdminListView(APIView):
     authentication_classes = [CookieJWTAuthentication]
@@ -162,4 +163,28 @@ class SubAdminShopImageDelete(APIView):
     
 
 class ShopDisplayAtUser(APIView):
-    pass
+    authentication_classes = [UserJWTAuthentication]
+
+    def get(self, request):
+        try:
+            shops = RationShop.objects.filter(
+                is_active=True
+                ).select_related('owner').prefetch_related(
+                    models.Prefetch(
+                        'images',
+                        queryset=ShopImage.objects.filter(is_active=True)
+                    )
+                )
+            
+            serializer = PublicShopDisplaySerializer(
+                shops,
+                many=True,
+                context={'request':request}
+            )
+            print(serializer.data)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response(
+                {'error': str(e)}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

@@ -127,3 +127,43 @@ class RationShopProfileSerializer(serializers.ModelSerializer):
             }
             for img in shop_images
         ]
+
+class PublicShopDisplaySerializer(serializers.ModelSerializer):
+    owner_name = serializers.CharField(source='owner.owner_name')
+    profile_image = serializers.SerializerMethodField()
+    shop_images = serializers.SerializerMethodField()
+
+    class Meta:
+        model = RationShop
+        fields = [
+            'shop_id', 
+            'name',
+            'location',
+            'description',
+            'is_open',
+            'mobile_number',
+            'owner_name',
+            'profile_image',
+            'shop_images'
+        ]
+
+    def get_profile_image(self, obj):
+        profile_pic = obj.images.filter(
+            image_type='PROFILE', 
+            is_active=True
+        ).first()
+        if profile_pic:
+            return self.context['request'].build_absolute_uri(
+                profile_pic.image.url
+            )
+        return None
+    
+    def get_shop_images(self, obj):
+        shop_images = obj.images.filter(
+            image_type='SHOP',
+            is_active=True
+        )
+        return [
+            self.context['request'].build_absolute_uri(img.image.url)
+            for img in shop_images
+        ]
