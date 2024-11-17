@@ -53,6 +53,7 @@ def get_sub_admins(request):
     if request.method == 'GET':
         try:
             access_token = request.COOKIES.get('access_token')
+
             # print('access_token:',access_token)
             if not access_token:
                 return JsonResponse({'error': 'Authorization credentials not found'}, status=401)
@@ -75,6 +76,7 @@ def get_sub_admins(request):
 
                 # Forward any new cookies from user service response
                 for cookie in response.cookies:
+                    print('cookie name=',cookie.name)
                     gateway_response.set_cookie(
                         key=cookie.name,
                         value=cookie.value,
@@ -82,6 +84,7 @@ def get_sub_admins(request):
                         secure=cookie.secure,
                         samesite=cookie.get_nonstandard_attr('SameSite')
                     )
+                print('gateway_response',gateway_response)
 
                 return gateway_response
 

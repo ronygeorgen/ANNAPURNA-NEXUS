@@ -5,6 +5,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { logoutUser } from '../../../features/auth/authSlice';
 import { useNavigate, Link } from 'react-router-dom';
 import SubAdminAside from '../SubAdminAside/SubAdminAside';
+import { toast } from 'react-toastify';
+
 
 const data = [
   { name: 'Jan', Stock: 4000, Sales: 2400 },
@@ -73,7 +75,10 @@ function SubAdminDashboard() {
     try {
         await dispatch(logoutUser()).unwrap();
         navigate('/sub-admin-login');
+        toast.success('Logout successful!')
     } catch (error) {
+      const errorMessage = error.non_field_errors ? error.non_field_errors[0] : 'An error occured';
+        toast.error(`Logout failed: ${errorMessage} `)
         console.error("Logout failed", error);
     }
   };

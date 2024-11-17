@@ -10,6 +10,8 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import AdminAside from '../AdminAside/AdminAside';
 import AdminHeader from '../AdminHeader/AdminHeader';
+import { toast } from 'react-toastify';
+
 
 function SubAdminManagement() {
   const [subAdmins, setSubAdmins] = useState([]);
@@ -20,7 +22,10 @@ function SubAdminManagement() {
     try {
         await dispatch(logoutUser()).unwrap();
         navigate('/admin-login');
+        toast.success('Logout successful!')
     } catch (error) {
+      const errorMessage = error.non_field_errors ? error.non_field_errors[0] : 'An error occured';
+      toast.error(`Login failed: ${errorMessage} `)
         console.error("Logout failed", error);
     }
   };
@@ -35,8 +40,10 @@ function SubAdminManagement() {
       setSubAdmins([...subAdmins, newSubAdmin]);
       resetForm();
       setStatus({ success: 'Sub-admin created successfully!' });
+      toast.success('Sub-admin created successfully!')
     } catch (error) {
       setStatus({ error: error.response.data.error || 'Failed to create sub-admin' });
+      toast.error(error?.response?.data?.error || 'Failed to create sub-admin')
     } finally {
       setSubmitting(false);
     }
@@ -107,12 +114,12 @@ function SubAdminManagement() {
                   <Plus size={18} className="mr-2" />
                   {isSubmitting ? 'Creating...' : 'Create Sub-Admin'}
                 </Button>
-                {status && status.success && (
+                {/* {status && status.success && (
                   <div className="mt-2 text-green-400">{status.success}</div>
-                )}
-                {status && status.error && (
+                )} */}
+                {/* {status && status.error && (
                   <div className="mt-2 text-red-400">{status.error}</div>
-                )}
+                )} */}
               </Form>
             )}
           </Formik>

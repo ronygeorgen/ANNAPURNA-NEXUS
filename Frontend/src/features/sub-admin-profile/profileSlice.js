@@ -18,7 +18,8 @@ export const updateProfile = createAsyncThunk(
     async (profileData, { rejectWithValue }) => {
       try {
         const response = await api.patch('/ration-shop/profile/update/', profileData, { withCredentials: true });
-        return response.data;
+        const profileResponse = await api.get('/ration-shop/profile/');
+        return profileResponse.data;
       } catch (error) {
         return rejectWithValue(error.response.data);
       }
@@ -37,12 +38,14 @@ export const updateProfile = createAsyncThunk(
             'Content-Type': 'multipart/form-data',
           },
         });
-        return response.data;
-      } catch (error) {
-        return rejectWithValue(error.response.data);
-      }
+        // After successful upload, update the profile data in the state
+      const profileResponse = await api.get('/ration-shop/profile/');
+      return profileResponse.data;
+    } catch (error) {
+      return rejectWithValue(error.response.data);
     }
-  );
+  }
+);
 
 
   export const uploadShopImage = createAsyncThunk(
@@ -69,8 +72,8 @@ export const updateProfile = createAsyncThunk(
     'profile/deleteShopImage',
     async (imageId, { rejectWithValue }) => {
       try {
-        const response = await api.delete(`/ration-shop/profile/delete_shop_image/${imageId}/`, { withCredentials: true });
-        return response.data;
+        await api.delete(`/ration-shop/profile/delete_shop_image/${imageId}/`, { withCredentials: true });
+        return imageId;
       } catch (error) {
         return rejectWithValue(error.response.data);
       }
@@ -81,11 +84,12 @@ export const updateProfile = createAsyncThunk(
     name: 'profile',
     initialState: {
         data: {
+            ownerEmail:'',
             ownerName: '',
             shopName: '',
             shopDescription: '',
             location: '',
-            profilePicture: '',
+            profilePicture: null,
             shopImages: [],
             isOpen: false,
         },
@@ -110,7 +114,18 @@ export const updateProfile = createAsyncThunk(
           })
           .addCase(fetchProfile.fulfilled, (state, action) => {
             state.loading = false;
-            state.data = action.payload;
+            state.data = {
+              ownerEmail: action.payload.owner_details.email,
+              ownerName: action.payload.owner_details.owner_name,
+              shopName: action.payload.shopName,
+              shopDescription: action.payload.shopDescription,
+              location: action.payload.location,
+              profilePicture: action.payload.profile_picture,
+              shopImages: action.payload.shop_images,
+              isOpen: action.payload.isOpen,
+            };
+            console.log('payload data=',state.data);
+            
           })
           .addCase(fetchProfile.rejected, (state, action) => {
             state.loading = false;
@@ -124,18 +139,23 @@ export const updateProfile = createAsyncThunk(
           })
           .addCase(updateProfile.fulfilled, (state, action) => {
             state.updateStatus = 'succeeded';
-            state.data = { ...state.data, ...action.payload };
+            state.data = {
+              ownerEmail: action.payload.owner_details.email,
+              ownerName: action.payload.owner_details.owner_name,
+              shopName: action.payload.shopName,
+              shopDescription: action.payload.shopDescription,
+              location: action.payload.location,
+              profilePicture: action.payload.profile_picture,
+              shopImages: action.payload.shop_images,
+              isOpen: action.payload.isOpen,
+            };
+
           })
           .addCase(updateProfile.rejected, (state, action) => {
             state.updateStatus = 'failed';
             state.error = action.payload;
           })
           
-          // Update Shop Status
-          // .addCase(updateShopStatus.fulfilled, (state, action) => {
-          //   state.data.isOpen = action.payload.isOpen;
-          // })
-        
           // Upload Profile Picture
           .addCase(uploadProfilePicture.pending, (state) => {
             state.uploadStatus = 'loading';
@@ -143,7 +163,16 @@ export const updateProfile = createAsyncThunk(
           })
           .addCase(uploadProfilePicture.fulfilled, (state, action) => {
             state.uploadStatus = 'succeeded';
-            state.data.profilePicture = action.payload.profilePicture;
+            state.data = {
+              ownerEmail: action.payload.owner_details.email,
+              ownerName: action.payload.owner_details.owner_name,
+              shopName: action.payload.shopName,
+              shopDescription: action.payload.shopDescription,
+              location: action.payload.location,
+              profilePicture: action.payload.profile_picture,
+              shopImages: action.payload.shop_images,
+              isOpen: action.payload.isOpen,
+            };
           })
           .addCase(uploadProfilePicture.rejected, (state, action) => {
             state.uploadStatus = 'failed';
@@ -157,7 +186,11 @@ export const updateProfile = createAsyncThunk(
           })
           .addCase(uploadShopImage.fulfilled, (state, action) => {
             state.uploadStatus = 'succeeded';
-            state.data.shopImages.push(action.payload.image);
+            // Add the new image to the array
+            state.data.shopImages.push({
+              id: action.payload.id,
+              url: action.payload.url
+            });
           })
           .addCase(uploadShopImage.rejected, (state, action) => {
             state.uploadStatus = 'failed';

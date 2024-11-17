@@ -7,22 +7,18 @@ import SubAdminAside from '../SubAdminAside/SubAdminAside'
 import { logoutUser } from '../../../features/auth/authSlice';
 import ProfilePictureUpload from '../SubAdminProfilePictureUpload/SubAdminProfilePictureUpload'
 import { fetchProfile, updateProfile, uploadProfilePicture, uploadShopImage, deleteShopImage, resetStatus } from '../../../features/sub-admin-profile/profileSlice'
-import { toast } from 'react-hot-toast';
+import { toast } from 'react-toastify';
 import { ProfileSchema } from '../../../utils/validationSchemas'
 
 function SubAdminProfile() {
   const [isEditing, setIsEditing] = useState(false)
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  
-  // const [isOpen, setIsOpen] = useState(true)
-  // const [images, setImages] = useState([])
-  // const dispatch = useDispatch()
-  // const navigate = useNavigate()
-  // const [profilePicture, setProfilePicture] = useState(null)
 
    // Get profile data from Redux store
-   const { data: profile, status, error } = useSelector((state) => state.profile);
+   const { data: profile,uploadStatus, status, error } = useSelector((state) => state.profile);
+
+  
 
   // Fetch profile data on component mount
   useEffect(() => {
@@ -39,7 +35,14 @@ function SubAdminProfile() {
 
   const handleProfileSubmit = async (values) => {
     try {
-      await dispatch(updateProfile(values)).unwrap();
+      const updateData = {
+        shopName: values.shopName,
+        shopDescription: values.shopDescription,
+        location: values.location,
+        ownerName: values.ownerName,
+        isOpen: profile.isOpen,
+      };
+      await dispatch(updateProfile(updateData)).unwrap();
       setIsEditing(false);
       toast.success('Profile updated successfully');
     } catch (error) {
@@ -47,14 +50,17 @@ function SubAdminProfile() {
     }
   };
 
-  // const handleShopStatusToggle = async () => {
-  //   try {
-  //     await dispatch(updateShopStatus(!profile.isOpen)).unwrap();
-  //     toast.success(`Shop is now ${profile.isOpen ? 'closed' : 'open'}`);
-  //   } catch (error) {
-  //     toast.error('Failed to update shop status');
-  //   }
-  // };
+ 
+
+  const handleToggleShopStatus = async () => {
+    try {
+      const updatedData = { isOpen: !profile.isOpen }; // Toggle the isOpen value
+      await dispatch(updateProfile(updatedData)).unwrap();
+      toast.success(`Shop is now ${!profile.isOpen ? 'open' : 'closed'}`);
+    } catch (error) {
+      toast.error('Failed to update shop status');
+    }
+  };
 
   const handleProfilePictureUpload = async (file) => {
     try {
@@ -64,13 +70,6 @@ function SubAdminProfile() {
       toast.error('Failed to upload profile picture');
     }
   };
-
-  // const initialValues = {
-  //   ownerName: 'Rony George',
-  //   shopName: 'City Ration Store',
-  //   shopDescription: 'A well-stocked ration shop serving the community since 2010.',
-  //   location: '123 Main Street, City Center'
-  // }
 
   const handleShopImageUpload = async (file) => {
     try {
@@ -103,10 +102,79 @@ function SubAdminProfile() {
     try {
       await dispatch(logoutUser()).unwrap()
       navigate('/sub-admin-login')
+      toast.success('Logout successful!')
     } catch (error) {
+      const errorMessage = error.non_field_errors ? error.non_field_errors[0] : 'An error occured';
+      toast.error(`Login failed: ${errorMessage} `)
       console.error("Logout failed", error)
     }
   }
+
+  const renderShopImages = () => {
+    return (
+      <div className="grid grid-cols-3 gap-4 mb-4">
+        {profile?.shopImages && profile.shopImages.length > 0 ? (
+          profile.shopImages.map((image) => (
+            <div key={image.id} className="relative">
+              <img
+                src={image.url}
+                alt="shop"
+                className="w-full h-48 object-cover rounded"
+              />
+              <button
+                type="button"
+                onClick={() => handleShopImageDelete(image.id)}
+                disabled={uploadStatus === 'loading'}
+                className={`absolute top-2 right-2 ${
+                  uploadStatus === 'loading' 
+                    ? 'bg-gray-400' 
+                    : 'bg-red-500 hover:bg-red-600'
+                } text-white p-1 rounded-full transition-colors`}
+              >
+                {uploadStatus === 'loading' ? '...' : '×'}
+              </button>
+            </div>
+          ))
+        ) : (
+          <div className="col-span-3 text-center py-8 bg-gray-50 rounded-lg">
+            <p className="text-gray-500 mb-2">No shop images uploaded yet</p>
+          </div>
+        )}
+
+        {(!profile?.shopImages || profile.shopImages.length < 3) && (
+          <label className={`border-2 border-dashed border-gray-300 rounded flex items-center justify-center h-48 ${
+            uploadStatus === 'loading' 
+              ? 'cursor-not-allowed opacity-50' 
+              : 'cursor-pointer hover:border-teal-500'
+          } transition-colors duration-200`}>
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              disabled={uploadStatus === 'loading'}
+              onChange={(e) => {
+                if (e.target.files?.[0]) {
+                  handleShopImageUpload(e.target.files[0]);
+                }
+              }}
+            />
+            <div className="text-center">
+              <Upload className="mx-auto text-gray-400 mb-2" />
+              <p className="text-sm text-gray-500">Upload Image</p>
+              <p className="text-xs text-gray-400 mt-1">
+                {profile?.shopImages ? 
+                  `${3 - (profile.shopImages.length)} slots remaining` : 
+                  'Upload up to 3 images'
+                }
+              </p>
+            </div>
+          </label>
+        )}
+      </div>
+    );
+  };
+
+
 
   return (
     <div className="flex h-screen bg-gray-100">
@@ -128,9 +196,9 @@ function SubAdminProfile() {
             </div>
             <Settings className="text-gray-500 mr-4" />
             <div className="flex items-center">
-              <span className="mr-2 text-sm text-gray-600">{profile.ownerName}</span>
+              <span className="mr-2 text-sm text-gray-600">{profile?.ownerName || profile?.ownerEmail}</span>
               {/* <span className="mr-2 text-xs text-gray-400">Sub-Admin</span> */}
-              <img src={profile.profilePicture || "/api/placeholder/32/32"}  alt="Profile" className="w-8 h-8 rounded-full" />
+              <img src={profile?.profilePicture?.url || "/api/placeholder/32/32"}  alt="Profile" className="w-8 h-8 rounded-full object-cover" />
             </div>
           </div>
         </div>
@@ -139,30 +207,45 @@ function SubAdminProfile() {
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center">
               <ProfilePictureUpload
-                currentImage={profile.profilePicture}
+                currentImage={profile?.profilePicture?.url || "/api/placeholder/100/100"}
                 onImageChange={handleProfilePictureUpload}
               />
               <div className="ml-6">
-                <h3 className="text-2xl font-bold">{profile.ownerName}</h3>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-2xl font-bold">
+                    {profile?.ownerName || profile?.ownerEmail}
+                  </h3>
+                  {!isEditing && (
+                    <button
+                      type="button"
+                      onClick={() => setIsEditing(true)}
+                      className="text-teal-500 hover:text-teal-600"
+                    >
+                      <Edit2 size={18} />
+                    </button>
+                  )}
+                </div>
                 <p className="text-gray-500">Shop Owner</p>
               </div>
             </div>
-            <button
-              // onClick={handleShopStatusToggle}
-              className={`px-4 py-2 rounded-full flex items-center ${
-                profile.isOpen ? 'bg-green-500' : 'bg-red-500'
-              } text-white`}
-            >
-              <Power className="mr-2" />
-              {profile.isOpen ? 'Open' : 'Closed'}
+              <button
+                onClick={handleToggleShopStatus} 
+                className={`px-4 py-2 rounded-full flex items-center ${
+                  profile?.isOpen ? 'bg-green-500' : 'bg-red-500'
+                } text-white`}
+              >
+                <Power className="mr-2" />
+                {profile?.isOpen ? 'Open' : 'Closed'}
             </button>
           </div>
 
+
           <Formik
             initialValues={{
-              shopName: profile.shopName,
-              shopDescription: profile.shopDescription,
-              location: profile.location,
+              ownerName:profile?.owner_details?.owner_name || '',
+              shopName: profile?.shopName || '',
+              shopDescription: profile?.shopDescription || '',
+              location: profile?.location || '',
             }}
             validationSchema={ProfileSchema}
             onSubmit={handleProfileSubmit}
@@ -170,7 +253,21 @@ function SubAdminProfile() {
           >
             {({ values, errors, touched }) => (
               <Form>
+                
                 <div className="space-y-6">
+                  {isEditing && (
+                    <div>
+                      <label className="block text-gray-700 font-bold mb-2">Owner Name</label>
+                      <Field
+                        name="ownerName"
+                        className="w-full p-2 border rounded focus:ring-2 focus:ring-teal-500"
+                        placeholder={profile?.ownerName}
+                      />
+                      {errors.ownerName && touched.ownerName && (
+                        <div className="text-red-500 text-sm mt-1">{errors.ownerName}</div>
+                      )}
+                    </div>
+                  )}
                   <div>
                     <label className="block text-gray-700 font-bold mb-2">Shop Name</label>
                     {isEditing ? (
@@ -186,13 +283,7 @@ function SubAdminProfile() {
                     ) : (
                       <div className="flex items-center justify-between">
                         <p className="text-gray-600">{values.shopName}</p>
-                        <button
-                          type="button"
-                          onClick={() => setIsEditing(true)}
-                          className="text-teal-500 hover:text-teal-600"
-                        >
-                          <Edit2 size={18} />
-                        </button>
+                        
                       </div>
                     )}
                   </div>
@@ -238,43 +329,7 @@ function SubAdminProfile() {
 
                   <div>
                     <label className="block text-gray-700 font-bold mb-2">Shop Images</label>
-                    <div className="grid grid-cols-3 gap-4 mb-4">
-                      {profile.shopImages.map((image) => (
-                        <div key={image.id} className="relative">
-                          <img
-                            src={image.url}
-                            // alt={`Shop ${index + 1}`}
-                            alt="shop"
-                            className="w-full h-48 object-cover rounded"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => handleShopImageDelete(image.id)}
-                            className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full"
-                          >
-                            ×
-                          </button>
-                        </div>
-                      ))}
-                      {profile.shopImages.length < 3 && (
-                        <label className="border-2 border-dashed border-gray-300 rounded flex items-center justify-center h-48 cursor-pointer hover:border-teal-500">
-                          <input
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            onChange={(e) => {
-                              if (e.target.files?.[0]) {
-                                handleShopImageUpload(e.target.files[0]);
-                              }
-                            }}
-                          />
-                          <div className="text-center">
-                            <Upload className="mx-auto text-gray-400 mb-2" />
-                            <p className="text-sm text-gray-500">Upload Image</p>
-                          </div>
-                        </label>
-                      )}
-                    </div>
+                    {renderShopImages()}
                   </div>
 
                   {isEditing && (

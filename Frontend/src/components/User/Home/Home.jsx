@@ -1,23 +1,26 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
 import { logoutUser } from '../../../features/auth/authSlice'
 import Button from '../../common/Button';
 import { useNavigate, Link } from 'react-router-dom';
 import  coverImage from '../../../assets/Cover.jpg'
 import NavBar from '../NavBar/NavBar';
+import { toast } from 'react-toastify';
+
 
 export default function Home() {
 
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
-
     const handleLogout = async () => {
         try {
             await dispatch(logoutUser()).unwrap();
             navigate('/login');
+            toast.success('Logged out successfully!')
         } catch (error) {
-            console.error("Logout failed", error);
+          
+            toast.error("Logout failed", error);
         }
     };
 

@@ -7,6 +7,8 @@ import Button from '../../common/Button';
 import GradientBackground from '../../common/GradientBackground';
 import { loginuser } from '../../../features/auth/authSlice';
 import { useNavigate, Link } from 'react-router-dom';
+import { toast } from 'react-toastify';
+
 
 const Login = () => {
   const dispatch = useDispatch();
@@ -34,11 +36,15 @@ const Login = () => {
                 console.log('Login response:', response);
                 if (response.user) {
                   navigate('/home');
+                  toast.success('Login successful')
                 } else {
+                  toast.error('Login successful but no user data received')
                   console.error('Login successful but no user data received');
                 }
               })
               .catch((error) => {
+                const errorMessage = error.non_field_errors ? error.non_field_errors[0] : 'An error occured';
+                toast.error(`Login failed: ${errorMessage} `)
                 console.error('Login failed:', error);
               })
               .finally(() => {

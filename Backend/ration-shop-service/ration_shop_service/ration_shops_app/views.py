@@ -7,14 +7,14 @@ from rest_framework import status
 from rest_framework.decorators import action
 from django.db import transaction
 from django.core.cache import cache
-from .authentication import AdminTokenAuthentication
+from .authentication import CookieJWTAuthentication
 from .permissions import IsAdmin
 from .models import SubAdminAuth, RationShop, ShopImage
 from .serializers import RationShopProfileSerializer, SubAdminSerializer, RationShopSerializer
 from rest_framework.parsers import MultiPartParser, FormParser
 
 class SubAdminListView(APIView):
-    authentication_classes = [AdminTokenAuthentication]
+    authentication_classes = [CookieJWTAuthentication]
     permission_classes = [IsAuthenticated, IsAdmin]
 
     def get(self, request):
@@ -25,7 +25,8 @@ class SubAdminListView(APIView):
 class RationShopViewSet(ModelViewSet):
     serializer_class = RationShopSerializer
     permission_classes = [IsAuthenticated, IsAdmin]
-    authentication_classes = [AdminTokenAuthentication]
+    authentication_classes = [CookieJWTAuthentication]
+
 
     def get_queryset(self):
         return RationShop.objects.all()
@@ -36,7 +37,7 @@ class RationShopViewSet(ModelViewSet):
             try:
                 with transaction.atomic():
                     # Get the admin from SubAdminAuth
-                    admin = SubAdminAuth.objects.get(sub_admin_id=request.user.admin_id)
+                    admin = SubAdminAuth.objects.get(sub_admin_id=request.user.sub_admin_id)
                     
                     # Let the serializer handle owner assignment
                     shop = serializer.save(created_by=admin)
@@ -72,9 +73,9 @@ class RationShopViewSet(ModelViewSet):
 
 
 class SubAdminProfileView(APIView):
-    print('reacched here')
+    authentication_classes = [CookieJWTAuthentication]
     permission_classes = [IsAuthenticated]
-    parser_classes = (MultiPartParser, FormParser)
+    # parser_classes = (MultiPartParser, FormParser)
 
     def get(self, request):
         shop = get_object_or_404(RationShop, owner=request.user)
@@ -82,26 +83,18 @@ class SubAdminProfileView(APIView):
         return Response(serializer.data)
     
     def patch(self, request):
-        # Update user's owner name if provided
-        if 'owner_name' in request.data:
-            sub_admin = request.user
-            sub_admin.owner_name = request.data['owner_name']
-            sub_admin.save()
-        
-        # Update shop details if provided
         shop = get_object_or_404(RationShop, owner=request.user)
-        shop_data = {field: request.data[field] for field in ['shopName', 'shopDescription', 'location', 'isOpen'] if field in request.data}
-
-        if shop_data:
-            serializer = RationShopProfileSerializer(shop, data=shop_data, partial=True, context={'request': request})
-            if serializer.is_valid():
-                serializer.save()
-            else:
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-        return Response(RationShopProfileSerializer(shop, context={'request': request}).data)
+        print('request data in views:',request.data)
+        serializer = RationShopProfileSerializer(shop, data=request.data, partial=True, context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        print("Validation errors:", serializer.errors)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
 
 class SubAdminProfilePictureUpload(APIView):
+    authentication_classes = [CookieJWTAuthentication]
     permission_classes = [IsAuthenticated]
     parser_classes = (MultiPartParser, FormParser)
 
@@ -110,26 +103,25 @@ class SubAdminProfilePictureUpload(APIView):
         
         if 'image' not in request.FILES:
             return Response({'error': 'No image provided'}, status=status.HTTP_400_BAD_REQUEST)
-
-        # Deactivate existing profile picture if any
-        ShopImage.objects.filter(
-            shop=shop,
-            image_type='PROFILE',
-            is_active=True
-        ).update(is_active=False)
+        
+        shop.images.filter(image_type='PROFILE', is_active=True).update(is_active=False)
 
         # Add new profile picture
-        ShopImage.objects.create(
+        profile_image = ShopImage.objects.create(
             shop=shop,
             image=request.FILES['image'],
             image_type='PROFILE',
             is_active=True
         )
 
-        serializer = RationShopProfileSerializer(shop, context={'request': request})
-        return Response(serializer.data)
+        
+        return Response({
+            'id': profile_image.id,
+            'url': request.build_absolute_uri(profile_image.image.url)
+        })
 
 class SubAdminShopImageUpload(APIView):
+    authentication_classes = [CookieJWTAuthentication]
     permission_classes = [IsAuthenticated]
     parser_classes = (MultiPartParser, FormParser)
 
@@ -142,17 +134,22 @@ class SubAdminShopImageUpload(APIView):
         if shop.images.filter(image_type='SHOP', is_active=True).count() >= 3:
             return Response({'error': 'Maximum 3 shop images allowed'}, status=status.HTTP_400_BAD_REQUEST)
 
-        ShopImage.objects.create(
+   
+
+        shop_image = ShopImage.objects.create(
             shop=shop,
             image=request.FILES['image'],
             image_type='SHOP',
             is_active=True
         )
 
-        serializer = RationShopProfileSerializer(shop, context={'request': request})
-        return Response(serializer.data)
+        return Response({
+            'id': shop_image.id,
+            'url': request.build_absolute_uri(shop_image.image.url)
+        })
 
 class SubAdminShopImageDelete(APIView):
+    authentication_classes = [CookieJWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def delete(self, request, image_id):
@@ -162,152 +159,5 @@ class SubAdminShopImageDelete(APIView):
         image.is_active = False
         image.save()
 
-        serializer = RationShopProfileSerializer(shop, context={'request': request})
-        return Response(serializer.data)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# class SubAdminProfileView(APIView):
-#     permission_classes = [IsAuthenticated]
-#     parser_classes = (MultiPartParser, FormParser)
-
-#     def get(self, request):
-#         shop = get_object_or_404(RationShop, owner=request.user)
-#         serializer = RationShopProfileSerializer(shop, context={'request':request})
-#         return Response(serializer.data)
+        return Response({'id': image_id})
     
-#     def patch(self, request):
-#         # Update user's owner name if provided
-#         if 'owner_name' in request.data:
-#             sub_admin = request.user
-#             sub_admin.owner_name = request.data['owner_name']
-#             sub_admin.save()
-        
-#          # Update shop details if provided
-#         shop = get_object_or_404(RationShop, owner=request.user)
-#         shop_data = {field: request.data[field] for field in ['shopName', 'shopDescription', 'location', 'isOpen'] if field in request.data}
-
-#         if shop_data:
-#             serializer = RationShopProfileSerializer(shop, data=shop_data, partial=True, context={'request': request})
-#             if serializer.is_valid():
-#                 serializer.save()
-#             else:
-#                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-#         # Return updated shop profile data
-#         return Response(RationShopProfileSerializer(shop, context={'request': request}).data)
-    
-#     @action(detail=False, methods=['POST'])
-#     def upload_profile_picture(self, request):
-#         shop = get_object_or_404(RationShop, owner=request.user)
-        
-#         if 'image' not in request.FILES:
-#             return Response({'error': 'No image provided'}, status=status.HTTP_400_BAD_REQUEST)
-
-#         # Deactivate existing profile picture if any
-#         ShopImage.objects.filter(
-#             shop=shop,
-#             image_type='PROFILE',
-#             is_active=True
-#         ).update(is_active=False)
-
-#         # Add new profile picture
-#         ShopImage.objects.create(
-#             shop=shop,
-#             image=request.FILES['image'],
-#             image_type='PROFILE',
-#             is_active=True
-#         )
-
-#         # Return updated profile data
-#         serializer = RationShopProfileSerializer(shop, context={'request': request})
-#         return Response(serializer.data)
-    
-#     @action(detail=False, methods=['POST'])
-#     def upload_shop_image(self, request):
-#         shop = get_object_or_404(RationShop, owner=request.user)
-        
-#         if 'image' not in request.FILES:
-#             return Response({'error': 'No image provided'}, status=status.HTTP_400_BAD_REQUEST)
-
-#         # Ensure the limit of 3 active shop images
-#         if shop.images.filter(image_type='SHOP', is_active=True).count() >= 3:
-#             return Response({'error': 'Maximum 3 shop images allowed'}, status=status.HTTP_400_BAD_REQUEST)
-
-#         # Create a new shop image
-#         ShopImage.objects.create(
-#             shop=shop,
-#             image=request.FILES['image'],
-#             image_type='SHOP',
-#             is_active=True
-#         )
-
-#         # Return updated shop data
-#         serializer = RationShopProfileSerializer(shop, context={'request': request})
-#         return Response(serializer.data)
-    
-#     @action(detail=False, methods=['DELETE'])
-#     def delete_shop_image(self, request, image_id):
-#         shop = get_object_or_404(RationShop, owner=request.user)
-#         image = get_object_or_404(ShopImage, id=image_id, shop=shop)
-        
-#         # Mark image as inactive
-#         image.is_active = False
-#         image.save()
-
-#         # Return updated shop data
-#         serializer = RationShopProfileSerializer(shop, context={'request': request})
-#         return Response(serializer.data)
