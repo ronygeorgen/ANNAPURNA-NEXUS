@@ -75,7 +75,6 @@ class RationShopViewSet(ModelViewSet):
 class SubAdminProfileView(APIView):
     authentication_classes = [CookieJWTAuthentication]
     permission_classes = [IsAuthenticated]
-    # parser_classes = (MultiPartParser, FormParser)
 
     def get(self, request):
         shop = get_object_or_404(RationShop, owner=request.user)
@@ -161,3 +160,6 @@ class SubAdminShopImageDelete(APIView):
 
         return Response({'id': image_id})
     
+
+class ShopDisplayAtUser(APIView):
+    pass
