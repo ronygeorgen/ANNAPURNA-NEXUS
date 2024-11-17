@@ -2,6 +2,7 @@
 venv/
 Backend/api-gateway/venvapi/
 
+Backend/ration-shop-service/ration_shop_service/media/
 
 # Python cache files
 __pycache__/
