@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Routes, Route, useNavigate, Navigate } from 'react-router-dom'
+import { Routes, Route,useLocation, useNavigate, Navigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -19,6 +19,8 @@ import SubAdminDashboardPage from './pages/SubAdminDashboard';
 import SubAdminProtectedRoute from './components/protectedRoute/SubAdminProtectedRoute';
 import CreateRationShopPage from './pages/CreateRationShops';
 import SubAdminProfilePage from './pages/SubAdminProfile';
+import SelectedShopPage from './pages/SelectedShop';
+import RationCardRegistrationFormPage from './pages/RationCardRegistrationForm';
 
 const App = () => {
   const { isAuthenticated, user } = useSelector((state) => state.auth);
@@ -28,8 +30,23 @@ const App = () => {
   
   const isRegularUser = isFullyAuthenticated && !user.is_superadmin && !user.is_subadmin;
 
+  function ScrollToTop() {
+    const { pathname } = useLocation();
+
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, [pathname]);
+
+    // useEffect(() => {
+    //   window.scrollTo(0, 0)
+    // }, []);
+
+    return null;
+  }
+
   return (
     <PersistGate loading={null} persistor={persistor}>
+      <ScrollToTop />
       <Routes>
         <Route path="/" element={ 
           isAdmin ? <Navigate to="/admin-dashboard" replace /> : 
@@ -41,6 +58,8 @@ const App = () => {
         <Route path="/signup"  element={<GuestRoute> <SignupPage /> </GuestRoute>} />
         <Route path="/login" element={<GuestRoute> <LoginPage /> </GuestRoute>} />
         <Route path="/home" element={<ProtectedRoute allowAdmin={false} allowSubAdmin={false}> <HomePage /> </ProtectedRoute>} />
+        <Route path="/home/selected-shop/" element={<ProtectedRoute allowAdmin={false} allowSubAdmin={false}> <SelectedShopPage /> </ProtectedRoute>} />
+        <Route path="/home/ration-card-registration-form/" element={<ProtectedRoute allowAdmin={false} allowSubAdmin={false}> <RationCardRegistrationFormPage /> </ProtectedRoute>} />
           
           {/* sub-admin routes */}
         <Route path="/sub-admin-login" element={<GuestRoute> <SubAdminLoginPage /> </GuestRoute>} />

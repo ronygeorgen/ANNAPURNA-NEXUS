@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
     'ration_shops_app',
+    'ration_cards_app',
 ]
 
 MIDDLEWARE = [
