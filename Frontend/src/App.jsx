@@ -21,6 +21,7 @@ import CreateRationShopPage from './pages/CreateRationShops';
 import SubAdminProfilePage from './pages/SubAdminProfile';
 import SelectedShopPage from './pages/SelectedShop';
 import RationCardRegistrationFormPage from './pages/RationCardRegistrationForm';
+import SubAdminCardListPage from './pages/SubAdminCardList';
 
 const App = () => {
   const { isAuthenticated, user } = useSelector((state) => state.auth);
@@ -65,6 +66,7 @@ const App = () => {
         <Route path="/sub-admin-login" element={<GuestRoute> <SubAdminLoginPage /> </GuestRoute>} />
         <Route path="/sub-admin-dashboard" element={<SubAdminProtectedRoute><SubAdminDashboardPage /></SubAdminProtectedRoute>} />
         <Route path="/sub-admin-profile" element={<SubAdminProtectedRoute><SubAdminProfilePage /></SubAdminProtectedRoute>} />
+        <Route path="/sub-admin-card-list" element={<SubAdminProtectedRoute><SubAdminCardListPage /></SubAdminProtectedRoute>} />
         
           {/* Admin routes */}
         <Route path="/admin-login" element={<GuestRoute> <AdminLoginPage /> </GuestRoute>} />

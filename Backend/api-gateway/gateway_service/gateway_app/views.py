@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from .user_srvc import auth
 from .ration_shop_srvc import ration_shop
+from .ration_card_srvc import ration_card
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 import json
 
@@ -147,6 +148,26 @@ class GetRationShopsAtUserSide(APIView):
     def get(self, request, *args, **kwargs):
         try:
             response = ration_shop.get_all_shops(request)
+            return response
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class CreateRationCard(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        try:
+            response = ration_card.register_ration_card(request)
+            return response
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class GetRationCards(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request, *args, **kwargs):
+        try:
+            response = ration_card.get_ration_cards(request)
             return response
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

@@ -105,7 +105,7 @@ function SubAdminProfile() {
       toast.success('Logout successful!')
     } catch (error) {
       const errorMessage = error.non_field_errors ? error.non_field_errors[0] : 'An error occured';
-      toast.error(`Login failed: ${errorMessage} `)
+      toast.error(`Logout failed: ${errorMessage} `)
       console.error("Logout failed", error)
     }
   }

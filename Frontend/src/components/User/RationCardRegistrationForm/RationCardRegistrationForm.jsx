@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Formik, Form, Field, FieldArray, ErrorMessage } from 'formik'
 import * as Yup from 'yup'
 import { ChevronRight, ChevronLeft, Plus, Trash2 } from 'lucide-react'
@@ -7,31 +7,13 @@ import { logoutUser } from '../../../features/auth/authSlice'
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-toastify'
+import { validationRationCardSchema } from '../../../utils/validationSchemas'
+import api from '../../../services/api'
 
 
+const cardTypes = ['YELLOW', 'PINK', 'BLUE', 'WHITE']
 
-const cardTypes = ['Yellow', 'Pink', 'Blue', 'White']
 
-const validationSchema = Yup.object().shape({
-  head_details: Yup.object().shape({
-    name: Yup.string().min(2, 'Too Short!').max(255, 'Too Long!').required('Required'),
-    age: Yup.number().min(18, 'Must be at least 18').max(150, 'Must be less than 150').required('Required'),
-    monthly_income: Yup.number().positive('Must be positive').required('Required'),
-    aadhaar: Yup.string().matches(/^\d{12}$/, 'Must be exactly 12 digits').required('Required'),
-    mobile: Yup.string().matches(/^\d{10}$/, 'Must be exactly 10 digits').required('Required'),
-  }),
-  family_members: Yup.array().of(
-    Yup.object().shape({
-      name: Yup.string().min(2, 'Too Short!').max(255, 'Too Long!').required('Required'),
-      age: Yup.number().positive('Must be positive').required('Required'),
-      relation: Yup.string().required('Required'),
-      aadhaar: Yup.string().matches(/^\d{12}$/, 'Must be exactly 12 digits').required('Required'),
-    })
-  ),
-  address: Yup.string().required('Required'),
-  card_type: Yup.string().oneOf(cardTypes, 'Invalid card type').required('Required'),
-  supporting_document: Yup.mixed().required('Required'),
-})
 
 const initialValues = {
   head_details: {
@@ -43,15 +25,102 @@ const initialValues = {
   },
   family_members: [],
   address: '',
-  card_type: '',
+  registered_shop:'',
   supporting_document: null,
 }
 
 export default function RationCardRegistrationForm() {
   const [step, setStep] = useState(0)
   const [progress, setProgress] = useState(25)
+  const [shops, setShops] = useState([])
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchShops = async () => {
+      try {
+        const response = await api.get('/ration-shop/shops/') // Adjust the endpoint as needed
+        setShops(response.data)
+      } catch (error) {
+        toast.error('Failed to fetch ration shops')
+        console.error('Error fetching shops:', error)
+      }
+    }
+    fetchShops()
+  }, [])
+
+
+  const rationCardService = {
+    async registerRationCard(formData) {
+      // Create a new FormData instance for multipart/form-data
+      const data = new FormData();
+      
+      // Add head details
+      data.append('head_name', formData.head_details.name);
+      data.append('head_age', formData.head_details.age);
+      data.append('head_monthly_income', formData.head_details.monthly_income);
+      data.append('head_aadhaar', formData.head_details.aadhaar);
+      
+      // Add address and registered shop
+      data.append('household_address', formData.address);
+      data.append('registered_shop', formData.registered_shop)
+      console.log('registered_shop', formData.registered_shop);
+      
+
+      // Add supporting document
+      if (formData.supporting_document) {
+        data.append('supporting_document', formData.supporting_document);
+      }
+
+       // Create family members array matching the serializer format
+        const formattedFamilyMembers = formData.family_members.map(member => ({
+          name: member.name,
+          age: member.age,
+          relation: member.relation,
+          aadhaar_number: member.aadhaar 
+        }));
+      
+      // Add family members as JSON string
+      data.append('family_members', JSON.stringify(formattedFamilyMembers));
+
+      try {
+        const response = await api.post('/ration-card/create/', data, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+        return response.data;
+      } catch (error) {
+        throw error.response?.data || error.message;
+      }
+    },
+  };
+
+  const handleSubmit = async (values, { setSubmitting, resetForm }) => {
+    try {
+      // Show loading toast
+      toast.loading('Submitting your application...');
+      
+      // Submit the form data
+      const response = await rationCardService.registerRationCard(values);
+      
+      // Clear loading toast and show success
+      toast.dismiss();
+      toast.success('Ration card application submitted successfully!');
+      
+      // Reset form
+      resetForm();
+      
+      // Navigate to success page or dashboard
+      navigate('/home');
+    } catch (error) {
+      // Clear loading toast and show error
+      toast.dismiss();
+      toast.error(error?.message || 'Failed to submit application. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -110,13 +179,8 @@ export default function RationCardRegistrationForm() {
 
         <Formik
           initialValues={initialValues}
-          validationSchema={validationSchema}
-          onSubmit={(values, { setSubmitting }) => {
-            setTimeout(() => {
-              alert(JSON.stringify(values, null, 2))
-              setSubmitting(false)
-            }, 400)
-          }}
+          validationSchema={validationRationCardSchema}
+          onSubmit={handleSubmit}
         >
           {({ values, errors, touched, isValid, setFieldValue }) => (
             <Form className="bg-white shadow-md rounded-lg px-8 pt-6 pb-8 mb-4 border border-gray-200">
@@ -150,7 +214,7 @@ export default function RationCardRegistrationForm() {
                       Monthly Income
                     </label>
                     <Field
-                      type="number"
+                      type="text"
                       name="head_details.monthly_income"
                       className="mt-1 block w-full rounded-md border-2 border-gray-300 bg-gray-50 shadow-sm focus:border-orange-300 focus:ring focus:ring-orange-200 focus:ring-opacity-50"
                     />
@@ -280,22 +344,22 @@ export default function RationCardRegistrationForm() {
                     <ErrorMessage name="address" component="div" className="text-red-500 text-sm mt-1" />
                   </div>
                   <div>
-                    <label htmlFor="card_type" className="block text-sm font-medium text-gray-700">
-                      Ration Card Type
+                    <label htmlFor="registered_shop" className="block text-sm font-medium text-gray-700">
+                      Select Ration Shop
                     </label>
                     <Field
                       as="select"
-                      name="card_type"
+                      name="registered_shop"
                       className="mt-1 block w-full rounded-md border-2 border-gray-300 bg-gray-50 shadow-sm focus:border-orange-300 focus:ring focus:ring-orange-200 focus:ring-opacity-50"
                     >
-                      <option value="">Select Card Type</option>
-                      {cardTypes.map((type) => (
-                        <option key={type} value={type}>
-                          {type}
+                      <option value="">Select ration shop to register your card</option>
+                      {shops.map((shop) => (
+                        <option key={shop.shop_id} value={shop.shop_id}>
+                          {shop.name} - {shop.location}
                         </option>
                       ))}
                     </Field>
-                    <ErrorMessage name="card_type" component="div" className="text-red-500 text-sm mt-1" />
+                    <ErrorMessage name="registered_shop" component="div" className="text-red-500 text-sm mt-1" />
                   </div>
                   <div>
                     <label htmlFor="supporting_document" className="block text-sm font-medium text-gray-700">
@@ -338,7 +402,8 @@ export default function RationCardRegistrationForm() {
                   <div className="bg-gray-100 p-4 rounded-md">
                     <h4 className="font-semibold mb-2">Address & Documents</h4>
                     <p>Address: {values.address}</p>
-                    <p>Card Type: {values.card_type}</p>
+                    <p>Selected Ration Shop: {shops.find(shop => shop.shop_id === parseInt(values.registered_shop))?.name || 'Not selected'}
+                    </p>
                     <p>Supporting Document: {values.supporting_document ? values.supporting_document.name : 'Not uploaded'}</p>
                   </div>
                   <div className="flex items-center">

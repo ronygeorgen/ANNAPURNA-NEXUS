@@ -33,3 +33,56 @@ export const ProfileSchema = Yup.object().shape({
   shopDescription: Yup.string().required('Shop description is required'),
   location: Yup.string().required('Location is required'),
 });
+
+
+export const validationRationCardSchema = Yup.object().shape({
+  head_details: Yup.object().shape({
+    name: Yup.string()
+      .required('Name is required')
+      .min(2, 'Name must be at least 2 characters')
+      .max(255, 'Name must not exceed 255 characters'),
+    age: Yup.number()
+      .required('Age is required')
+      .min(18, 'Head of family must be at least 18 years old')
+      .max(150, 'Invalid age'),
+    monthly_income: Yup.number()
+      .required('Monthly income is required')
+      .min(0, 'Monthly income cannot be negative')
+      .max(1000000,'Do not exceed 10 lakhs'),
+    aadhaar: Yup.string()
+      .required('Aadhaar number is required')
+      .matches(/^\d{12}$/, 'Aadhaar number must be exactly 12 digits'),
+    mobile: Yup.string()
+      .required('Mobile number is required')
+      .matches(/^\d{10}$/, 'Mobile number must be exactly 10 digits'),
+  }),
+  
+  family_members: Yup.array().of(
+    Yup.object().shape({
+      name: Yup.string()
+        .required('Name is required')
+        .min(2, 'Name must be at least 2 characters')
+        .max(255, 'Name must not exceed 255 characters'),
+      age: Yup.number()
+        .required('Age is required')
+        .min(0, 'Age cannot be negative')
+        .max(150, 'Invalid age'),
+      relation: Yup.string()
+        .required('Relation is required')
+        .oneOf(['SPOUSE', 'CHILD', 'PARENT', 'SIBLING', 'OTHER'], 'Invalid relation type'),
+      aadhaar: Yup.string()
+        .required('Aadhaar number is required')
+        .matches(/^\d{12}$/, 'Aadhaar number must be exactly 12 digits'),
+    })
+  ),
+
+  address: Yup.string()
+    .required('Address is required')
+    .min(10, 'Please provide a complete address'),
+    
+    registered_shop: Yup.string()
+    .required('Please select a ration shop'),
+    
+  supporting_document: Yup.mixed()
+    .required('Supporting document is required'),
+});

@@ -9,7 +9,8 @@ from datetime import datetime
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 
 
-class CookieJWTAuthentication(JWTAuthentication):
+
+class SubAdminJWTAuthentication(JWTAuthentication):
     def authenticate(self, request):
         access_token = self.get_header(request)
         raw_token = self.get_raw_token(access_token)
@@ -39,7 +40,7 @@ class CookieJWTAuthentication(JWTAuthentication):
             sub_admin_id=user_id,
         )
         return user
-    
+
 class UserJWTAuthentication(JWTAuthentication):
     def authenticate(self, request):
         access_token = self.get_header(request)
@@ -61,4 +62,6 @@ class UserJWTAuthentication(JWTAuthentication):
             raise exceptions.AuthenticationFailed('Invalid token')
         except Exception as e:
             raise exceptions.AuthenticationFailed(str(e))
+
+
 

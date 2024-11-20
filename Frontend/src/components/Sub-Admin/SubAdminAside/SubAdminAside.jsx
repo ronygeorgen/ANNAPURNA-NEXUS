@@ -29,7 +29,7 @@ function SubAdminAside({ handleLogout }) {
               </Link>
             </li>
             <li>
-              <Link to="/registered-cards" className={`flex items-center p-2 hover:bg-teal-600 rounded ${isActive('/registered-cards')}`}>
+              <Link to="/sub-admin-card-list" className={`flex items-center p-2 hover:bg-teal-600 rounded ${isActive('/sub-admin-card-list')}`}>
                 <CreditCard className="mr-2" /> Registered Cards
               </Link>
             </li>

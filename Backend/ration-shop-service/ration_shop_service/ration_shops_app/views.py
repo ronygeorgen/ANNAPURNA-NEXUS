@@ -181,7 +181,6 @@ class ShopDisplayAtUser(APIView):
                 many=True,
                 context={'request':request}
             )
-            print(serializer.data)
             return Response(serializer.data)
         except Exception as e:
             return Response(

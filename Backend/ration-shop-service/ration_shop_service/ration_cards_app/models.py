@@ -38,7 +38,7 @@ class FamilyMember(models.Model):
     name = models.CharField(max_length=255)
     age = models.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(150)])
     relation = models.CharField(max_length=10, choices=RELATION_CHOICES)
-    aadhaar_number = models.CharField(max_length=12, unique=True)
+    aadhaar_number = models.CharField(max_length=20, unique=True)
     is_active = models.BooleanField(default=True)
     additional_details = models.JSONField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -61,7 +61,11 @@ class RationCard(models.Model):
 
     # Card Details
     card_number = models.CharField(max_length=20, unique=True)
-    card_type = models.ForeignKey(CardType, on_delete=models.PROTECT)
+    card_type = models.ForeignKey(CardType, on_delete=models.PROTECT, null=True, blank=True)
+
+    # User Details (from JWT)
+    requester_id = models.CharField(max_length=100, help_text="User ID from JWT token")
+    requester_email = models.EmailField(help_text="User email from JWT token")
     
     # Household Details
     household_address = models.TextField()
@@ -117,6 +121,7 @@ class RationCard(models.Model):
             models.Index(fields=['card_number']),
             models.Index(fields=['head_aadhaar']),
             models.Index(fields=['status']),
+            models.Index(fields=['requester_id']),
         ]
 
     def __str__(self):
