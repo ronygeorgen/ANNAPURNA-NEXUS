@@ -5,6 +5,7 @@ from rest_framework import status
 from .user_srvc import auth
 from .ration_shop_srvc import ration_shop
 from .ration_card_srvc import ration_card
+from .product_management_srvc import product_manage
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 import json
 
@@ -168,6 +169,38 @@ class GetRationCards(APIView):
     def get(self, request, *args, **kwargs):
         try:
             response = ration_card.get_ration_cards(request)
+            return response
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class VerifyRationCardByNumber(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request, card_number, *args, **kwargs):
+        try:
+            response = ration_card.verify_ration_card_by_number(request, card_number)
+            return response
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class CreateProductItems(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        try:
+            response = product_manage.create_product_items(request)
+            return response
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class GetQuotaInfo(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request, *args, **kwargs):
+        try:
+            response = product_manage.get_quota_info(request)
             return response
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

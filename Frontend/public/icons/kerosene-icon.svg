@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" id="kerosene-icon">
+    <rect width="100" height="100" fill="#f0f0f0" rx="10"/>
+    <path d="M30 60 Q50 40, 70 60 T110 60" fill="none" stroke="#4169E1" stroke-width="5"/>
+    <rect x="40" y="60" width="20" height="30" fill="#778899" rx="5"/>
+    <path d="M35 70 L65 70" stroke="#000" stroke-width="2"/>
+    <text x="50" y="90" text-anchor="middle" font-size="12" fill="#333">Kerosene</text>
+</svg>

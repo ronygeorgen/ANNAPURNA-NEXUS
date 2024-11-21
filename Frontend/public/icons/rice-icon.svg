@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" id="rice-icon">
+  <rect width="100" height="100" fill="#f0f0f0" rx="10" />
+  <path d="M25 70 Q50 50, 75 70" fill="none" stroke="#8B4513" stroke-width="5" />
+  <path d="M25 60 Q50 40, 75 60" fill="none" stroke="#D2691E" stroke-width="5" />
+  <path d="M25 50 Q50 30, 75 50" fill="none" stroke="#CD853F" stroke-width="5" />
+  <text x="50" y="90" text-anchor="middle" font-size="12" fill="#333">Rice</text>
+</svg>

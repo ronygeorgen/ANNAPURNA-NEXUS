@@ -39,7 +39,7 @@ function AdminAside({ handleLogout }) {
             </Link>
           </li>
           <li>
-            <Link to="/products" className={`flex items-center p-2 rounded-lg hover:bg-teal-700 hover:bg-opacity-75 transition-all duration-200 ${isActive('/products')}`}>
+            <Link to="/create-product" className={`flex items-center p-2 rounded-lg hover:bg-teal-700 hover:bg-opacity-75 transition-all duration-200 ${isActive('/create-product')}`}>
               <ShoppingCart className="mr-3 h-5 w-5" />
               <span>Products</span>
             </Link>

@@ -8,7 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 from .authentication import SubAdminJWTAuthentication
 from ration_shops_app.models import RationShop
 from .models import RationCard, FamilyMember, CardType
-from .serializers import RationCardSerializer, FamilyMemberSerializer, RationCardRetrieveSerializer
+from .serializers import RationCardSerializer, FamilyMemberSerializer, RationCardRetrieveSerializer, CardVerificationSerializer
 from .authentication import UserJWTAuthentication
 
 
@@ -133,5 +133,51 @@ class RationCardListView(APIView):
                     'error': 'Failed to retrieve ration cards',
                     'details': str(e)
                 }, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class VerifyCardView(APIView):
+    authentication_classes = [UserJWTAuthentication]
+
+    def get(self, request, card_number, *args, **kwargs):
+        print(card_number)
+        if not card_number:
+            return Response(
+                {'message': 'Card number is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            # Get card details with related data
+            card = RationCard.objects.select_related(
+                'card_type',
+                'registered_shop'
+            ).get(
+                card_number=card_number,
+                is_active=True
+            )
+            
+            # # Check if the card is in a valid status
+            # valid_statuses = ['ACTIVE', 'ADMIN_APPROVED']
+            # if card.status not in valid_statuses:
+            #     return Response({
+            #         'message': f'Card is {card.get_status_display()}. Not active for use.',
+            #         'status': card.status,
+            #         'status_display': card.get_status_display()
+            #     }, status=status.HTTP_400_BAD_REQUEST)
+
+            # Serialize and return card data
+            serializer = CardVerificationSerializer(card)
+            return Response(serializer.data)
+
+        except RationCard.DoesNotExist:
+            return Response(
+                {'message': 'Invalid or inactive card number'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            return Response(
+                {'message': 'An error occurred while verifying the card'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )

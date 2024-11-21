@@ -6,18 +6,18 @@ import { toast } from 'react-toastify';
 import { logoutUser } from '../../../features/auth/authSlice'
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
+import api from '../../../services/api';
 
 
 
 function SelectedShop() {
-    useEffect(() => {
-        // Scroll to the top of the page
-        window.scrollTo(0, 0);
-      }, []);
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const location = useLocation();
     const [cardNumber, setCardNumber] = useState('')
+    const [cardDetails, setCardDetails] = useState(null)
+    const [isLoading, setIsLoading] = useState(false)
+    const [isVerified, setIsVerified] = useState(false)
 
     const shop = location.state?.shop;
 
@@ -37,6 +37,92 @@ function SelectedShop() {
             toast.error("Logout failed", error);
         }
     };
+
+    const handleCardSubmit = async () => {
+      if (!cardNumber.trim()) {
+          toast.error('Please enter a card number')
+          return
+      }
+
+      setIsLoading(true)
+      try {
+          const card_number = cardNumber
+          const response = await api.get(`ration-card/verify/${card_number}/`,{
+              headers: {
+                  'Content-Type': 'application/json',
+              },
+        });
+
+        if (response.data && response.data.card_number) {
+          setCardDetails(response.data)
+          setIsVerified(true)
+          toast.success('Card verified successfully!')
+      } else {
+          setCardDetails(null)
+          setIsVerified(false)
+          toast.error('Invalid card details received')
+      }
+  } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to verify card')
+      setCardDetails(null)
+      setIsVerified(false)
+  } finally {
+      setIsLoading(false)
+      setCardNumber('')
+  }
+}
+
+  const renderCardDetails = () => {
+      if (!cardDetails) return null
+
+      const cardTypeColors = {
+          'YELLOW': 'yellow',
+          'PINK': 'pink',
+          'BLUE': 'blue',
+          'WHITE': 'white'
+      }
+
+      if (!isVerified) {
+        return (
+            <div className="bg-gray-50 border-l-4 border-gray-400 p-4 rounded">
+                <h3 className="font-semibold text-gray-800">
+                    Verification Required
+                </h3>
+                <p className="text-sm text-gray-700">
+                    Please verify your card number to see details
+                </p>
+            </div>
+        )
+      }
+
+
+      const bgColor = `bg-${cardTypeColors[cardDetails?.card_type?.color_code || 'red']}-50`
+      const borderColor = `border-${cardTypeColors[cardDetails?.card_type?.color_code] || 'red'}-400`
+      const textColor = `text-${cardTypeColors[cardDetails?.card_type?.color_code] || 'red' }-800`
+
+      return (
+          <div className={`${bgColor} border-l-4 ${borderColor} p-4 rounded`}>
+              <h3 className={`font-semibold ${textColor}`}>
+                  {cardDetails?.card_type?.name || 'No card name for now. Admin not yet verified your card.'}
+              </h3>
+              <p className="text-sm text-gray-700">
+                  Card Number: {cardDetails.card_number}
+              </p>
+              <p className="text-sm text-gray-700">
+                  Registered at: {cardDetails.registered_shop.name}
+              </p>
+              <p className="text-sm text-gray-700">
+                  Location: {cardDetails.registered_shop.location}
+              </p>
+          </div>
+      )
+  }
+
+  const getContinueButtonText = () => {
+    if (!cardNumber && !isVerified) return 'Enter Card Number to Continue'
+    if (cardNumber && !isVerified) return 'Verify Card to Continue'
+    return 'Continue'
+  }
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -66,12 +152,41 @@ function SelectedShop() {
 
             {/* Card Details Form */}
             <div className="space-y-6">
-
-              <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded">
+              <div>
+                <label className="block text-gray-700 mb-2">Enter card number</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={cardNumber}
+                    onChange={(e) => setCardNumber(e.target.value)}
+                    className="flex-grow px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                    placeholder="Enter your card number"
+                  />
+                  <button 
+                      onClick={handleCardSubmit}
+                      disabled={isLoading}
+                      className={`px-4 py-2 ${isLoading ? 'bg-gray-400' : 'bg-orange-500 hover:bg-orange-600'} text-white rounded-lg transition-colors`}
+                  >
+                      {isLoading ? 'Verifying...' : 'Submit'}
+                  </button>
+                </div>
+              </div>
+               {/* Card Details Section */}
+               {cardNumber || cardDetails ? renderCardDetails() : (
+                  <div className="bg-gray-50 border-l-4 border-gray-400 p-4 rounded">
+                      <h3 className="font-semibold text-gray-800">
+                          No Card Details
+                      </h3>
+                      <p className="text-sm text-gray-700">
+                          Enter your card number and click submit to view details
+                      </p>
+                  </div>
+              )}
+              {/* <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded">
                 <h3 className="font-semibold text-yellow-800">Priority Household (PHH) - Yellow Card</h3>
                 <p className="text-sm text-yellow-700">Your card registered at {shop.name}</p>
                 <p className="text-sm text-yellow-700">{shop.location}</p>
-              </div>
+              </div> */}
 
               <div className="flex gap-4">
                 <button className="flex items-center gap-2 px-6 py-2 bg-white rounded-lg shadow hover:shadow-md transition-shadow">
@@ -87,21 +202,20 @@ function SelectedShop() {
                   <span>Directions</span>
                 </button>
               </div>
-
-              <div>
-                    <label className="block text-gray-700 mb-2">Enter card number</label>
-                    <div className="flex gap-2">
-                    <input
-                        type="text"
-                        value={cardNumber}
-                        onChange={(e) => setCardNumber(e.target.value)}
-                        className="flex-grow px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                        placeholder="Enter your card number"
-                    />
-                    </div>
-              </div>
-              <button className="w-full px-6 py-3 bg-orange-500 text-white rounded-lg font-semibold hover:bg-orange-600 transition-colors">
-                Continue
+              <button className={`w-full px-6 py-3 ${isVerified ? 'bg-orange-500 hover:bg-orange-600' : 'bg-gray-400 cursor-not-allowed'} text-white rounded-lg font-semibold transition-colors`}
+              disabled={!isVerified}
+              onClick={() => {
+                if (isVerified && cardDetails){
+                  navigate('/home/selected-shop/choose-subsidies/',{
+                    state: {
+                      shop: shop,
+                      cardDetails: cardDetails
+                    }
+                  });
+                }
+              }}
+              >
+                {getContinueButtonText()}
               </button>
             </div>
           </div>

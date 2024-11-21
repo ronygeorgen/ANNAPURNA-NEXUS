@@ -95,3 +95,31 @@ class RationCardRetrieveSerializer(serializers.ModelSerializer):
             'ADMIN_REJECTED': 'Rejected by Admin'
         }
         return status_map.get(obj.status, obj.status)
+
+class CardVerificationSerializer(serializers.ModelSerializer):
+    card_type = CardTypeSerializer(read_only=True)
+    registered_shop = RationShopSerializer(read_only=True)
+    status_display = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = RationCard
+        fields = [
+            'card_number',
+            'card_type',
+            'registered_shop',
+            'status',
+            'status_display',
+            'head_name'
+        ]
+    
+    def get_status_display(self, obj):
+        status_map = {
+            'PENDING': 'Pending Verification',
+            'SHOP_VERIFIED': 'Verified by Shop',
+            'ADMIN_APPROVED': 'Approved',
+            'SHOP_REJECTED': 'Rejected by Shop',
+            'ADMIN_REJECTED': 'Rejected by Admin',
+            'ACTIVE': 'Active',
+            'INACTIVE': 'Inactive'
+        }
+        return status_map.get(obj.status, obj.status)

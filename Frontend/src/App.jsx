@@ -22,6 +22,8 @@ import SubAdminProfilePage from './pages/SubAdminProfile';
 import SelectedShopPage from './pages/SelectedShop';
 import RationCardRegistrationFormPage from './pages/RationCardRegistrationForm';
 import SubAdminCardListPage from './pages/SubAdminCardList';
+import ChooseSubsidiesPage from './pages/ChooseSubsidies';
+import ProductManagementPage from './pages/ProductManagement';
 
 const App = () => {
   const { isAuthenticated, user } = useSelector((state) => state.auth);
@@ -61,6 +63,7 @@ const App = () => {
         <Route path="/home" element={<ProtectedRoute allowAdmin={false} allowSubAdmin={false}> <HomePage /> </ProtectedRoute>} />
         <Route path="/home/selected-shop/" element={<ProtectedRoute allowAdmin={false} allowSubAdmin={false}> <SelectedShopPage /> </ProtectedRoute>} />
         <Route path="/home/ration-card-registration-form/" element={<ProtectedRoute allowAdmin={false} allowSubAdmin={false}> <RationCardRegistrationFormPage /> </ProtectedRoute>} />
+        <Route path="/home/selected-shop/choose-subsidies/" element={<ProtectedRoute allowAdmin={false} allowSubAdmin={false}> <ChooseSubsidiesPage /> </ProtectedRoute>} />
           
           {/* sub-admin routes */}
         <Route path="/sub-admin-login" element={<GuestRoute> <SubAdminLoginPage /> </GuestRoute>} />
@@ -73,6 +76,7 @@ const App = () => {
         <Route path="/admin-dashboard" element={<AdminProtectedRoute> <AdminDashboardPage /> </AdminProtectedRoute>} />
         <Route path="/sub-admin-management" element={<AdminProtectedRoute> <SubAdminManagementPage /> </AdminProtectedRoute>} />
         <Route path="/create-ration-shop" element={<AdminProtectedRoute> <CreateRationShopPage /> </AdminProtectedRoute>} />
+        <Route path="/create-product" element={<AdminProtectedRoute> <ProductManagementPage /> </AdminProtectedRoute>} />
 
         {/* catch all route */}
         <Route path="*" element={<Navigate to="/" replace />} />

@@ -48,7 +48,6 @@ function CreateRationShop() {
   };
 
   const handleSubmit = async (values, { setSubmitting, setStatus }) => {
-    console.log('Form values on submit:', values);
       try {
         const response = await api.post('/ration-shop/create/',{
             shopName: values.shopName,

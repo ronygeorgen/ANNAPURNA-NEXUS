@@ -32,7 +32,6 @@ def register_ration_card(request):
                 'card_type': request.POST.get('card_type'),
                 'family_members': request.POST.get('family_members'),
             }
-            print(form_data)
             
             # Set up headers
             headers = {
@@ -96,6 +95,50 @@ def get_ration_cards(request):
                 response_data = {}
             
             
+            gateway_response = JsonResponse(response_data, status=response.status_code)
+            
+            for cookie in response.cookies:
+                gateway_response.set_cookie(
+                    key=cookie.name,
+                    value=cookie.value,
+                    httponly=cookie.has_nonstandard_attr('HttpOnly'),
+                    secure=cookie.secure,
+                    samesite=cookie.get_nonstandard_attr('SameSite')
+                )
+            
+            return gateway_response
+            
+        except requests.RequestException as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    else:
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+
+def verify_ration_card_by_number(request, card_number):
+
+    if request.method == 'GET':
+            
+        try:
+            print(card_number)
+            access_token = request.COOKIES.get('access_token')
+            if not access_token:
+                return JsonResponse({'error': 'Authorization credentials not found'}, status=401)
+            
+            ration_card_verify_url = os.environ.get('RATION_SHOP_SVC_ADDRESS', f'http://localhost:8002/ration-card/verify/{card_number}/')
+            
+            headers = {
+                'Authorization': f'Bearer {access_token}',
+                'Content-Type': 'application/json',
+            }
+            
+            response = requests.get(ration_card_verify_url, headers=headers)
+            
+            try:
+                response_data = response.json()
+            except ValueError:
+                response_data = {}
+            
+            print(response_data)
             gateway_response = JsonResponse(response_data, status=response.status_code)
             
             for cookie in response.cookies:
