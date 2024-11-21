@@ -2,7 +2,7 @@ import React, { useState,useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
 import { logoutUser } from '../../../features/auth/authSlice'
 import Button from '../../common/Button';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import  coverImage from '../../../assets/Cover.jpg'
 import NavBar from '../NavBar/NavBar';
 import { toast } from 'react-toastify';
@@ -15,6 +15,11 @@ export default function Home() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [shops, setShops] = useState([]);
+    const location = useLocation()
+
+    const orderID = location?.orderId || 'No data'
+    console.log(orderID);
+    
 
     useEffect(() => {
       fetchShops();

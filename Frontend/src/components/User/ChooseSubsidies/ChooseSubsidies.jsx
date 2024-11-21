@@ -25,7 +25,6 @@ export default function ChooseSubsidies() {
     const [quotaLoading, setQuotaLoading] = useState(false);
     const [normalItems, setNormalItems] = useState([]);
     const [additionalItems, setAdditionalItems] = useState([]);
-    const [cart, setCart] = useState([]);
 
     const shop = location.state?.shop;
     const cardDetails = location.state?.cardDetails;
@@ -241,18 +240,6 @@ export default function ChooseSubsidies() {
     );
 };
 
-  
-
-    // Optional: Clear localStorage on logout or specific conditions
-    const clearCartData = () => {
-        localStorage.removeItem('cartItems');
-        localStorage.removeItem('normalItems');
-        setCartItems([]);
-        setNormalItems(quotaInfo.regular_quota.map(item => ({
-            ...item,
-            remainingQuota: item.max_quantity
-        })));
-    };
 
 
     return (
@@ -309,6 +296,8 @@ export default function ChooseSubsidies() {
                                   onRemoveItem={handleRemoveFromCart}
                                   onUpdateQuantity={handleUpdateQuantity}
                                   onIncreaseQuantity={handleIncreaseQuantity}
+                                  shop={shop} 
+                                  cardDetails={cardDetails}
                               />
                             </div>
                         </div>

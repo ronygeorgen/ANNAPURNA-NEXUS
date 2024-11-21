@@ -3,14 +3,18 @@ import { ShoppingCart, X, Minus, Plus, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useNavigate } from 'react-router-dom';
 
 export default function Cart({ 
     cartItems, 
     onRemoveItem, 
     onUpdateQuantity ,
-    onIncreaseQuantity
+    onIncreaseQuantity,
+    shop,
+    cardDetails
 }) {
 
+    const navigate = useNavigate()
 
     const calculateTotalItems = () => {
         return cartItems.length;
@@ -95,6 +99,13 @@ export default function Cart({
                 <Button 
                     className="w-full bg-orange-500 hover:bg-orange-600"
                     disabled={cartItems.length === 0}
+                    onClick={() => navigate('/home/selected-shop/choose-subsidies/checkout-page/', { 
+                        state: { 
+                            cartItems, 
+                            shop:shop, 
+                            cardDetails:cardDetails 
+                        } 
+                    })}
                 >
                     <CreditCard className="mr-2 h-4 w-4" /> Checkout
                 </Button>

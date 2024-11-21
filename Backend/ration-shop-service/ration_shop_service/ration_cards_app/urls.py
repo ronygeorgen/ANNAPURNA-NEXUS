@@ -1,6 +1,6 @@
 # ration_cards_app/urls.py
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path
 from .views import RationCardRegistrationView, RationCardListView, VerifyCardView
 
 

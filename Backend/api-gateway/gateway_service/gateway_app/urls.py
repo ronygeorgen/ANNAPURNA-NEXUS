@@ -4,7 +4,7 @@ from .views import (RegisterView, LoginView, LogoutView,AdminLoginView,
                     GetSubAdminView, RefreshView, SubAdminProfileView,
                     SubAdminProfilePictureUploadView, SubAdminShopImageUploadView,
                     SubAdminShopImageDeleteView, GetRationShopsAtUserSide, CreateRationCard,
-                    GetRationCards, VerifyRationCardByNumber, CreateProductItems, GetQuotaInfo)
+                    GetRationCards, VerifyRationCardByNumber, CreateProductItems, GetQuotaInfo, CreateOrder)
 urlpatterns = [
     path('user/register/', RegisterView.as_view(), name = 'register'),
     path('user/login/', LoginView.as_view(), name='login'),
@@ -29,5 +29,7 @@ urlpatterns = [
 
     path('product-management/create/', CreateProductItems.as_view()),
     path('product-management/quota-info/', GetQuotaInfo.as_view()),
+
+    path('order-management/order-create/', CreateOrder.as_view()),
 
 ]

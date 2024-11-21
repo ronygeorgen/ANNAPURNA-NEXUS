@@ -6,6 +6,7 @@ from .user_srvc import auth
 from .ration_shop_srvc import ration_shop
 from .ration_card_srvc import ration_card
 from .product_management_srvc import product_manage
+from .order_management_srvc import order_management
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 import json
 
@@ -201,6 +202,17 @@ class GetQuotaInfo(APIView):
     def get(self, request, *args, **kwargs):
         try:
             response = product_manage.get_quota_info(request)
+            return response
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class CreateOrder(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        try:
+            response = order_management.create_order(request)
             return response
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
