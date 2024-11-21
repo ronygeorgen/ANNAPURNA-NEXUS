@@ -85,12 +85,12 @@ export default function Cart({
             </CardContent>
             <CardFooter className="flex flex-col space-y-4">
                 <div className="flex justify-between">
-                    <span className="font-medium">Total Items:</span>
-                    <span>{calculateTotalItems()}</span>
+                    <span className="font-medium">Total Items: <span>{calculateTotalItems()}</span>  </span>
+                    
                 </div>
                 <div className="flex justify-between">
-                    <span className="font-medium">Total Amount:</span>
-                    <span>₹{calculateTotalAmount()}</span>
+                    <span className="font-medium">Total Amount: <span>₹{calculateTotalAmount()}</span></span>
+                    
                 </div>
                 <Button 
                     className="w-full bg-orange-500 hover:bg-orange-600"
