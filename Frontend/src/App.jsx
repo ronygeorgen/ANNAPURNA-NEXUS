@@ -25,6 +25,7 @@ import SubAdminCardListPage from './pages/SubAdminCardList';
 import ChooseSubsidiesPage from './pages/ChooseSubsidies';
 import ProductManagementPage from './pages/ProductManagement';
 import CheckoutPage from './pages/Checkout';
+import AdminShopcardDisplayPage from './pages/AdminShopcardDisplay';
 
 const App = () => {
   const { isAuthenticated, user } = useSelector((state) => state.auth);
@@ -79,6 +80,7 @@ const App = () => {
         <Route path="/sub-admin-management" element={<AdminProtectedRoute> <SubAdminManagementPage /> </AdminProtectedRoute>} />
         <Route path="/create-ration-shop" element={<AdminProtectedRoute> <CreateRationShopPage /> </AdminProtectedRoute>} />
         <Route path="/create-product" element={<AdminProtectedRoute> <ProductManagementPage /> </AdminProtectedRoute>} />
+        <Route path="/shop-display" element={<AdminProtectedRoute> <AdminShopcardDisplayPage /> </AdminProtectedRoute>} />
 
         {/* catch all route */}
         <Route path="*" element={<Navigate to="/" replace />} />

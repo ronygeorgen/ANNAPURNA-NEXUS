@@ -11,6 +11,8 @@ import AdminAside from '../AdminAside/AdminAside';
 import AdminHeader from '../AdminHeader/AdminHeader';
 import { RationShopSchema } from '../../../utils/validationSchemas';
 import api from '../../../services/api';
+import { toast } from 'react-toastify';
+
 
 function CreateRationShop() {
   const dispatch = useDispatch();
@@ -20,7 +22,6 @@ function CreateRationShop() {
   ]);
 
   useEffect(() => {
-    // Fetch sub-admin list when component mounts
     const fetchOwners = async () => {
       try {
         const response = await api.get('/ration-shop/sub-admins/');
@@ -40,10 +41,12 @@ function CreateRationShop() {
 
   const handleLogout = async () => {
     try {
-      await dispatch(logoutUser()).unwrap();
-      navigate('/admin-login');
+        await dispatch(logoutUser()).unwrap();
+        navigate('/admin-login');
+        toast.success('Admin logged out successfully')
     } catch (error) {
-      console.error("Logout failed", error);
+        console.error("Logout failed", error);
+        toast.error('Log out failed')
     }
   };
 

@@ -11,6 +11,7 @@ import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import api from '../../../services/api';
 import { toast } from 'react-toastify'
+import { logoutUser } from '../../../features/auth/authSlice'
 
 
 const KERALA_CARD_TYPES = [
@@ -46,6 +47,16 @@ const ProductManagement = () => {
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const handleLogout = async () => {
+    try {
+        await dispatch(logoutUser()).unwrap();
+        navigate('/admin-login');
+        toast.success('Admin logged out successfully')
+    } catch (error) {
+        console.error("Logout failed", error);
+        toast.error('Log out failed')
+    }
+  };
 
   const [familyCount, setFamilyCount] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -83,14 +94,6 @@ const ProductManagement = () => {
     }))
   }
 
-  const handleLogout = async () => {
-    try {
-      await dispatch(logoutUser()).unwrap();
-      navigate('/admin-login');
-    } catch (error) {
-      console.error("Logout failed", error);
-    }
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();

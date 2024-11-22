@@ -6,6 +6,7 @@ import FormInput from '../../common/FormInput';
 import Button from '../../common/Button';  
 import { adminLogin } from '../../../features/auth/authSlice';  
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 const AdminLogin = () => {
   const dispatch = useDispatch();
@@ -38,11 +39,14 @@ const AdminLogin = () => {
                 .then((response) => {
                   if (response.admin && response.admin.is_superadmin) {
                     navigate('/admin-dashboard');  
+                    toast.success('Login successful!')
                   } else {
                     console.error('Not authorized as an admin');
+                    toast.error('Not an authorized user')
                   }
                 })
                 .catch((error) => {
+                  toast.error('Login Failed')
                   console.error('Admin login failed:', error);
                 })
                 .finally(() => {

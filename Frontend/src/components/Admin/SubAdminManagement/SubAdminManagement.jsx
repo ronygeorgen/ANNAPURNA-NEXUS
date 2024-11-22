@@ -15,6 +15,7 @@ import { toast } from 'react-toastify';
 
 function SubAdminManagement() {
   const [subAdmins, setSubAdmins] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -49,6 +50,31 @@ function SubAdminManagement() {
     }
   };
 
+  
+
+  useEffect(() => {
+    const fetchSubAdmins = async () => {
+      try {
+        const response = await api.get('/ration-shop/sub-admins/');
+        console.log('Sub-admins fetched:', response.data);
+
+        const filteredAdmins = response.data.filter(admin => admin.value !== '');
+        setSubAdmins(filteredAdmins);
+      } catch (error) {
+        console.error('Failed to fetch sub-admins:', error);
+        toast.error('Failed to fetch sub-admins');
+      }
+    };
+
+    fetchSubAdmins();
+  }, []);
+
+  const filteredSubAdmins = subAdmins.filter(admin => 
+    admin.label.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+
+
   return (
     <div className="flex h-screen bg-gradient-to-br from-teal-900 to-teal-800">
       <AdminAside handleLogout={handleLogout} />
@@ -63,10 +89,12 @@ function SubAdminManagement() {
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-2xl font-semibold text-white">Sub-Admins</h2>
             <div className="relative">
-              <input
+            <input
                 type="text"
                 placeholder="Search sub-admins..."
                 className="bg-teal-700 bg-opacity-50 text-white placeholder-teal-300 rounded-full py-2 px-4 pl-10 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
               />
               <Search className="absolute left-3 top-2.5 h-5 w-5 text-teal-300" />
             </div>
@@ -79,20 +107,28 @@ function SubAdminManagement() {
               </tr>
             </thead>
             <tbody>
-              {subAdmins.map((admin) => (
-                <tr key={admin.id} className="border-b border-teal-700 text-white hover:bg-teal-700 hover:bg-opacity-50 transition-colors">
-                  <td className="py-3">{admin.email}</td>
-                  <td className="py-3">
-                    <button className="text-teal-300 hover:text-white mr-2">
-                      <Edit size={18} />
-                    </button>
-                    <button className="text-teal-300 hover:text-white">
-                      <Trash2 size={18} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
+                {filteredSubAdmins.length > 0 ? (
+                  filteredSubAdmins.map((admin) => (
+                    <tr key={admin.value} className="border-b border-teal-700 text-white hover:bg-teal-700 hover:bg-opacity-50 transition-colors">
+                      <td className="py-3">{admin.label}</td>
+                      <td className="py-3 flex gap-2">
+                        <button className="text-teal-300 hover:text-white p-1 rounded hover:bg-teal-600">
+                          <Edit size={18} />
+                        </button>
+                        <button className="text-teal-300 hover:text-red-400 p-1 rounded hover:bg-teal-600">
+                          <Trash2 size={18} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="3" className="py-4 text-center text-teal-300">
+                      No sub-admins found
+                    </td>
+                  </tr>
+                )}
+              </tbody>
           </table>
         </div>
 

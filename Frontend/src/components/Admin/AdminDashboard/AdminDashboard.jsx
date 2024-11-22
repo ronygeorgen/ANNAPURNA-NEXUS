@@ -5,6 +5,8 @@ import { logoutUser } from '../../../features/auth/authSlice';
 import { useNavigate, Link } from 'react-router-dom';
 import AdminAside from '../AdminAside/AdminAside';
 import AdminHeader from '../AdminHeader/AdminHeader';
+import { toast } from 'react-toastify';
+
 function AdminDashboard() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -13,8 +15,10 @@ function AdminDashboard() {
     try {
         await dispatch(logoutUser()).unwrap();
         navigate('/admin-login');
+        toast.success('Admin logged out successfully')
     } catch (error) {
         console.error("Logout failed", error);
+        toast.error('Log out failed')
     }
   };
 
