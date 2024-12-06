@@ -5,8 +5,9 @@ import { useNavigate } from 'react-router-dom'
 import { logoutUser } from '../../../features/auth/authSlice'
 import { useDispatch } from 'react-redux'
 import SubAdminAside from '../SubAdminAside/SubAdminAside'
-import { toast } from 'react-toastify'
 import api from '../../../services/api'
+import { toast } from 'sonner';
+
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -28,65 +29,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog"
 
-// Mock data (unchanged)
-// const rationCards = [
-//     {
-//       cardNumber: "RC001",
-//       headName: "John Doe",
-//       shopName: "Shop A",
-//       status: "PENDING",
-//       income: 25000,
-//       age: 45,
-//       address: "123 Main St, City",
-//       requestedBy: "xyz@gmail.com",
-//       familyMembers: [
-//         { name: "Jane Doe", age: 40, relation: "Spouse" }
-//       ],
-//       documents: ["aadhar.pdf", "income.pdf"],
-//       verificationHistory: [
-//         { date: "2024-01-15", status: "PENDING", notes: "Documents submitted" }
-//       ]
-//     },
-//     {
-//       cardNumber: "RC002",
-//       headName: "Alice Smith",
-//       shopName: "Shop B",
-//       status: "SHOP_VERIFIED",
-//       income: 30000,
-//       age: 38,
-//       address: "456 Elm St, Town",
-//       familyMembers: [
-//         { name: "Bob Smith", age: 40, relation: "Spouse" },
-//         { name: "Charlie Smith", age: 10, relation: "Child" }
-//       ],
-//       documents: ["aadhar.pdf", "income.pdf", "residence.pdf"],
-//       requestedBy: 'xyz@gmail.com',
-//       verificationHistory: [
-//         { date: "2024-01-10", status: "PENDING", notes: "Documents submitted" },
-//         { date: "2024-01-18", status: "SHOP_VERIFIED", notes: "Verified by shop owner" }
-//       ]
-//     },
-//     {
-//       cardNumber: "RC003",
-//       headName: "Eva Johnson",
-//       shopName: "Shop C",
-//       status: "ADMIN_APPROVED",
-//       income: 22000,
-//       age: 52,
-//       address: "789 Oak St, Village",
-//       familyMembers: [
-//         { name: "David Johnson", age: 55, relation: "Spouse" },
-//         { name: "Fiona Johnson", age: 18, relation: "Child" }
-//       ],
-//       documents: ["aadhar.pdf", "income.pdf", "residence.pdf"],
-//       requestedBy: 'xyz@gmail.com',
-//       verificationHistory: [
-//         { date: "2024-01-05", status: "PENDING", notes: "Documents submitted" },
-//         { date: "2024-01-12", status: "SHOP_VERIFIED", notes: "Verified by shop owner" },
-//         { date: "2024-01-20", status: "ADMIN_APPROVED", notes: "Approved by admin" }
-//       ]
-//     }
-//   ]
+
 
 export default function SubAdminCardList() {
   const [rationCards, setRationCards] = useState([])
@@ -98,6 +41,10 @@ export default function SubAdminCardList() {
   const [showConfirmation, setShowConfirmation] = useState(false)
   const dispatch = useDispatch()
   const navigate = useNavigate()
+  const shopDetails = JSON.parse(localStorage.getItem('persist:profile'))
+  const parsedShopDetails = shopDetails ? JSON.parse(shopDetails.data) : null
+  const shopId = parsedShopDetails?.shopID
+  const shopName = parsedShopDetails?.shopName
 
   useEffect(() => {
     const fetchRationCards = async () => {
@@ -126,6 +73,40 @@ export default function SubAdminCardList() {
       console.error("Logout failed", error)
     }
   }
+
+  const handleShopVerification = async () => {
+    if (!selectedCard || !shopId) {
+      toast.error('Cannot verify card. Shop details missing.')
+      return
+    }
+
+    try {
+      const verificationPayload = {
+        card_number: selectedCard.card_number,
+        shop_verified_by: shopId,
+        shop_verification_notes: verificationNote || "Verified by shop"
+      }
+      
+      const response = await api.patch(`/ration-card/${selectedCard.card_number}/shop-verify/`, verificationPayload)
+      setRationCards(prevCards => 
+        prevCards.map(card => 
+          card.card_number === selectedCard.card_number 
+            ? {...card, status: 'SHOP_VERIFIED'} 
+            : card
+        )
+      )
+      toast.success(`Card ${selectedCard.card_number} verified successfully`)
+      setSelectedCard(null)
+      setShowConfirmation(false)
+      setVerificationNote("")
+  }catch (error) {
+    toast.error('Failed to verify card')
+    console.error("Verification error:", error.response)
+  }
+}
+
+
+
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -180,48 +161,6 @@ export default function SubAdminCardList() {
             </SelectContent>
           </Select>
         </div>
-
-        {/* Cards Grid */}
-        {/* <motion.div 
-          className="grid gap-6 md:grid-cols-2 lg:grid-cols-3"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
-        >
-          {filteredCards.map((card) => (
-            <motion.div
-              key={card.cardNumber}
-              layout
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3 }}
-            >
-              <Card className="cursor-pointer hover:shadow-lg transition-all duration-300">
-                <CardHeader className="pb-2">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium text-gray-600">#{card.cardNumber}</span>
-                    <span className={`px-3 py-1 text-xs font-medium rounded-full ${getStatusColor(card.status)}`}>
-                      {card.status.replace('_', ' ')}
-                    </span>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <CardTitle className="mb-2">{card.headName}</CardTitle>
-                  <p className="text-gray-600 mb-4">{card.shopName}</p>
-                  <Button 
-                    variant="outline" 
-                    className="w-full bg-teal-500 text-white hover:bg-teal-600"
-                    onClick={() => setSelectedCard(card)}
-                  >
-                    <Eye className="h-4 w-4 mr-2" />
-                    View Details
-                  </Button>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
-        </motion.div> */}
 
         {filteredCards.length === 0 ? (
           <div className="text-center text-gray-500 mt-10">
@@ -293,7 +232,7 @@ export default function SubAdminCardList() {
                     <div>Income:</div>
                     <div>₹{selectedCard.head_monthly_income}</div>
                     <div>Head Aadhaar:</div>
-                    <div>₹{selectedCard.head_aadhaar}</div>
+                    <div>{selectedCard.head_aadhaar}</div>
                     <div>Address:</div>
                     <div>{selectedCard.household_address}</div>
                   </div>
@@ -334,21 +273,23 @@ export default function SubAdminCardList() {
                   </ul>
                 </div> */}
 
-                <div>
+                {/* <div>
                   <h3 className="font-semibold mb-2">Verification History</h3>
                   <div className="text-sm text-gray-600">
                     Status: <span className={`font-medium ${getStatusColor(selectedCard.status)}`}>
                       {selectedCard.status.replace('_', ' ')}
                     </span>
                   </div>
-                </div>
+                </div> */}
 
               </div>
             )}
 
             <DialogFooter>
               <Button variant="outline" onClick={() => setSelectedCard(null)}>Close</Button>
-              <Button onClick={() => setShowConfirmation(true)}>Verify</Button>
+              {selectedCard?.status !== 'SHOP_VERIFIED' && (
+                <Button onClick={() => setShowConfirmation(true)}>Verify</Button>
+              )}
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -371,12 +312,10 @@ export default function SubAdminCardList() {
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setShowConfirmation(false)}>Cancel</Button>
-              <Button onClick={() => {
-                // Handle confirmation
-                setShowConfirmation(false)
-                setSelectedCard(null)
-                // Add logic to update the card status and add verification notes
-              }}>Confirm</Button>
+              <Button 
+                onClick={handleShopVerification}
+                disabled={!verificationNote.trim()}
+              >Confirm Verification</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>

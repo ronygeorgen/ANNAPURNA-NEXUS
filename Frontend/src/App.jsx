@@ -26,6 +26,11 @@ import ChooseSubsidiesPage from './pages/ChooseSubsidies';
 import ProductManagementPage from './pages/ProductManagement';
 import CheckoutPage from './pages/Checkout';
 import AdminShopcardDisplayPage from './pages/AdminShopcardDisplay';
+import ShopDetailsPage from './pages/ShopDetails';
+import { Toaster } from 'sonner';
+import AdminOrdersPage from './pages/AdminOrders';
+import SubAdminOrdersPage from './pages/SubAdminOrders';
+import StripeSuccessPage from './pages/StripeSuccess';
 
 const App = () => {
   const { isAuthenticated, user } = useSelector((state) => state.auth);
@@ -52,6 +57,15 @@ const App = () => {
   return (
     <PersistGate loading={null} persistor={persistor}>
       <ScrollToTop />
+      <Toaster
+        theme="light"
+        toastOptions={{
+          classNames: {
+            success: 'bg-white text-green-500',
+            error: 'bg-white text-red-500'
+          }
+        }}
+      />
       <Routes>
         <Route path="/" element={ 
           isAdmin ? <Navigate to="/admin-dashboard" replace /> : 
@@ -67,12 +81,14 @@ const App = () => {
         <Route path="/home/ration-card-registration-form/" element={<ProtectedRoute allowAdmin={false} allowSubAdmin={false}> <RationCardRegistrationFormPage /> </ProtectedRoute>} />
         <Route path="/home/selected-shop/choose-subsidies/" element={<ProtectedRoute allowAdmin={false} allowSubAdmin={false}> <ChooseSubsidiesPage /> </ProtectedRoute>} />
         <Route path="/home/selected-shop/choose-subsidies/checkout-page/" element={<ProtectedRoute allowAdmin={false} allowSubAdmin={false}> <CheckoutPage /> </ProtectedRoute>} />
+        <Route path="/home/selected-shop/choose-subsidies/checkout-page/success" element={<ProtectedRoute allowAdmin={false} allowSubAdmin={false}> <StripeSuccessPage /> </ProtectedRoute>} />
           
           {/* sub-admin routes */}
         <Route path="/sub-admin-login" element={<GuestRoute> <SubAdminLoginPage /> </GuestRoute>} />
         <Route path="/sub-admin-dashboard" element={<SubAdminProtectedRoute><SubAdminDashboardPage /></SubAdminProtectedRoute>} />
         <Route path="/sub-admin-profile" element={<SubAdminProtectedRoute><SubAdminProfilePage /></SubAdminProtectedRoute>} />
         <Route path="/sub-admin-card-list" element={<SubAdminProtectedRoute><SubAdminCardListPage /></SubAdminProtectedRoute>} />
+        <Route path="/sub-admin-orders-list" element={<SubAdminProtectedRoute><SubAdminOrdersPage /></SubAdminProtectedRoute>} />
         
           {/* Admin routes */}
         <Route path="/admin-login" element={<GuestRoute> <AdminLoginPage /> </GuestRoute>} />
@@ -81,12 +97,12 @@ const App = () => {
         <Route path="/create-ration-shop" element={<AdminProtectedRoute> <CreateRationShopPage /> </AdminProtectedRoute>} />
         <Route path="/create-product" element={<AdminProtectedRoute> <ProductManagementPage /> </AdminProtectedRoute>} />
         <Route path="/shop-display" element={<AdminProtectedRoute> <AdminShopcardDisplayPage /> </AdminProtectedRoute>} />
+        <Route path="/shop-display/single-shop-details" element={<AdminProtectedRoute> <ShopDetailsPage /> </AdminProtectedRoute>} />
+        <Route path="/admin-orders" element={<AdminProtectedRoute> <AdminOrdersPage /> </AdminProtectedRoute>} />
 
         {/* catch all route */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-       {/* Toast container to display toast notifications */}
-       <ToastContainer position="top-right" autoClose={2000} hideProgressBar={false} newestOnTop={false} closeOnClick rtl={false} pauseOnFocusLoss draggable pauseOnHover />
     </PersistGate>
   );
 };

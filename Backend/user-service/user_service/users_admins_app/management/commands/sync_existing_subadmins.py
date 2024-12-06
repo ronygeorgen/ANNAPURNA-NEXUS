@@ -9,7 +9,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         self.stdout.write('Starting to sync existing sub-admins...')
         
-        sub_admins = Account.objects.filter(is_subadmin=True, is_superadmin=False)
+        sub_admins = Account.objects.filter(is_subadmin=True, is_superadmin=True)
         total = sub_admins.count()
         
         for index, sub_admin in enumerate(sub_admins, 1):
@@ -19,7 +19,7 @@ class Command(BaseCommand):
                     'email': sub_admin.email,
                     'is_active': sub_admin.is_active,
                     'is_subadmin': sub_admin.is_subadmin,
-                    'auth_token': sub_admin.auth_token.key if hasattr(sub_admin, 'auth_token') else None,
+                    'is_superadmin': sub_admin.is_superadmin,
                     'created_at': sub_admin.date_joined.isoformat()
                 }
                 

@@ -1,5 +1,3 @@
-# views.py in user-service
-
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.views import APIView
@@ -9,7 +7,9 @@ from django.http import JsonResponse
 from django.contrib.auth import authenticate
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.permissions import BasePermission
+from users_admins_app.models import Account
 import logging
+from django.db.models import Count, Sum
 
 logger = logging.getLogger(__name__)
 
@@ -193,3 +193,17 @@ class RefreshTokenView(APIView):
             response.delete_cookie('access_token')
             response.delete_cookie('refresh_token')
             return response
+
+
+class UserCountView(APIView):
+    def get(self, request):
+        user_count = Account.objects.filter(
+            is_superadmin=False, 
+            is_subadmin=False, 
+            is_user=False
+        ).count()
+        print(user_count)
+
+        return Response({
+            'count': user_count
+        })

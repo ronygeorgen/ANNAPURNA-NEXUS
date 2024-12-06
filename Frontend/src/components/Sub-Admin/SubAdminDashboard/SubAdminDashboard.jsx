@@ -1,11 +1,15 @@
-import React from 'react'
+import React, {useEffect} from 'react'
 import { Home, CreditCard, ShoppingBag, Package, Store, Bell, Phone, User, Search, Settings, ChevronDown, LogOut } from 'lucide-react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { useDispatch, useSelector } from 'react-redux';
 import { logoutUser } from '../../../features/auth/authSlice';
 import { useNavigate, Link } from 'react-router-dom';
 import SubAdminAside from '../SubAdminAside/SubAdminAside';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
+import { ProfileSchema } from '../../../utils/validationSchemas'
+import { fetchProfile, updateProfile, uploadProfilePicture, uploadShopImage, deleteShopImage, resetStatus } from '../../../features/sub-admin-profile/profileSlice'
+
+
 
 
 const data = [
@@ -82,6 +86,11 @@ function SubAdminDashboard() {
         console.error("Logout failed", error);
     }
   };
+
+  useEffect(() => {
+    dispatch(fetchProfile());
+  }, [dispatch]);
+
   return (
     <div className="flex h-screen bg-gray-100">
       <SubAdminAside handleLogout={handleLogout} />

@@ -65,7 +65,8 @@ def publish_subadmin_changes(sender, instance, created, **kwargs):
             'email': instance.email,
             'is_active': instance.is_active,
             'is_subadmin': instance.is_subadmin,
-            'auth_token': instance.auth_token.key if hasattr(instance, 'auth_token') else None,
+            'is_superadmin':instance.is_superadmin,
+            # 'auth_token': instance.auth_token.key if hasattr(instance, 'auth_token') else None,
             'created_at': instance.date_joined.isoformat()
         }
 

@@ -77,7 +77,9 @@ class UserEventsConsumer:
                 sub_admin_id=data['id'],
                 defaults={
                     'email': data['email'],
-                    'is_active': data['is_active']
+                    'is_active': data['is_active'],
+                    'is_superadmin': data['is_superadmin'],
+                    'is_subadmin': data['is_subadmin']
                 }
             )
         except Exception as e:

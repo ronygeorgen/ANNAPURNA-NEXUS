@@ -122,11 +122,15 @@ SIMPLE_JWT = {
 # Kafka Settings
 KAFKA_BOOTSTRAP_SERVERS = 'localhost:9092'
 
-KAFKA_TOPIC_USER_EVENTS = 'user_events'       # Topic to consume from
+KAFKA_TOPIC_USER_EVENTS = 'user_events'       
 KAFKA_TOPIC_RATION_SHOP_CREATION_EVENTS = 'ration_shop_events'
 
 KAFKA_CONSUMER_GROUP = 'ration_shop_service_user_consumer'
 KAFKA_CLIENT_ID = 'ration_shop_service_provider'
+
+# below kafka for ration card
+KAFKA_TOPIC_STOCK_EVENTS = 'stock_events_topic'   
+KAFKA_CONSUMER_GROUP_STOCK = 'ration_card_stock_consumer'
 
 LOGGING = {
     'version': 1,

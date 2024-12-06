@@ -3,7 +3,6 @@ from django.db import models
 class AdminAuth(models.Model):
     admin_id = models.IntegerField(unique=True)
     email = models.EmailField(unique=True)
-    auth_token = models.CharField(max_length=255)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -20,6 +19,8 @@ class SubAdminAuth(models.Model):
     email = models.EmailField(unique=True)
     owner_name = models.CharField(max_length=255, null=True, blank=True)
     is_active = models.BooleanField(default=True)
+    is_subadmin = models.BooleanField(null=True, blank=True)
+    is_superadmin = models.BooleanField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

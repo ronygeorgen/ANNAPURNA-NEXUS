@@ -24,7 +24,7 @@ class OrderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order
-        fields = ['order_id', 'user', 'shop', 'card', 'card_number', 'address',
+        fields = ['order_id', 'user', 'shop', 'card_number', 'address',
                  'order_items', 'payment', 'total_amount', 'status']
 
     def create(self, validated_data):
@@ -52,3 +52,32 @@ class OrderSerializer(serializers.ModelSerializer):
             order.order_items.add(order_item)
 
         return order
+    
+    def to_representation(self, instance):
+        try:
+            representation = super().to_representation(instance)
+
+            detailed_items = [
+                {
+                    'name': item.get('item_name', ''),
+                    'quantity': item.get('quantity', 0),
+                    'total_price': float(item.get('total_price', 0))
+                } for item in representation.get('order_items', [])
+            ]
+
+            return {
+                'id': str(representation.get('order_id', '')),
+                'shop': representation.get('shop',''),
+                'card_number': representation.get('card_number',''),
+                'name': representation.get('user', ''),
+                'date': instance.created_at.strftime('%Y-%m-%d') if instance.created_at else '',
+                'time': instance.created_at.strftime('%H:%M') if instance.created_at else '',
+                'total': float(representation.get('total_amount', 0)),
+                'status': representation.get('payment', {}).get('payment_status', ''),
+                'mode': representation.get('payment', {}).get('payment_method', ''),
+                'address': f"{representation.get('address', {}).get('address_line', '')}, {representation.get('address', {}).get('state', '')}, {representation.get('address', {}).get('country', '')}",
+                'items': detailed_items,
+            }
+        except Exception as e:
+            print(f"Error in to_representation: {e}")
+            return {}

@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { MyOrdersPopUp } from "../MyOrdersPopUp/MyOrdersPopUp";
 
 function NavBar({ handleLogout }) {
 
@@ -23,9 +24,10 @@ function NavBar({ handleLogout }) {
                     </div>
                     <div className="hidden md:flex space-x-4">
                     <Link to="/home" className="text-gray-700 hover:text-orange-500">Home</Link>
-                    <Link to="#" className="text-gray-700 hover:text-orange-500">About</Link>
                     <Link to="#" className="text-gray-700 hover:text-orange-500">Services</Link>
+                    <MyOrdersPopUp/>
                     <Link to="#" className="text-gray-700 hover:text-orange-500">Contact</Link>
+                    <Link to="#" className="text-gray-700 hover:text-orange-500">About</Link>
                     <Link to="#" onClick={handleLogout} className="text-gray-700 hover:text-orange-500 cursor-pointer">
                         Logout
                         </Link>

@@ -6,7 +6,7 @@ from .views import (RationShopViewSet,
                     SubAdminProfileView,
                     SubAdminProfilePictureUpload,
                     SubAdminShopImageUpload,
-                    SubAdminShopImageDelete, ShopDisplayAtUser)
+                    SubAdminShopImageDelete, ShopDisplayAtUser, GetShopIDandName)
 
 router = DefaultRouter()
 router.register(r'create', RationShopViewSet, basename='ration-shop')
@@ -22,4 +22,5 @@ urlpatterns = [
     path('profile/upload_shop_image/', SubAdminShopImageUpload.as_view(), name='upload_shop_image'),
     path('profile/delete_shop_image/<int:image_id>/', SubAdminShopImageDelete.as_view(), name='delete_shop_image'),
     path('shops/', ShopDisplayAtUser.as_view(), name='display-shop'),
+    path('fetch-all-shops/', GetShopIDandName.as_view(), name='get-shop-id-name'),
 ]

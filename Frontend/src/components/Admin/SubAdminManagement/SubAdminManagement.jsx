@@ -10,7 +10,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import AdminAside from '../AdminAside/AdminAside';
 import AdminHeader from '../AdminHeader/AdminHeader';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 
 
 function SubAdminManagement() {

@@ -23,7 +23,7 @@ class OrderItem(models.Model):
     total_price = models.DecimalField(max_digits=10, decimal_places=2)  # price_per_unit * quantity
 
     def __str__(self):
-        return f"{self.quantity} x {self.item_details.get('name', 'Item')}"
+        return f"{self.quantity} x {self.item_name}"
 
 
 class Payment(models.Model):
@@ -41,7 +41,7 @@ class Payment(models.Model):
 
     payment_method = models.CharField(max_length=20, choices=PAYMENT_CHOICES)
     payment_status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default='Pending')  # Pending, Success, Failed
-    transaction_id = models.CharField(max_length=100, blank=True, null=True)  # For PayPal/Razorpay
+    transaction_id = models.TextField(blank=True, null=True)  # For PayPal/Razorpay
     payment_id = models.CharField(max_length=20, default="")  # COD for Cash on Delivery
 
     def save(self, *args, **kwargs):
@@ -63,7 +63,6 @@ class Order(models.Model):
     order_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)  # Auto-generated Order ID
     user = models.CharField(max_length=255)  # Store username or email as a string
     shop = models.IntegerField()  # Store shop ID as an integer
-    card = models.IntegerField(blank=True, null=True)  # Store card ID as an integer, optional
     card_number = models.CharField(max_length=16, blank=True, null=True)  # Card number used for the transaction
     address = models.ForeignKey('Address', on_delete=models.CASCADE)  # Shipping address
     order_items = models.ManyToManyField(OrderItem)  # Items in the order

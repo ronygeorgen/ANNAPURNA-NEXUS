@@ -11,7 +11,7 @@ import AdminAside from '../AdminAside/AdminAside';
 import AdminHeader from '../AdminHeader/AdminHeader';
 import { RationShopSchema } from '../../../utils/validationSchemas';
 import api from '../../../services/api';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 
 
 function CreateRationShop() {

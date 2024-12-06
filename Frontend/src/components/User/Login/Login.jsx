@@ -7,7 +7,7 @@ import Button from '../../common/Button';
 import GradientBackground from '../../common/GradientBackground';
 import { loginuser } from '../../../features/auth/authSlice';
 import { useNavigate, Link } from 'react-router-dom';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 
 
 const Login = () => {

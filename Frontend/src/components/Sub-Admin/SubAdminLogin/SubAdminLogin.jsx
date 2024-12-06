@@ -6,7 +6,7 @@ import FormInput from '../../common/FormInput';
 import Button from '../../common/Button';
 import { subAdminLogin } from '../../../features/auth/authSlice'; 
 import { useNavigate, Link } from 'react-router-dom';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 
 
 function SubAdminLogin() {
@@ -38,7 +38,7 @@ function SubAdminLogin() {
                 console.log('Login response:', response);
                 if (response.sub_admin && response.sub_admin.is_subadmin) {
                   navigate('/sub-admin-dashboard');
-                  toast.success('Login successfull')
+                  toast.success('Login successful')
                 } else {
                   toast.error('Login successful but no sub-admin data received')
                   console.error('Login successful but no sub-admin data received');

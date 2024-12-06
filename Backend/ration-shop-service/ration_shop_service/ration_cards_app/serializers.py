@@ -20,19 +20,20 @@ class RationShopSerializer(serializers.ModelSerializer):
 class CardTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = CardType
-        fields = ['name', 'color_code', 'description']
+        fields = ['name', 'color_code', 'description', 'is_active']
 
 
 class RationCardSerializer(serializers.ModelSerializer):
     class Meta:
         model = RationCard
         fields = [
-            'household_address',
+            'card_number','household_address','status',
             'head_name', 'head_age', 'head_monthly_income',
             'head_aadhaar', 'supporting_document', 'registered_shop',
-            'requester_id', 'requester_email',
+            'requester_id', 'requester_email', 'max_quantities','shop_verification_notes',
+            'admin_verification_notes','admin_verified_at',
         ]
-        read_only_fields = ['card_number','card_type', 'status']
+        read_only_fields = ['card_number','card_type']
         
     def validate_head_aadhaar(self, value):
         if len(value) != 12 or not value.isdigit():
@@ -57,6 +58,9 @@ class RationCardSerializer(serializers.ModelSerializer):
         import string
         random_str = ''.join(random.choices(string.digits, k=10))
         return f"{random_str}"
+    
+    def get_max_quantities(self, obj):
+        return obj.calculate_max_quantities()
 
 class RationCardRetrieveSerializer(serializers.ModelSerializer):
     family_members = FamilyMemberSerializer(many=True, read_only=True)
@@ -97,6 +101,7 @@ class RationCardRetrieveSerializer(serializers.ModelSerializer):
         return status_map.get(obj.status, obj.status)
 
 class CardVerificationSerializer(serializers.ModelSerializer):
+    family_members = FamilyMemberSerializer(many=True, read_only=True)
     card_type = CardTypeSerializer(read_only=True)
     registered_shop = RationShopSerializer(read_only=True)
     status_display = serializers.SerializerMethodField()
@@ -104,12 +109,23 @@ class CardVerificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = RationCard
         fields = [
+            'id',
             'card_number',
             'card_type',
-            'registered_shop',
+            'head_name',
+            'head_age',
+            'head_monthly_income',
+            'head_aadhaar',
+            'household_address',
             'status',
             'status_display',
-            'head_name'
+            'requester_email',
+            'registered_shop',
+            'family_members',
+            'created_at',
+            'supporting_document',
+            'shop_verification_notes',
+            'admin_verification_notes'
         ]
     
     def get_status_display(self, obj):

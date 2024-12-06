@@ -5,13 +5,14 @@ import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ShoppingCart, Users, Package, Calendar, Plus, Store, MapPin, Phone, User, Loader2 } from 'lucide-react'
-import { toast } from 'react-toastify';
 import { logoutUser } from '../../../features/auth/authSlice'
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import api from '../../../services/api';
 import NavBar from '../NavBar/NavBar'
 import Cart from '../../common/Cart'
+import { toast } from 'sonner';
+
 
 export default function ChooseSubsidies() {
     const dispatch = useDispatch();
@@ -28,6 +29,8 @@ export default function ChooseSubsidies() {
 
     const shop = location.state?.shop;
     const cardDetails = location.state?.cardDetails;
+    console.log(cardDetails);
+    
 
     const cardData = {
         card_number: cardDetails?.card_number || 'N/A',
@@ -36,7 +39,7 @@ export default function ChooseSubsidies() {
         },
         head_of_family: {
             name: cardDetails?.head_name || "Not Available",
-            age: cardDetails?.head_of_family?.age || 0
+            age: cardDetails?.head_age || 0
         },
         family_members: cardDetails?.family_members || [],
         last_transaction_date: cardDetails?.last_transaction_date || new Date().toISOString(),
@@ -56,6 +59,8 @@ export default function ChooseSubsidies() {
                     });
 
                     setQuotaInfo(response.data);
+                    console.log(response.data);
+                    
 
                     // Transform and store items in local storage
                     const transformedNormalItems = response.data.regular_quota.map(item => ({
@@ -392,19 +397,29 @@ export default function ChooseSubsidies() {
                                     </TabsContent>
                                     <TabsContent value="family" className="p-6">
                                       <h2 className="text-xl font-semibold mb-4">Family Members</h2>
+                                      <div className="space-y-4 pb-4">
+                                        <Card key={cardData.id} className="flex items-center p-4 space-x-4">
+                                            <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center">
+                                              <span className="text-2xl text-orange-500">{cardData.head_of_family.name[0]}</span>
+                                            </div>
+                                            <div>
+                                              <p className="font-semibold">{cardData.head_of_family.name}</p>
+                                              <p className="text-sm text-gray-500">Age: {cardData.head_of_family.age }</p>
+                                            </div>
+                                              <Badge className="ml-auto" variant="secondary">Head</Badge>
+                                            
+                                        </Card>
+                                      </div>
                                       <div className="space-y-4">
-                                        {[cardData.head_of_family, ...cardData.family_members].map((member, index) => (
+                                        {(cardData.family_members).map((member, index) => (
                                           <Card key={index} className="flex items-center p-4 space-x-4">
                                             <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center">
                                               <span className="text-2xl text-orange-500">{member.name[0]}</span>
                                             </div>
                                             <div>
                                               <p className="font-semibold">{member.name}</p>
-                                              <p className="text-sm text-gray-500">Age: {member.age}</p>
+                                              <p className="text-sm text-gray-500">Age: {member.age }</p>
                                             </div>
-                                            {index === 0 && (
-                                              <Badge className="ml-auto" variant="secondary">Head</Badge>
-                                            )}
                                           </Card>
                                         ))}
                                       </div>

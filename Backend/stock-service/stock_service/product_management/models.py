@@ -21,7 +21,7 @@ QUOTA_CATEGORIES = [
 UNIT_CHOICES = [
     ('kg', 'Kilogram'), 
     ('litre', 'Litre'), 
-    ('piece', 'Piece')
+    ('gm', 'Gram')
 ]
 
 class CardType(models.Model):
@@ -76,7 +76,7 @@ class Quota(models.Model):
     price_per_unit = models.DecimalField(
         max_digits=10, 
         decimal_places=2, 
-        help_text="Price per kg/litre/piece.",
+        help_text="Price per kg/litre/gram.",
         validators=[MinValueValidator(0)]
     )
     created_at = models.DateTimeField(auto_now_add=True)

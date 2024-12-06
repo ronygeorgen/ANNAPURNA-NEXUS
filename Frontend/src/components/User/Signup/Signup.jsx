@@ -7,6 +7,8 @@ import Button from '../../common/Button';
 import GradientBackground from '../../common/GradientBackground';
 import { registeruser } from '../../../features/auth/authSlice';
 import { useNavigate, Link } from 'react-router-dom';
+import { toast } from 'sonner';
+
 
 const Signup = () => {
   const dispatch = useDispatch();
@@ -32,8 +34,10 @@ const Signup = () => {
               .unwrap()
               .then(() => {
                 navigate('/home');
+                toast.success('Registration successful')
               })
               .catch((error) => {
+                toast.error('Registration failed!')
                 console.error('Registration failed:', error);
               })
               .finally(() => {

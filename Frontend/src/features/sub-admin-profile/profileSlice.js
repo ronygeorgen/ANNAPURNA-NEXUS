@@ -7,6 +7,7 @@ export const fetchProfile = createAsyncThunk(
         try {
             const response = await api.get('/ration-shop/profile/');
             return response.data;
+            
         } catch (error) {
             return rejectWithValue(error.response.data);
         }
@@ -86,6 +87,7 @@ export const updateProfile = createAsyncThunk(
         data: {
             ownerEmail:'',
             ownerName: '',
+            shopID: '',
             shopName: '',
             shopDescription: '',
             location: '',
@@ -117,6 +119,7 @@ export const updateProfile = createAsyncThunk(
             state.data = {
               ownerEmail: action.payload.owner_details.email,
               ownerName: action.payload.owner_details.owner_name,
+              shopID: action.payload.shop_id,
               shopName: action.payload.shopName,
               shopDescription: action.payload.shopDescription,
               location: action.payload.location,
@@ -124,7 +127,7 @@ export const updateProfile = createAsyncThunk(
               shopImages: action.payload.shop_images,
               isOpen: action.payload.isOpen,
             };
-            console.log('payload data=',state.data);
+            
             
           })
           .addCase(fetchProfile.rejected, (state, action) => {
@@ -142,6 +145,7 @@ export const updateProfile = createAsyncThunk(
             state.data = {
               ownerEmail: action.payload.owner_details.email,
               ownerName: action.payload.owner_details.owner_name,
+              shopID: action.payload.shop_id,
               shopName: action.payload.shopName,
               shopDescription: action.payload.shopDescription,
               location: action.payload.location,
@@ -166,6 +170,7 @@ export const updateProfile = createAsyncThunk(
             state.data = {
               ownerEmail: action.payload.owner_details.email,
               ownerName: action.payload.owner_details.owner_name,
+              shopID: action.payload.shop_id,
               shopName: action.payload.shopName,
               shopDescription: action.payload.shopDescription,
               location: action.payload.location,

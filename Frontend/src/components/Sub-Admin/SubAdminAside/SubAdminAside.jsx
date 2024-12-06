@@ -34,7 +34,7 @@ function SubAdminAside({ handleLogout }) {
               </Link>
             </li>
             <li>
-              <Link to="/orders" className={`flex items-center p-2 hover:bg-teal-600 rounded ${isActive('/orders')}`}>
+              <Link to="/sub-admin-orders-list" className={`flex items-center p-2 hover:bg-teal-600 rounded ${isActive('/sub-admin-orders-list')}`}>
                 <ShoppingBag className="mr-2" /> Orders
               </Link>
             </li>

@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react'
 import { Phone, MessageSquare, MapPin } from 'lucide-react'
 // import coverImage from '../assets/Cover.jpg'
 import NavBar from '../NavBar/NavBar'
-import { toast } from 'react-toastify';
 import { logoutUser } from '../../../features/auth/authSlice'
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import api from '../../../services/api';
+import { toast } from 'sonner';
+
 
 
 
@@ -188,18 +189,18 @@ function SelectedShop() {
                 <p className="text-sm text-yellow-700">{shop.location}</p>
               </div> */}
 
-              <div className="flex gap-4">
+              <div className="flex  gap-4">
                 <button className="flex items-center gap-2 px-6 py-2 bg-white rounded-lg shadow hover:shadow-md transition-shadow">
                   <Phone className="w-5 h-5 text-gray-600" />
-                  <span>Call</span>
+                  <span className='lg:inline hidden'>Call</span>
                 </button>
                 <button className="flex items-center gap-2 px-6 py-2 bg-white rounded-lg shadow hover:shadow-md transition-shadow">
                   <MessageSquare className="w-5 h-5 text-gray-600" />
-                  <span>Message</span>
+                  <span className='lg:inline hidden' >Message</span>
                 </button>
                 <button className="flex items-center gap-2 px-6 py-2 bg-white rounded-lg shadow hover:shadow-md transition-shadow">
                   <MapPin className="w-5 h-5 text-gray-600" />
-                  <span>Directions</span>
+                  <span className='lg:inline hidden' >Directions</span>
                 </button>
               </div>
               <button className={`w-full px-6 py-3 ${isVerified ? 'bg-orange-500 hover:bg-orange-600' : 'bg-gray-400 cursor-not-allowed'} text-white rounded-lg font-semibold transition-colors`}

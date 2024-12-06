@@ -119,7 +119,6 @@ def verify_ration_card_by_number(request, card_number):
     if request.method == 'GET':
             
         try:
-            print(card_number)
             access_token = request.COOKIES.get('access_token')
             if not access_token:
                 return JsonResponse({'error': 'Authorization credentials not found'}, status=401)
@@ -138,7 +137,185 @@ def verify_ration_card_by_number(request, card_number):
             except ValueError:
                 response_data = {}
             
-            print(response_data)
+            gateway_response = JsonResponse(response_data, status=response.status_code)
+            
+            for cookie in response.cookies:
+                gateway_response.set_cookie(
+                    key=cookie.name,
+                    value=cookie.value,
+                    httponly=cookie.has_nonstandard_attr('HttpOnly'),
+                    secure=cookie.secure,
+                    samesite=cookie.get_nonstandard_attr('SameSite')
+                )
+            
+            return gateway_response
+            
+        except requests.RequestException as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    else:
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+
+def fetch_card_for_admin_view(request, shop_id):
+
+    if request.method == 'GET':
+            
+        try:
+            access_token = request.COOKIES.get('access_token')
+            if not access_token:
+                return JsonResponse({'error': 'Authorization credentials not found'}, status=401)
+            
+            ration_card_fetch_shop_admin_url = os.environ.get('RATION_SHOP_SVC_ADDRESS', f'http://localhost:8002/ration-card/fetch-shop-card-admin/{shop_id}/')
+            
+            headers = {
+                'Authorization': f'Bearer {access_token}',
+                'Content-Type': 'application/json',
+            }
+            
+            response = requests.get(ration_card_fetch_shop_admin_url, headers=headers)
+            
+            try:
+                response_data = response.json()
+            except ValueError:
+                response_data = {}
+            
+            gateway_response = JsonResponse(response_data, status=response.status_code)
+            
+            for cookie in response.cookies:
+                gateway_response.set_cookie(
+                    key=cookie.name,
+                    value=cookie.value,
+                    httponly=cookie.has_nonstandard_attr('HttpOnly'),
+                    secure=cookie.secure,
+                    samesite=cookie.get_nonstandard_attr('SameSite')
+                )
+            
+            return gateway_response
+            
+        except requests.RequestException as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    else:
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+def shop_verify_card(request, card_number):
+    if request.method == 'PATCH':
+        try:
+            access_token = request.COOKIES.get('access_token')
+            if not access_token:
+                return JsonResponse({'error': 'Authorization credentials not found'}, status=401)
+            
+            # Update URL to dynamically include card_number
+            url = os.environ.get('RATION_SHOP_SVC_ADDRESS', 'http://localhost:8002/ration-card/').rstrip('/') + f'/{card_number}/shop-verify/'
+            
+            try:
+                data = json.loads(request.body)
+                # Ensure card_number is in the data
+                data['card_number'] = card_number
+            except json.JSONDecodeError:
+                return JsonResponse({'error': 'Invalid JSON'}, status=400)
+            
+            headers = {
+                'Authorization': f'Bearer {access_token}',
+                'Content-Type': 'application/json',
+            }
+            
+            response = requests.patch(url, json=data, headers=headers)
+            
+            try:
+                response_data = response.json()
+            except ValueError:
+                response_data = {}
+            
+            gateway_response = JsonResponse(response_data, status=response.status_code)
+            
+            for cookie in response.cookies:
+                gateway_response.set_cookie(
+                    key=cookie.name,
+                    value=cookie.value,
+                    httponly=cookie.has_nonstandard_attr('HttpOnly'),
+                    secure=cookie.secure,
+                    samesite=cookie.get_nonstandard_attr('SameSite')
+                )
+            
+            return gateway_response
+            
+        except requests.RequestException as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    else:
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+
+def fetch_card_types(request):
+    if request.method == 'GET':
+        try:
+            access_token = request.COOKIES.get('access_token')
+            if not access_token:
+                return JsonResponse({'error': 'Authorization credentials not found'}, status=401)
+            
+            url = os.environ.get('RATION_SHOP_SVC_ADDRESS', 'http://localhost:8002/ration-card/card-types/')
+            
+            # Remove JSON parsing for GET request
+            headers = {
+                'Authorization': f'Bearer {access_token}',
+                'Content-Type': 'application/json',
+            }
+            
+            response = requests.get(url, headers=headers)
+            
+            try:
+                response_data = response.json()
+            except ValueError:
+                response_data = {}
+            
+            gateway_response = JsonResponse(response_data, status=response.status_code)
+            
+            for cookie in response.cookies:
+                gateway_response.set_cookie(
+                    key=cookie.name,
+                    value=cookie.value,
+                    httponly=cookie.has_nonstandard_attr('HttpOnly'),
+                    secure=cookie.secure,
+                    samesite=cookie.get_nonstandard_attr('SameSite')
+                )
+            
+            return gateway_response
+            
+        except requests.RequestException as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    else:
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    
+
+def admin_verify_card(request, card_number):
+    if request.method == 'PATCH':
+        try:
+            print(card_number)
+            access_token = request.COOKIES.get('access_token')
+            if not access_token:
+                return JsonResponse({'error': 'Authorization credentials not found'}, status=401)
+            
+            # Update URL to dynamically include card_number
+            url = os.environ.get('RATION_SHOP_SVC_ADDRESS', f'http://localhost:8002/ration-card/verify-card-admin/{card_number}/')
+            
+            try:
+                data = json.loads(request.body)
+                # Ensure card_number is in the data
+                data['card_number'] = card_number
+            except json.JSONDecodeError:
+                return JsonResponse({'error': 'Invalid JSON'}, status=400)
+            
+            headers = {
+                'Authorization': f'Bearer {access_token}',
+                'Content-Type': 'application/json',
+            }
+            
+            response = requests.patch(url, json=data, headers=headers)
+            
+            try:
+                response_data = response.json()
+            except ValueError:
+                response_data = {}
+            
             gateway_response = JsonResponse(response_data, status=response.status_code)
             
             for cookie in response.cookies:

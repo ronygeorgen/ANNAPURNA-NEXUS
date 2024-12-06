@@ -10,8 +10,9 @@ import AdminHeader from '../AdminHeader/AdminHeader'
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import api from '../../../services/api';
-import { toast } from 'react-toastify'
 import { logoutUser } from '../../../features/auth/authSlice'
+import { toast } from 'sonner';
+
 
 
 const KERALA_CARD_TYPES = [

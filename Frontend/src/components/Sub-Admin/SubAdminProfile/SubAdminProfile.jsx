@@ -7,8 +7,9 @@ import SubAdminAside from '../SubAdminAside/SubAdminAside'
 import { logoutUser } from '../../../features/auth/authSlice';
 import ProfilePictureUpload from '../SubAdminProfilePictureUpload/SubAdminProfilePictureUpload'
 import { fetchProfile, updateProfile, uploadProfilePicture, uploadShopImage, deleteShopImage, resetStatus } from '../../../features/sub-admin-profile/profileSlice'
-import { toast } from 'react-toastify';
 import { ProfileSchema } from '../../../utils/validationSchemas'
+import { toast } from 'sonner';
+
 
 function SubAdminProfile() {
   const [isEditing, setIsEditing] = useState(false)

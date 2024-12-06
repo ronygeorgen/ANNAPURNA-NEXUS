@@ -216,3 +216,151 @@ class CreateOrder(APIView):
             return response
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+class FetchCardForAdminView(APIView):
+    permission_classes = [AllowAny]
+    def get(self, request, shop_id, *args, **kwargs):
+        try:
+            response = ration_card.fetch_card_for_admin_view(request, shop_id)
+            return response
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class GetOrders(APIView):
+    permission_classes = [AllowAny]
+    def get(self, request, *args, **kwargs):
+        try:
+            response = order_management.get_orders(request)
+            return response
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class GetOrdersSubAdmin(APIView):
+    permission_classes = [AllowAny]
+    def get(self, request, *args, **kwargs):
+        try:
+            response = order_management.get_orders_for_sub_admin(request)
+            return response
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class GetOrdersUser(APIView):
+    permission_classes = [AllowAny]
+    def get(self, request, *args, **kwargs):
+        try:
+            response = order_management.get_orders_for_user(request)
+            return response
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class GetAllShops(APIView):
+    permission_classes = [AllowAny]
+    def get(self, request, *args, **kwargs):
+        try:
+            response = ration_shop.get_all_shops_id_and_name(request)
+            return response
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class GetAllShopsCardbased(APIView):
+    permission_classes = [AllowAny]
+    def get(self, request, *args, **kwargs):
+        try:
+            response = order_management.get_orders_for_user_cardbased(request)
+            return response
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class StripePay(APIView):
+    permission_classes = [AllowAny]
+    def post(self, request, *args, **kwargs):
+        try:
+            response = order_management.stripe_pay(request)
+            return response
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class SaveStripeOrder(APIView):
+    permission_classes = [AllowAny]
+    def post(self, request, *args, **kwargs):
+        try:
+            response = order_management.save_stripe_order(request)
+            return response
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class VerifyOrderStripe(APIView):
+    permission_classes = [AllowAny]
+    def get(self, request, order_id, *args, **kwargs):
+        try:
+            response = order_management.verify_order(request, order_id)
+            return response
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class ShopVerifyCard(APIView):
+    permission_classes = [AllowAny]
+    def patch(self, request, card_number, *args, **kwargs):
+        try:
+            response = ration_card.shop_verify_card(request, card_number)
+            return response
+        except Exception as e:
+            return Response({'error': str(e)}, status=500)
+
+
+class FetchCardTypes(APIView):
+    permission_classes = [AllowAny]
+    def get(self, request, *args, **kwargs):
+        try:
+            response = ration_card.fetch_card_types(request)
+            return response
+        except Exception as e:
+            return Response({'error': str(e)}, status=500)
+
+
+class AdminVerifyCard(APIView):
+    permission_classes = [AllowAny]
+    def patch(self, request, card_number, *args, **kwargs):
+        try:
+            response = ration_card.admin_verify_card(request, card_number)
+            return response
+        except Exception as e:
+            return Response({'error': str(e)}, status=500)
+
+
+class GetUsersCount(APIView):
+    permission_classes = [AllowAny]
+    def get(self, request, *args, **kwargs):
+        try:
+            response = auth.get_all_users_count(request)
+            return response
+        except Exception as e:
+            return Response({'error': str(e)}, status=500)
+
+
+class OrderedProductsCountAdmin(APIView):
+    permission_classes = [AllowAny]
+    def get(self, request, *args, **kwargs):
+        try:
+            response = order_management.ordered_products_count_admin(request)
+            return response
+        except Exception as e:
+            return Response({'error': str(e)}, status=500)
+
+
+class OrderRevenueAdmin(APIView):
+    permission_classes = [AllowAny]
+    def get(self, request, *args, **kwargs):
+        try:
+            response = order_management.ordered_revenue_admin(request)
+            return response
+        except Exception as e:
+            return Response({'error': str(e)}, status=500)

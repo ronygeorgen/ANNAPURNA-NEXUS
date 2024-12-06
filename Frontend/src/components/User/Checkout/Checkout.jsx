@@ -12,10 +12,10 @@ import NavBar from '../NavBar/NavBar'
 import { logoutUser } from '../../../features/auth/authSlice'
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { toast } from 'react-toastify';
 import api from '../../../services/api';
+import { toast } from 'sonner';
 
-export default function Checkout() {
+export default function Checkout({stripePromise}) {
   const [currentStep, setCurrentStep] = useState(1)
   const [isSubmitting, setIsSubmitting] = useState(false);
   const dispatch = useDispatch();
@@ -79,7 +79,7 @@ const handleAddressInputChange = (e) => {
     }
  };
 
- const handlePlaceOrder = async () => {
+ const handlePlaceOrderOrPayment = async () => {
     if (!validateForm()) return;
 
     try {
@@ -89,7 +89,8 @@ const handleAddressInputChange = (e) => {
       const orderItems = cartItems.map(item => ({
         item_name: item.name,
         quantity: item.quantity,
-        total_price: item.price_per_unit * item.quantity
+        total_price: item.price_per_unit * item.quantity,
+        unit_amount: item.price_per_unit
       }));
 
       // Prepare payment data
@@ -97,7 +98,7 @@ const handleAddressInputChange = (e) => {
         payment_method: paymentMethod,
         payment_status: 'PENDING',
         payment_id: paymentMethod === 'COD' ? 'COD' : null,
-        transaction_id: null // Will be updated for PayPal/Razorpay
+        transaction_id: null // Will be updated for PayPal/Stripe
       };
 
       // Prepare complete order data
@@ -111,23 +112,22 @@ const handleAddressInputChange = (e) => {
         total_amount: calculateTotalAmount(),
         status: 'PENDING'
       };
-        console.log('order data printing before api call ',orderData);
-        
-      // Submit order
-      const response = await api.post('/order-management/order-create/', orderData);
 
-      if (response.status === 201) {
-        toast.success('Order placed successfully!');
-        localStorage.removeItem('cartItems');
-        localStorage.removeItem('normalItems');
-        localStorage.removeItem('additionalItems');
-        // Navigate to order confirmation
-        navigate('/home', { 
-        //   state: { 
-        //     orderId: response.data.order_id
-        //   }
-        });
+      switch (paymentMethod) {
+        case 'COD':
+          await handleCODOrder(orderData);
+          break;
+        case 'STRIPE':
+          await handleStripePayment(orderData);
+          break;
+        case 'PAYPAL':
+          // You can add PayPal-specific logic here in the future
+          toast.error('PayPal payment not implemented yet');
+          break;
+        default:
+          toast.error('Invalid payment method');
       }
+        
     } catch (error) {
       console.error('Order placement failed:', error);
       toast.error(error.response?.data?.message || 'Failed to place order. Please try again.');
@@ -135,6 +135,38 @@ const handleAddressInputChange = (e) => {
       setIsSubmitting(false);
     }
   };
+
+  const handleCODOrder = async (orderData) => {
+    try {
+      const response = await api.post('/order-management/order-create/', orderData);
+
+      if (response.status === 201) {
+        toast.success('Order placed successfully!');
+        localStorage.removeItem('cartItems');
+        localStorage.removeItem('normalItems');
+        localStorage.removeItem('additionalItems');
+        navigate('/home');
+      }
+    } catch (error) {
+      console.error('COD Order placement failed:', error);
+      throw error;
+    }
+  };
+
+  const handleStripePayment = async (orderData) => {
+    try {
+      // Call backend to create Stripe session
+      const response = await api.post('/order-management/create-checkout-session/', orderData);
+        // Fallback to window location redirect
+        window.location.href = response.data.stripe_session_url;
+      
+    } catch (error) {
+      console.error('Stripe payment initialization failed:', error);
+      throw error;
+    }
+  };
+
+
 
   return (
     <div>
@@ -278,10 +310,11 @@ const handleAddressInputChange = (e) => {
             </Card>
             <Card className="mb-3 hover:shadow-md transition-shadow duration-300">
               <CardContent className="flex items-center p-4">
-                <RadioGroupItem value="RAZORPAY" id="razorpay" className="mr-4" />
-                <Label htmlFor="razorpay">Razorpay</Label>
+              <RadioGroupItem value="STRIPE" id="stripe" className="mr-4" />
+                <Label htmlFor="stripe">Stripe Payment</Label>
               </CardContent>
             </Card>
+            
           </RadioGroup>
         </motion.div>
       )}
@@ -298,12 +331,12 @@ const handleAddressInputChange = (e) => {
             </Button>
             )}
             <Button 
-            onClick={currentStep === 3 ? handlePlaceOrder : () => setCurrentStep(currentStep + 1)}
-            disabled={isSubmitting}
-            className="bg-orange-500 hover:bg-orange-600 text-white transition-colors duration-300"
+              onClick={currentStep === 3 ? handlePlaceOrderOrPayment : () => setCurrentStep(currentStep + 1)}
+              disabled={isSubmitting}
+              className="bg-orange-500 hover:bg-orange-600 text-white transition-colors duration-300"
             >
-            {isSubmitting ? 'Processing...' : currentStep === 3 ? 'Place Order' : 'Next'}
-            {!isSubmitting && <ChevronRight className="ml-2 h-4 w-4" />}
+              {isSubmitting ? 'Processing...' : currentStep === 3 ? 'Place Order' : 'Next'}
+              {!isSubmitting && <ChevronRight className="ml-2 h-4 w-4" />}
             </Button>
         </CardFooter>
       </Card>

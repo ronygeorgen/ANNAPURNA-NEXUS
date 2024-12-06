@@ -6,7 +6,7 @@ import FormInput from '../../common/FormInput';
 import Button from '../../common/Button';  
 import { adminLogin } from '../../../features/auth/authSlice';  
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
+import { toast } from 'sonner';
 
 const AdminLogin = () => {
   const dispatch = useDispatch();

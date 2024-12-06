@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { MapPin, Phone, User } from 'lucide-react';
-import { toast } from 'react-toastify';
 import api from '../../../services/api';
 import { logoutUser } from '../../../features/auth/authSlice';
 import { useNavigate, Link } from 'react-router-dom';
 import AdminAside from '../AdminAside/AdminAside';
 import AdminHeader from '../AdminHeader/AdminHeader';
 import { useDispatch, useSelector } from 'react-redux';
+import { toast } from 'sonner';
+
 
 const AdminShopcardDisplay = () => {
     const [shops, setShops] = useState([]);
@@ -15,7 +16,11 @@ const AdminShopcardDisplay = () => {
 
     const dispatch = useDispatch();
     const navigate = useNavigate();
-  
+
+    const handleShopSelect = (shop) => {
+        navigate('/shop-display/single-shop-details',{state: {shop}})
+    }
+    
     const handleLogout = async () => {
         try {
             await dispatch(logoutUser()).unwrap();
@@ -50,8 +55,12 @@ const AdminShopcardDisplay = () => {
         const hasImage = shop.profile_image !== null;
 
         return (
-            <div className="bg-teal-800 bg-opacity-50 rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 cursor-pointer backdrop-blur-sm border border-teal-700">
-                <div className="relative h-48">
+            <div 
+            className="bg-teal-800 bg-opacity-50 rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 cursor-pointer backdrop-blur-sm border border-teal-700"
+            onClick={() => handleShopSelect(shop)}
+            >
+                
+                <div className="relative h-48" >
                     {hasImage ? (
                         <img
                             src={shop.profile_image}
@@ -59,8 +68,8 @@ const AdminShopcardDisplay = () => {
                             className="w-full h-full object-cover"
                         />
                     ) : (
-                        <div className="w-full h-full bg-gradient-to-r from-teal-700 via-teal-600 to-teal-700 relative overflow-hidden">
-                            <div className="absolute inset-0">
+                        <div className="w-full h-full bg-gradient-to-r from-teal-700 via-teal-600 to-teal-700 relative overflow-hidden" >
+                            <div className="absolute inset-0" >
                                 <div className="absolute w-16 h-16 -left-8 -top-8 bg-orange-300 rounded-full opacity-20 animate-float-slow" />
                                 <div className="absolute w-12 h-12 right-4 top-8 bg-teal-300 rounded-full opacity-20 animate-float-medium" />
                                 <div className="absolute w-10 h-10 left-12 bottom-4 bg-teal-400 rounded-full opacity-20 animate-float-fast" />
@@ -142,12 +151,12 @@ const AdminShopcardDisplay = () => {
     };
 
     return (
-        <div className="flex min-h-screen bg-teal-900">
+        <div className="flex h-screen bg-gradient-to-br from-teal-900 to-teal-800">
             {/* Sidebar */}
                 <AdminAside handleLogout={handleLogout} />
             
             {/* Main Content */}
-            <div className="flex-1 p-8">
+            <div className="flex-1 p-8 overflow-auto">
         <AdminHeader/>
 
                 {loading ? (
@@ -159,10 +168,19 @@ const AdminShopcardDisplay = () => {
                         {error}
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div >
+                        <div className='font-bold text-3xl text-white pb-4'>
+
+                        Shops Available
+                        </div>
+                        <div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" >
                         {shops.map((shop) => (
                             <ShopCard key={shop.shop_id} shop={shop} />
                         ))}
+                    </div>
+                        </div>
                     </div>
                 )}
             </div>

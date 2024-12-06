@@ -187,3 +187,10 @@ class ShopDisplayAtUser(APIView):
                 {'error': str(e)}, 
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+class GetShopIDandName(APIView):
+    authentication_classes = [UserJWTAuthentication]
+
+    def get(self, request):
+        shops = RationShop.objects.filter(is_active=True).values('shop_id','name')
+        return Response(shops)

@@ -5,8 +5,9 @@ import Button from '../../common/Button';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import  coverImage from '../../../assets/Cover.jpg'
 import NavBar from '../NavBar/NavBar';
-import { toast } from 'react-toastify';
 import api from '../../../services/api';
+import { toast } from 'sonner';
+
 
 export default function Home() {
 
@@ -17,8 +18,7 @@ export default function Home() {
     const [shops, setShops] = useState([]);
     const location = useLocation()
 
-    const orderID = location?.orderId || 'No data'
-    console.log(orderID);
+    
     
 
     useEffect(() => {
@@ -198,7 +198,7 @@ export default function Home() {
           <div className="flex max-w-md">
             <input
               type="text"
-              placeholder="Enter card number"
+              placeholder="Search your shop"
               className="flex-grow px-4 py-2 rounded-l-lg border-t border-b border-l text-gray-800 border-gray-200 bg-white"
             />
             <button className="px-6 py-3 rounded-r-lg bg-orange-500 text-white font-semibold hover:bg-orange-600">
@@ -237,7 +237,8 @@ export default function Home() {
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-semibold mb-8">Ration Card Services</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {['New Ration Card', 'Update Ration Card', 'Add Member', 'Remove Member'].map((action) => (
+          {/* , 'Update Ration Card', 'Add Member', 'Remove Member' */}
+            {['New Ration Card'].map((action) => (
               <button
                 key={action}
                 onClick={() => handleActionClick(action)}

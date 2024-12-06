@@ -6,9 +6,10 @@ import NavBar from '../NavBar/NavBar'
 import { logoutUser } from '../../../features/auth/authSlice'
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, Link } from 'react-router-dom';
-import { toast } from 'react-toastify'
 import { validationRationCardSchema } from '../../../utils/validationSchemas'
 import api from '../../../services/api'
+import { toast } from 'sonner';
+
 
 
 const cardTypes = ['YELLOW', 'PINK', 'BLUE', 'WHITE']
