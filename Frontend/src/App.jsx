@@ -31,6 +31,7 @@ import { Toaster } from 'sonner';
 import AdminOrdersPage from './pages/AdminOrders';
 import SubAdminOrdersPage from './pages/SubAdminOrders';
 import StripeSuccessPage from './pages/StripeSuccess';
+import CashOnDeliverySuccessPage from './pages/CashOnDeliverySuccess';
 
 const App = () => {
   const { isAuthenticated, user } = useSelector((state) => state.auth);
@@ -82,6 +83,7 @@ const App = () => {
         <Route path="/home/selected-shop/choose-subsidies/" element={<ProtectedRoute allowAdmin={false} allowSubAdmin={false}> <ChooseSubsidiesPage /> </ProtectedRoute>} />
         <Route path="/home/selected-shop/choose-subsidies/checkout-page/" element={<ProtectedRoute allowAdmin={false} allowSubAdmin={false}> <CheckoutPage /> </ProtectedRoute>} />
         <Route path="/home/selected-shop/choose-subsidies/checkout-page/success" element={<ProtectedRoute allowAdmin={false} allowSubAdmin={false}> <StripeSuccessPage /> </ProtectedRoute>} />
+        <Route path="/home/selected-shop/choose-subsidies/checkout-page/COD-success" element={<ProtectedRoute allowAdmin={false} allowSubAdmin={false}> <CashOnDeliverySuccessPage /> </ProtectedRoute>} />
           
           {/* sub-admin routes */}
         <Route path="/sub-admin-login" element={<GuestRoute> <SubAdminLoginPage /> </GuestRoute>} />

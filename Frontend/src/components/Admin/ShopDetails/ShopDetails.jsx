@@ -174,7 +174,7 @@ const ShopDetails = () => {
                                         </div>
                                         <Button 
                                             onClick={() => setShowRegisteredCards(!showRegisteredCards)}
-                                            className="mt-4 bg-teal-500 text-white hover:bg-teal-600"
+                                            className="mt-4 bg-orange-500 text-white hover:bg-orange-600"
                                         >
                                             {showRegisteredCards ? 'Requested Cards' : 'Registered Cards'}
                                         </Button>

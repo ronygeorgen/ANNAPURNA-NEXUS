@@ -53,7 +53,7 @@ export default function ChooseSubsidies() {
                 try {
                     const response = await api.get('product-management/quota-info/', {
                         params: {
-                            cardType: cardDetails?.card_type?.name || 'antyodaya',
+                            cardType: cardDetails?.card_type?.name,
                             shopId: shop?.shop_id
                         }
                     });

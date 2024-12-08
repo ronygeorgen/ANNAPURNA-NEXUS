@@ -45,6 +45,7 @@ export default function SubAdminCardList() {
   const parsedShopDetails = shopDetails ? JSON.parse(shopDetails.data) : null
   const shopId = parsedShopDetails?.shopID
   const shopName = parsedShopDetails?.shopName
+  
 
   useEffect(() => {
     const fetchRationCards = async () => {
@@ -91,7 +92,7 @@ export default function SubAdminCardList() {
       setRationCards(prevCards => 
         prevCards.map(card => 
           card.card_number === selectedCard.card_number 
-            ? {...card, status: 'SHOP_VERIFIED'} 
+            ? {...card, status: selectedCard.status } 
             : card
         )
       )
@@ -287,7 +288,7 @@ export default function SubAdminCardList() {
 
             <DialogFooter>
               <Button variant="outline" onClick={() => setSelectedCard(null)}>Close</Button>
-              {selectedCard?.status !== 'SHOP_VERIFIED' && (
+              {selectedCard?.status !== 'SHOP_VERIFIED' && selectedCard?.status !== 'ADMIN_APPROVED' &&   (
                 <Button onClick={() => setShowConfirmation(true)}>Verify</Button>
               )}
             </DialogFooter>

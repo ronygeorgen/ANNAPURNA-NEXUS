@@ -145,7 +145,7 @@ const handleAddressInputChange = (e) => {
         localStorage.removeItem('cartItems');
         localStorage.removeItem('normalItems');
         localStorage.removeItem('additionalItems');
-        navigate('/home');
+        navigate('/home/selected-shop/choose-subsidies/checkout-page/COD-success');
       }
     } catch (error) {
       console.error('COD Order placement failed:', error);

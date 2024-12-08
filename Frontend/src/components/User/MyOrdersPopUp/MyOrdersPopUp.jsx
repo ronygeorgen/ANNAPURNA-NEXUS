@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Search } from 'lucide-react'
+import { Search, Download } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Input } from '@/components/ui/input'
@@ -8,6 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import api from '../../../services/api'
 import { toast } from 'sonner'
+import jsPDF from 'jspdf'
+import html2canvas from 'html2canvas'
 
 export function MyOrdersPopUp() {
     const [cardNumber, setCardNumber] = useState('')
@@ -15,6 +17,37 @@ export function MyOrdersPopUp() {
     const [userOrders, setUserOrders] = useState([])
     const [isLoading, setIsLoading] = useState(false)
     const [shopNames, setShopNames] = useState({})
+
+    const downloadOrderAsPDF = async (order, pdfWidth = 500, pdfHeight = 490) => {
+      const input = document.getElementById(`order-card-${order.id}`);
+    
+      try {
+        const canvas = await html2canvas(input, { 
+          scale: 2, 
+          useCORS: true, 
+          logging: false,
+          windowWidth: pdfWidth, // Use the actual content width
+          windowHeight: pdfHeight, // Use the actual content height
+          height: pdfHeight,
+          width: pdfWidth
+        });
+        const imgData = canvas.toDataURL('image/png');
+    
+        const doc = new jsPDF({
+          orientation: 'portrait',
+          unit: 'px',
+          format: [pdfWidth, pdfHeight] // Use actual card dimensions
+        });
+    
+        // Add image at full resolution
+        doc.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+    
+        doc.save(`Order_${order.id}_${new Date().toISOString().split('T')[0]}.pdf`);
+      } catch (error) {
+        console.error('Error downloading PDF:', error);
+        toast.error('Failed to download order details');
+      }
+    };
 
     const fetchAllShops = async () => {
       try {
@@ -124,14 +157,27 @@ export function MyOrdersPopUp() {
     }, [])
 
     const OrderCard = ({ order, showOrderedUser, showOrderedCard }) => (
-        <Card className="bg-white shadow-md hover:shadow-lg transition-all duration-300 w-full">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-lg font-semibold text-gray-700">
-              Order #{order.id}
-            </CardTitle>
-            <Badge variant={order.status === 'DELIVERED' ? 'success' : 'warning'}>
-              {order.status}
-            </Badge>
+        <Card 
+        id={`order-card-${order.id}`}
+        className="bg-white shadow-md hover:shadow-lg transition-all duration-300 w-full">
+
+          <CardHeader className="flex flex-col items-start pb-2 space-y-2">
+          <div className="flex items-center w-full">
+              <svg className="w-10 h-10 mr-3" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="50" cy="50" r="45" stroke="#38B2AC" strokeWidth="10"/>
+                  <path d="M50 25L75 75H25L50 25Z" fill="#F6AD55"/>
+              </svg>
+              <span className="text-xl font-bold text-gray-800">ANNAPURNA NEXUS</span>
+          </div>
+          <div className="flex items-center w-full justify-between">
+              <CardTitle className="text-lg font-semibold text-gray-700">
+                  Order #{order.id}
+              </CardTitle>
+              <Badge variant={order.status === 'DELIVERED' ? 'success' : 'warning'}>
+                  {order.status}
+              </Badge>
+          </div>
+            
           </CardHeader>
           <CardContent>
             <div className="grid gap-2">
@@ -182,6 +228,16 @@ export function MyOrdersPopUp() {
               </div>
             </div>
           </CardContent>
+          <div className="flex justify-end p-4">
+          <Button 
+              onClick={() => downloadOrderAsPDF(order)}
+              variant="outline" 
+              className="hover:bg-gray-100"
+          >
+              <Download className="mr-2 h-4 w-4" />
+              Download PDF
+          </Button>
+      </div>
         </Card>
     )
     
