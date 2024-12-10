@@ -16,7 +16,7 @@ def create_product_items(request):
             if not access_token:
                 return JsonResponse({'error':'Authorization credentials not found'}, status=401)
 
-            create_product_url = os.environ.get('RATION_SHOP_SVC_ADDRESS', 'http://localhost:8001/product-management/create/')            
+            create_product_url = os.environ.get('RATION_SHOP_SVC_ADDRESS', 'http://localhost:8002/product-management/create/')            
 
             headers = {
                 'Authorization': f'Bearer {access_token}',
@@ -65,7 +65,7 @@ def get_quota_info(request):
             shop_id = request.GET.get('shopId')
 
             # Construct request to quota info service
-            quota_info_url = os.environ.get('RATION_SHOP_SVC_ADDRESS', 'http://localhost:8001/product-management/quota-info/')
+            quota_info_url = os.environ.get('RATION_SHOP_SVC_ADDRESS', 'http://localhost:8002/product-management/quota-info/')
             
             headers = {
                 'Authorization': f'Bearer {access_token}',

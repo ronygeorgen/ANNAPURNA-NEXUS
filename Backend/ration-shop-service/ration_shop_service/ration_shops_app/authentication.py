@@ -20,6 +20,7 @@ class CookieJWTAuthentication(JWTAuthentication):
         try:
             validated_token = self.get_validated_token(raw_token)
             user = self.get_user(validated_token)
+            print('print user',user)
             return (user, validated_token)
         except TokenError:
             print('im in token error exception')
@@ -61,4 +62,8 @@ class UserJWTAuthentication(JWTAuthentication):
             raise exceptions.AuthenticationFailed('Invalid token')
         except Exception as e:
             raise exceptions.AuthenticationFailed(str(e))
+    
+    def has_permission(self, request, view):
+        # Implement the has_permission logic here
+        return True
 

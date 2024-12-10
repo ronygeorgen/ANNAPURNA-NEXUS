@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'ration_shops_app',
     'ration_cards_app',
+    'stocks_app',
 ]
 
 MIDDLEWARE = [
@@ -93,10 +94,8 @@ CORS_ALLOW_HEADERS = ['Authorization', 'Content-Type']
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'ration_shops_app.authentication.CookieJWTAuthentication',
+        'ration_shops_app.authentication.UserJWTAuthentication',
     ],
-    # 'DEFAULT_PERMISSION_CLASSES': [
-    #     'rest_framework.permissions.IsAuthenticated',
-    # ],
 }
 
 

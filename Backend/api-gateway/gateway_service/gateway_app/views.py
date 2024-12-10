@@ -5,7 +5,7 @@ from rest_framework import status
 from .user_srvc import auth
 from .ration_shop_srvc import ration_shop
 from .ration_card_srvc import ration_card
-from .product_management_srvc import product_manage
+from .product_management import product_manage
 from .order_management_srvc import order_management
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 import json

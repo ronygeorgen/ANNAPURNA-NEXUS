@@ -22,4 +22,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('ration-shop/', include('ration_shops_app.urls')),
     path('ration-card/', include('ration_cards_app.urls')),
+    path('product-management/', include('stocks_app.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

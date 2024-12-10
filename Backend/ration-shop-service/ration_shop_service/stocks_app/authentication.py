@@ -1,7 +1,7 @@
 import uuid
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework import exceptions
-from .models import SubAdminAuth
+from ration_shops_app.models import SubAdminAuth
 import jwt
 from django.conf import settings
 from django.core.cache import cache
@@ -9,8 +9,7 @@ from datetime import datetime
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 
 
-
-class SubAdminJWTAuthentication(JWTAuthentication):
+class CookieJWTAuthentication(JWTAuthentication):
     def authenticate(self, request):
         access_token = self.get_header(request)
         raw_token = self.get_raw_token(access_token)
@@ -21,13 +20,14 @@ class SubAdminJWTAuthentication(JWTAuthentication):
         try:
             validated_token = self.get_validated_token(raw_token)
             user = self.get_user(validated_token)
+            print('print user',user)
             return (user, validated_token)
         except TokenError:
             print('im in token error exception')
             # Let the refresh token view handle token refresh
             return None
         except Exception as e:
-            print('exception from authentication middleware: ',e)
+            print('exception: ',e)
             return None
 
     def get_user(self, payload):
@@ -40,10 +40,11 @@ class SubAdminJWTAuthentication(JWTAuthentication):
             sub_admin_id=user_id,
         )
         return user
-
+    
 class UserJWTAuthentication(JWTAuthentication):
     def authenticate(self, request):
         access_token = self.get_header(request)
+        print('access token ', access_token)
         raw_token = self.get_raw_token(access_token)
 
         if not raw_token:
@@ -62,6 +63,4 @@ class UserJWTAuthentication(JWTAuthentication):
             raise exceptions.AuthenticationFailed('Invalid token')
         except Exception as e:
             raise exceptions.AuthenticationFailed(str(e))
-
-
 

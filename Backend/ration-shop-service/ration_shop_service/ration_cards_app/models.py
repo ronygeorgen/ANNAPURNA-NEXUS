@@ -196,10 +196,6 @@ class RationCard(models.Model):
     # Ensure max_quantities are always calculated when saving
         if self.card_type:
             self.max_quantities = self.calculate_max_quantities()
-
-        # If status changes to ADMIN_APPROVED, update status to ACTIVE
-        # if self.status == 'ADMIN_APPROVED':
-        #     self.status = 'ACTIVE'
         
         super().save(*args, **kwargs)
 

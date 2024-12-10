@@ -285,7 +285,6 @@ class RationCardShopVerificationView(APIView):
             
             # Get shop verified by (sub admin)
             shop_id = request.data.get('shop_verified_by')
-            print('sub admin id',shop_id)
             shop = RationShop.objects.get(shop_id=shop_id)
             
             # Update verification details
@@ -333,7 +332,6 @@ class RationCardVerificationView(APIView):
 
     def patch(self, request, card_number):
         try:
-            print('card number= ',card_number)
             # Fetch the ration card
             ration_card = RationCard.objects.get(card_number=card_number)
 
@@ -345,7 +343,6 @@ class RationCardVerificationView(APIView):
 
             # Get admin details from request
             admin_email = request.data.get('admin_email')
-            print(admin_email)
             
             try:
                 # Find the SubAdminAuth corresponding to the email

@@ -31,7 +31,7 @@ const QUOTA_CATEGORIES = [
 const UNIT_CHOICES = [
   { value: 'kg', label: 'Kilogram' },
   { value: 'litre', label: 'Litre' },
-  { value: 'piece', label: 'Piece' }
+  { value: 'gm', label: 'gram' }
 ]
 
 const ProductManagement = () => {
