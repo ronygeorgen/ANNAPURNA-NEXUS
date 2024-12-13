@@ -54,7 +54,8 @@ export default function ChooseSubsidies() {
                     const response = await api.get('product-management/quota-info/', {
                         params: {
                             cardType: cardDetails?.card_type?.name,
-                            shopId: shop?.shop_id
+                            shopId: shop?.shop_id,
+                            cardNumber: cardDetails?.card_number
                         }
                     });
 
@@ -69,7 +70,7 @@ export default function ChooseSubsidies() {
                         image: item?.image || null,
                         price: `₹${item.price_per_unit}/${item.item_unit}`,
                         quota: item.max_quantity,
-                        remainingQuota: item.max_quantity,
+                        remainingQuota: item.allocated_quantity,
                     }));
 
                     const transformedAdditionalItems = response.data.additional_quota.map(item => ({
@@ -78,7 +79,7 @@ export default function ChooseSubsidies() {
                         image: item?.image || null,
                         price: `₹${item.price_per_unit}/${item.item_unit}`,
                         quota: item.max_quantity,
-                        remainingQuota: item.max_quantity,
+                        remainingQuota: item.allocated_quantity,
                     }));
 
                     // Store in local storage
@@ -358,12 +359,14 @@ export default function ChooseSubsidies() {
                                                               {item.image || <Package className="w-16 h-16 text-orange-500" />} 
                                                             </div>
                                                             <div className="flex-1">
-                                                                <h3 className="font-semibold">{item.name}</h3>
-                                                                <Progress value={(item.quota / 30) * 100} className="h-2 mt-2" />
+                                                                <h3 className="font-semibold">{item.item_name}</h3>
+                                                                <span>{'('}{((item.allocated_quantity) / (cardData.family_members.length + 1))} {'kg/head)'}</span>
+                                                                <Progress value={(item.remaining_quantity / item.allocated_quantity) * 100} className="h-2 mt-2 "  />
                                                                 <div className="flex justify-between mt-2 text-sm">
-                                                                    <span>{item.quota} {item.name === 'Kerosene' ? 'L' : 'kg'}</span>
+                                                                    <span>Remaining Quota: {item.remaining_quantity} {item.item_name === 'Kerosene' ? 'L' : 'kg'}  </span>
                                                                     <span className="text-orange-500">{item.price}</span>
                                                                 </div>
+                                                                    <span className='text-sm'>Allocated Quota: {item.allocated_quantity} {item.item_name === 'Kerosene' ? 'L' : 'kg'}  </span>
                                                             </div>
                                                         </Card>
                                                     ))}
@@ -380,10 +383,10 @@ export default function ChooseSubsidies() {
                                                                       {item.image}
                                                                     </div>
                                                                     <div className="flex-1">
-                                                                        <h3 className="font-semibold">{item.name}</h3>
-                                                                        <Progress value={(item.quota / 30) * 100} className="h-2 mt-2" />
+                                                                        <h3 className="font-semibold">{item.item_name}</h3>
+                                                                        <Progress value={(item.remaining_quantity / item.allocated_quantity) * 100} className="h-2 mt-2" />
                                                                         <div className="flex justify-between mt-2 text-sm">
-                                                                            <span>{item.quota} kg</span>
+                                                                            <span>{item.allocated_quantity} kg</span>
                                                                             <span className="text-orange-500">{item.price}</span>
                                                                         </div>
                                                                     </div>
@@ -436,12 +439,12 @@ export default function ChooseSubsidies() {
                                             {normalItems
                                               .filter(item => item.remainingQuota > 0)
                                               .map((item) => (
-                                                    <Card key={item.name} className="p-4">
+                                                    <Card key={item.item_name} className="p-4">
                                                         {/* <img src={item.image} alt={item.name} className="w-full h-32 object-cover rounded-md mb-4" /> */}
                                                         <div className="w-16 h-16 rounded-full bg-orange-100 flex items-center justify-center">
                                                         {item.image || <Package className="w-16 h-16 text-orange-500" />} 
                                                         </div>
-                                                        <h3 className="font-semibold">{item.name}</h3>
+                                                        <h3 className="font-semibold">{item.item_name}</h3>
                                                         <p className="text-sm text-gray-500 mb-2">{item.price}</p>
                                                         <p className="text-sm text-gray-500">
                                                             Remaining Quota: {item.remainingQuota}

@@ -9,7 +9,7 @@ from datetime import datetime
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 
 
-class CookieJWTAuthentication(JWTAuthentication):
+class CookieJWTAuthenticationStock(JWTAuthentication):
     def authenticate(self, request):
         access_token = self.get_header(request)
         raw_token = self.get_raw_token(access_token)
@@ -41,7 +41,7 @@ class CookieJWTAuthentication(JWTAuthentication):
         )
         return user
     
-class UserJWTAuthentication(JWTAuthentication):
+class UserJWTAuthenticationStock(JWTAuthentication):
     def authenticate(self, request):
         access_token = self.get_header(request)
         print('access token ', access_token)
@@ -64,3 +64,6 @@ class UserJWTAuthentication(JWTAuthentication):
         except Exception as e:
             raise exceptions.AuthenticationFailed(str(e))
 
+    def has_permission(self, request, view):
+        # Implement the has_permission logic here
+        return True

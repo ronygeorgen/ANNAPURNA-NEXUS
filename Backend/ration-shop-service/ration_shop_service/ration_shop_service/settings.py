@@ -91,11 +91,26 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_METHODS = ['GET', 'POST', 'PATCH','PUT', 'DELETE', 'OPTIONS']
 CORS_ALLOW_HEADERS = ['Authorization', 'Content-Type'] 
 
-REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'ration_shops_app.authentication.CookieJWTAuthentication',
-        'ration_shops_app.authentication.UserJWTAuthentication',
-    ],
+# ration-cards-app
+RATION_CARDS_APP_REST_FRAMEWORK = {
+'DEFAULT_AUTHENTICATION_CLASSES': [
+'ration_cards_app.authentication.SubAdminJWTAuthentication',
+'ration_cards_app.authentication.UserJWTAuthenticationCards',
+]
+}
+# ration-shops-app 
+RATION_SHOPS_APP_REST_FRAMEWORK = {
+'DEFAULT_AUTHENTICATION_CLASSES': [
+'ration_shops_app.authentication.CookieJWTAuthentication',
+'ration_shops_app.authentication.UserJWTAuthentication',
+]
+}
+# stocks-app 
+STOCKS_APP_REST_FRAMEWORK = {
+'DEFAULT_AUTHENTICATION_CLASSES': [
+'stocks_app.authentication.CookieJWTAuthenticationStock',
+'stocks_app.authentication.UserJWTAuthenticationStock',
+]
 }
 
 

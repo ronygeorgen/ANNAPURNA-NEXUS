@@ -9,12 +9,15 @@ from .authentication import SubAdminJWTAuthentication
 from ration_shops_app.models import RationShop, SubAdminAuth
 from .models import RationCard, FamilyMember, CardType
 from .serializers import RationCardSerializer, FamilyMemberSerializer, RationCardRetrieveSerializer, CardVerificationSerializer, CardTypeSerializer
-from .authentication import UserJWTAuthentication
+from .authentication import UserJWTAuthenticationCards
 from django.utils import timezone
 from django.core.exceptions import ValidationError
+from stocks_app.models import Quota
+from ration_shops_app.models import SubAdminAuth
+from .models import QuotaAllocation
 
 class RationCardRegistrationView(APIView):
-    authentication_classes = [UserJWTAuthentication]
+    authentication_classes = [UserJWTAuthenticationCards]
     parser_classes = (MultiPartParser, FormParser)
     
     @transaction.atomic
@@ -139,7 +142,7 @@ class RationCardListView(APIView):
 
 
 class VerifyCardView(APIView):
-    authentication_classes = [UserJWTAuthentication]
+    authentication_classes = [UserJWTAuthenticationCards]
 
     def get(self, request, card_number, *args, **kwargs):
         if not card_number:
@@ -359,7 +362,13 @@ class RationCardVerificationView(APIView):
             ration_card.admin_verification_notes = request.data.get('admin_verification_notes', '')
             ration_card.admin_verified_at = timezone.now()
 
+            # Save the ration card
             ration_card.save()
+
+            # If the card is approved, automatically allocate quotas
+            if ration_card.status == 'ADMIN_APPROVED' and ration_card.card_type:
+                # Method to automatically allocate quotas
+                self.auto_allocate_quotas(ration_card)
 
             # Serialize and return updated card
             serializer = RationCardSerializer(ration_card)
@@ -380,3 +389,46 @@ class RationCardVerificationView(APIView):
                 {'error': str(e)}, 
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+    def auto_allocate_quotas(self, ration_card):
+        """
+        Automatically allocate quotas for an approved ration card
+        """
+        from django.db import transaction
+        from stocks_app.models import Quota
+        from ration_cards_app.models import QuotaAllocation
+
+        if not ration_card.card_type:
+            return False
+
+        # Find all quotas for this card type
+        quotas = Quota.objects.filter(
+            card_type=ration_card.card_type,
+            month=timezone.now().month,
+            year=timezone.now().year
+        )
+
+        if not quotas.exists():
+            print(f"No quotas found for card type {ration_card.card_type} in current month")
+            return False
+
+        # Use transaction to ensure data integrity
+        with transaction.atomic():
+            # Clear any existing quota allocations for this card
+            QuotaAllocation.objects.filter(ration_card=ration_card).delete()
+
+            # Create new quota allocations
+            for quota in quotas:
+                # Calculate max allowed quantity
+                max_quantity = ration_card.calculate_family_size() * quota.max_quantity
+
+                QuotaAllocation.objects.create(
+                    ration_card=ration_card,
+                    item=quota.item,
+                    quota=quota,
+                    allocated_quantity=max_quantity,
+                    remaining_quantity=max_quantity,
+                    is_used=False
+                )
+
+        return True

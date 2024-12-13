@@ -41,7 +41,7 @@ class SubAdminJWTAuthentication(JWTAuthentication):
         )
         return user
 
-class UserJWTAuthentication(JWTAuthentication):
+class UserJWTAuthenticationCards(JWTAuthentication):
     def authenticate(self, request):
         access_token = self.get_header(request)
         raw_token = self.get_raw_token(access_token)

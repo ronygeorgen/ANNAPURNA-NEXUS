@@ -63,6 +63,7 @@ def get_quota_info(request):
             # Get query parameters
             card_type = request.GET.get('cardType', 'antyodaya')
             shop_id = request.GET.get('shopId')
+            card_number = request.GET.get('cardNumber')
 
             # Construct request to quota info service
             quota_info_url = os.environ.get('RATION_SHOP_SVC_ADDRESS', 'http://localhost:8002/product-management/quota-info/')
@@ -78,6 +79,8 @@ def get_quota_info(request):
             }
             if shop_id:
                 params['shopId'] = shop_id
+            if card_number:
+                params['cardNumber'] = card_number
 
             # Make request to quota info service with timeout
             try:

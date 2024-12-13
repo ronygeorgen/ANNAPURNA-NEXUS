@@ -3,8 +3,6 @@ from django.core.validators import MinValueValidator
 from django.utils import timezone
 from enum import Enum
 from django.utils.translation import gettext_lazy as _
-from rest_framework import serializers
-from ration_cards_app.models import CardType
 from ration_shops_app.models import RationShop
 
 QUOTA_CATEGORIES = [
@@ -46,8 +44,10 @@ class Item(models.Model):
         return f"{self.name} ({self.category.get_name_display()})"
 
 class Quota(models.Model):
-    card_type = models.ForeignKey(CardType, on_delete=models.CASCADE, related_name="quotas")
+    card_type = models.ForeignKey('ration_cards_app.CardType', on_delete=models.CASCADE, related_name="quotas")
     item = models.ForeignKey(Item, on_delete=models.CASCADE, related_name="quotas")
+    month = models.IntegerField(blank=True, null=True)
+    year = models.IntegerField(blank=True, null=True)
     max_quantity = models.FloatField(
         help_text="Maximum quantity allowed for this item.",
         validators=[MinValueValidator(0)]
@@ -62,11 +62,11 @@ class Quota(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        unique_together = ('card_type', 'item')
+        unique_together = ('card_type', 'item', 'month', 'year')
         verbose_name_plural = "Quotas"
 
     def __str__(self):
-        return f"{self.card_type.name} - {self.item.name}"
+        return f"{self.card_type.name} - {self.item.name} - {self.month}/{self.year}"
 
 class ShopStock(models.Model):
     shop_id = models.ForeignKey(RationShop, on_delete=models.CASCADE, related_name='shop')

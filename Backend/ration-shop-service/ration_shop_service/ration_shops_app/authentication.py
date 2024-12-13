@@ -27,7 +27,7 @@ class CookieJWTAuthentication(JWTAuthentication):
             # Let the refresh token view handle token refresh
             return None
         except Exception as e:
-            print('exception: ',e)
+            print('Exception in ration-shops-app authentication.py: ',e)
             return None
 
     def get_user(self, payload):
@@ -63,7 +63,3 @@ class UserJWTAuthentication(JWTAuthentication):
         except Exception as e:
             raise exceptions.AuthenticationFailed(str(e))
     
-    def has_permission(self, request, view):
-        # Implement the has_permission logic here
-        return True
-

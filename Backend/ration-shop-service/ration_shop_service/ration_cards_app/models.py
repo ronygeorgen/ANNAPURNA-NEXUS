@@ -1,8 +1,9 @@
 # ration-shop-service
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
-
+from django.utils import timezone
 from ration_shops_app.models import SubAdminAuth, RationShop, ShopImage
+from stocks_app.models import Quota, ShopStock, Item
 
 KERALA_CARD_TYPES = [
     ('antyodaya', 'Antyodaya Anna Yojana (AAY)'),
@@ -124,7 +125,7 @@ class RationCard(models.Model):
         upload_to='ration_card_documents/',
         help_text='Upload supporting documents (PDF/Images)'
     )
-    max_quantities = models.JSONField(
+    max_quantities = models.IntegerField(
         null=True, 
         blank=True, 
         help_text="JSON field to store maximum quantities for different items"
@@ -146,58 +147,100 @@ class RationCard(models.Model):
 
     def __str__(self):
         return f"{self.card_number} - {self.head_name}"
+
+
+    def calculate_family_size(self):
+        """
+        Calculate total family members including the head 
+        of the family
+        """
+        return self.family_members.count() + 1  
     
-    def calculate_max_quantities(self):
+    def get_max_allowed_quantity(self, item, month=None, year=None):
         """
-        Dynamically calculate maximum quantities for different items based on card type and family members
-        
-        Returns a structured dictionary with detailed item information
+        Calculate maximum allowed quantity based on family size
+        and predefined quota for a specific month and year
         """
-        if not self.card_type:
-            return {}
+        # If month and year not provided, use current month and year
+        if month is None:
+            month = timezone.now().month
+        if year is None:
+            year = timezone.now().year
 
-        # Total number of family members (including head of family)
-        total_family_members = self.family_members.count() + 1
+        try:
+            # Find the existing quota for this card type, item, month, and year
+            quota = Quota.objects.get(
+                card_type=self.card_type, 
+                item=item,
+                month=month,
+                year=year
+            )
+            
+            # Calculate max quantity
+            max_quantity = self.calculate_family_size() * quota.max_quantity
+            return max_quantity
+        except Quota.DoesNotExist:
+            return 0
+    
+    
 
-        # Initialize max quantities dictionary
-        max_quantities = {
-            'regular': {},
-            'additional': {}
-        }
-
-        # Query stock service items for the specific card type
-        stock_items = DataFromSrockService.objects.filter(
-            card_type_name=self.card_type.name
-        )
-
-        for item in stock_items:
-            # Calculate maximum quantity based on total family members
-            max_quantity = total_family_members * item.max_quantity_per_person
-
-            # Determine item category (regular or additional)
-            category = 'regular' if 'regular' in item.item_category.lower() else 'additional'
-
-            # Store detailed item information
-            item_details = {
-                'item_name': item.item_name,
-                'max_quantity': max_quantity,
-                'max_quantity_per_person': item.max_quantity_per_person,
-                'price_per_unit': float(item.price_per_unit),
-                'unit': 'kg',  # You can make this dynamic if needed
-                'item_category': item.item_category
-            }
-
-            # Add to the appropriate category
-            max_quantities[category][item.item_name] = item_details
-
-        return max_quantities
+class QuotaAllocation(models.Model):
+    """
+    Track quota allocations for each ration card
+    """
+    ration_card = models.ForeignKey(RationCard, on_delete=models.CASCADE)
+    item = models.ForeignKey(Item, on_delete=models.CASCADE)
+    quota = models.ForeignKey(Quota, on_delete=models.CASCADE)
+    allocated_quantity = models.FloatField(validators=[MinValueValidator(0)])
+    remaining_quantity = models.FloatField(validators=[MinValueValidator(0)], blank=True, null=True)
+    allocated_at = models.DateTimeField(auto_now_add=True)
+    is_used = models.BooleanField(default=False)
+    
+    class Meta:
+        unique_together = ('ration_card', 'item', 'quota')
 
     def save(self, *args, **kwargs):
-    # Ensure max_quantities are always calculated when saving
-        if self.card_type:
-            self.max_quantities = self.calculate_max_quantities()
+        """
+        Custom save method to update shop stock when quota is allocated
+        """
+        # Check if this is a new allocation
+        is_new_allocation = self.pk is None
+        
+        if is_new_allocation:
+            # Find the shop associated with this ration card
+            shop = self.ration_card.registered_shop
+            
+            # Find or create shop stock for this item
+            shop_stock, created = ShopStock.objects.get_or_create(
+                shop_id=shop,
+                item=self.item,
+                defaults={
+                    'total_quantity': self.allocated_quantity,
+                    'remaining_quantity': self.allocated_quantity
+                }
+            )
+            
+            # If not a new stock, update existing stock
+            if not created:
+                shop_stock.total_quantity += self.allocated_quantity
+                shop_stock.remaining_quantity += self.allocated_quantity
+                shop_stock.save()
         
         super().save(*args, **kwargs)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #  additional model details
 class DataFromSrockService(models.Model):
