@@ -73,6 +73,24 @@ export const validationRationCardSchema = Yup.object().shape({
       aadhaar: Yup.string()
         .required('Aadhaar number is required')
         .matches(/^\d{12}$/, 'Aadhaar number must be exactly 12 digits'),
+      image: Yup.mixed()
+        .required('Member image is required')
+        .test(
+          'fileType', 
+          'Only JPEG images are allowed', 
+          (value) => {
+            if (!value) return false;
+            return ['image/jpeg', 'image/jpg'].includes(value.type);
+          }
+        )
+        .test(
+          'fileSize', 
+          'Image must be less than 1MB', 
+          (value) => {
+            if (!value) return false;
+            return value.size <= 1 * 1024 * 1024;
+          }
+        )
     })
   ),
 

@@ -364,3 +364,13 @@ class OrderRevenueAdmin(APIView):
             return response
         except Exception as e:
             return Response({'error': str(e)}, status=500)
+
+
+class FaceAuth(APIView):
+    permission_classes = [AllowAny]
+    def post(self, request, *args, **kwargs):
+        try:
+            response = ration_card.face_authentication(request)
+            return response
+        except Exception as e:
+            return Response({'error': str(e)}, status=500)

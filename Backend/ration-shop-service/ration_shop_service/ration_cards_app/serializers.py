@@ -5,12 +5,23 @@ from ration_shops_app.models import RationShop
 class FamilyMemberSerializer(serializers.ModelSerializer):
     class Meta:
         model = FamilyMember
-        fields = ['name', 'age', 'relation', 'aadhaar_number']
+        fields = ['name', 'age', 'relation', 'aadhaar_number', 'face_image']
         
     def validate_aadhaar_number(self, value):
         if len(value) != 12 or not value.isdigit():
             raise serializers.ValidationError("Aadhaar number must be exactly 12 digits")
         return value
+    
+    def create(self, validated_data):
+            # Explicitly handle file upload
+            face_image = validated_data.pop('face_image', None)
+            instance = super().create(validated_data)
+
+            if face_image:
+                instance.face_image = face_image
+                instance.save(update_fields=['face_image'])
+
+            return instance
 
 class RationShopSerializer(serializers.ModelSerializer):
     class Meta:

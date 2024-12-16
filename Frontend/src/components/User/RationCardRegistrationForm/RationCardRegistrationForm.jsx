@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Formik, Form, Field, FieldArray, ErrorMessage } from 'formik'
 import * as Yup from 'yup'
-import { ChevronRight, ChevronLeft, Plus, Trash2 } from 'lucide-react'
+import { ChevronRight, ChevronLeft, Plus, Trash2, ImageIcon } from 'lucide-react'
 import NavBar from '../NavBar/NavBar'
 import { logoutUser } from '../../../features/auth/authSlice'
 import { useDispatch, useSelector } from 'react-redux';
@@ -40,7 +40,7 @@ export default function RationCardRegistrationForm() {
   useEffect(() => {
     const fetchShops = async () => {
       try {
-        const response = await api.get('/ration-shop/shops/') // Adjust the endpoint as needed
+        const response = await api.get('/ration-shop/shops/') 
         setShops(response.data)
       } catch (error) {
         toast.error('Failed to fetch ration shops')
@@ -50,78 +50,79 @@ export default function RationCardRegistrationForm() {
     fetchShops()
   }, [])
 
-
-  const rationCardService = {
-    async registerRationCard(formData) {
+  const handleSubmit = async (values, { setSubmitting, resetForm }) => {
+    console.log('values= ', values);
+    try {
+      
+      // Show loading toast
+      toast.loading('Submitting your application...');
+      
       // Create a new FormData instance for multipart/form-data
       const data = new FormData();
       
       // Add head details
-      data.append('head_name', formData.head_details.name);
-      data.append('head_age', formData.head_details.age);
-      data.append('head_monthly_income', formData.head_details.monthly_income);
-      data.append('head_aadhaar', formData.head_details.aadhaar);
-      
+      data.append('head_name', values.head_details.name);
+      data.append('head_age', values.head_details.age);
+      data.append('head_monthly_income', values.head_details.monthly_income);
+      data.append('head_aadhaar', values.head_details.aadhaar);
+  
       // Add address and registered shop
-      data.append('household_address', formData.address);
-      data.append('registered_shop', formData.registered_shop)
-      console.log('registered_shop', formData.registered_shop);
-      
-
+      data.append('household_address', values.address);
+      data.append('registered_shop', values.registered_shop);
+  
       // Add supporting document
-      if (formData.supporting_document) {
-        data.append('supporting_document', formData.supporting_document);
+      if (values.supporting_document) {
+        data.append('supporting_document', values.supporting_document);
       }
-
-       // Create family members array matching the serializer format
-        const formattedFamilyMembers = formData.family_members.map(member => ({
-          name: member.name,
-          age: member.age,
-          relation: member.relation,
-          aadhaar_number: member.aadhaar 
-        }));
-      
-      // Add family members as JSON string
+  
+      // Format family members and add as JSON string
+      const formattedFamilyMembers = values.family_members.map(member => ({
+        name: member.name,
+        age: member.age,
+        relation: member.relation,
+        aadhaar_number: member.aadhaar,
+      }));
       data.append('family_members', JSON.stringify(formattedFamilyMembers));
+  
+      // Append family member images
+      let hasImages = false; // Track if any image is present
+      values.family_members.forEach((member, index) => {
+        if (member.image) {
+          hasImages = true;
+          data.append(`family_members[${index}].image`, member.image);
+        }
+      });
 
-      try {
-        const response = await api.post('/ration-card/create/', data, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        });
-        return response.data;
-      } catch (error) {
-        throw error.response?.data || error.message;
+      // Optional debug or logging
+      if (!hasImages) {
+        console.warn('No images found for family members.');
       }
-    },
-  };
-
-  const handleSubmit = async (values, { setSubmitting, resetForm }) => {
-    try {
-      // Show loading toast
-      toast.loading('Submitting your application...');
-      
-      // Submit the form data
-      const response = await rationCardService.registerRationCard(values);
-      
+  
+      // Submit the form data to the API
+      const response = await api.post('/ration-card/create/', data, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+  
       // Clear loading toast and show success
       toast.dismiss();
       toast.success('Ration card application submitted successfully!');
-      
+  
       // Reset form
       resetForm();
-      
+  
       // Navigate to success page or dashboard
       navigate('/home');
     } catch (error) {
       // Clear loading toast and show error
       toast.dismiss();
-      toast.error(error?.message || 'Failed to submit application. Please try again.');
+      toast.error(error?.response?.data?.message || 'Failed to submit application. Please try again.');
     } finally {
       setSubmitting(false);
     }
   };
+  
 
   const handleLogout = async () => {
     try {
@@ -252,7 +253,7 @@ export default function RationCardRegistrationForm() {
                   <FieldArray name="family_members">
                     {({ push, remove }) => (
                       <div>
-                        {values.family_members.map((_, index) => (
+                        {values.family_members.map((member, index) => (
                           <div key={index} className="mb-4 p-4 border rounded-md">
                             <div className="mb-2">
                               <label htmlFor={`family_members.${index}.name`} className="block text-sm font-medium text-gray-700">
@@ -290,7 +291,6 @@ export default function RationCardRegistrationForm() {
                                 <option value="CHILD">Child</option>
                                 <option value="PARENT">Parent</option>
                                 <option value="SIBLING">Sibling</option>
-                                <option value="OTHER">Other</option>
                               </Field>
                               <ErrorMessage name={`family_members.${index}.relation`} component="div" className="text-red-500 text-sm mt-1" />
                             </div>
@@ -305,10 +305,46 @@ export default function RationCardRegistrationForm() {
                               />
                               <ErrorMessage name={`family_members.${index}.aadhaar`} component="div" className="text-red-500 text-sm mt-1" />
                             </div>
+                            <div>
+                                <label htmlFor={`family_members.${index}.image`} className="block text-sm font-medium text-gray-700">
+                                  Upload Image
+                                </label>
+                                <div className="mt-2 flex items-center">
+                                  <input
+                                    type='file'
+                                    id={`family_members.${index}.image`}
+                                    name={`family_members.${index}.image`}
+                                    accept=".jpg,.jpeg"
+                                    onChange={(event) => {
+                                      const file = event.currentTarget.files[0];
+                                      setFieldValue(`family_members.${index}.image`, file);
+                                    }}
+                                    className="hidden"
+                                  />
+                                  <label 
+                                    htmlFor={`family_members.${index}.image`}
+                                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-orange-700 bg-orange-100 hover:bg-orange-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 cursor-pointer"
+                                  >
+                                    <ImageIcon className="h-5 w-5 mr-2" />
+                                    {member.image ? 'Change Image' : 'Upload Image'}
+                                  </label>
+                                  
+                                  {member.image && (
+                                    <div className="ml-4 flex items-center">
+                                      <img 
+                                        src={URL.createObjectURL(member.image)} 
+                                        alt="Family member" 
+                                        className="h-20 w-20 object-cover rounded-md"
+                                      />
+                                    </div>
+                                  )}
+                                </div>
+                                <ErrorMessage name={`family_members.${index}.image`} component="div" className="text-red-500 text-sm mt-1" />
+                              </div>
                             <button
                               type="button"
                               onClick={() => remove(index)}
-                              className="mt-2 inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                              className="mt-4 inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
                             >
                               <Trash2 className="h-4 w-4 mr-2" />
                               Remove
@@ -393,12 +429,25 @@ export default function RationCardRegistrationForm() {
                     <h4 className="font-semibold mb-2">Family Members</h4>
                     {values.family_members.map((member, index) => (
                       <div key={index} className="mb-2">
+                        <div className="flex-grow">
                         <p>Name: {member.name}</p>
                         <p>Age: {member.age}</p>
                         <p>Relation: {member.relation}</p>
                         <p>Aadhaar: {member.aadhaar}</p>
-                      </div>
-                    ))}
+                        </div>
+                        <div className='flex mt-2'>
+
+                        <p>Image: </p>
+                          {member.image && (
+                            <img 
+                              src={URL.createObjectURL(member.image)} 
+                              alt="Family member" 
+                              className="h-20 w-20 object-cover rounded-md ml-4"
+                            />
+                          )}
+                        </div>
+                        </div>
+                      ))}
                   </div>
                   <div className="bg-gray-100 p-4 rounded-md">
                     <h4 className="font-semibold mb-2">Address & Documents</h4>

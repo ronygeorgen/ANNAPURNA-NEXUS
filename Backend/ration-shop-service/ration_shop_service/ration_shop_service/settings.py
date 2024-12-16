@@ -146,6 +146,12 @@ KAFKA_CLIENT_ID = 'ration_shop_service_provider'
 KAFKA_TOPIC_STOCK_EVENTS = 'stock_events_topic'   
 KAFKA_CONSUMER_GROUP_STOCK = 'ration_card_stock_consumer'
 
+
+
+# Model file paths
+SHAPE_PREDICTOR_PATH = os.path.join(BASE_DIR, 'ml_models', 'shape_predictor_68_face_landmarks.dat')
+LIVENESS_MODEL_PATH = os.path.join(BASE_DIR, 'ml_models', 'model.h5')
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,

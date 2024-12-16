@@ -6,6 +6,8 @@ from django.http import JsonResponse
 def register_ration_card(request):
     if request.method == 'POST':
         try:
+            print("Request DATA:", request.data)
+            print("Request FILES:", request.FILES)
             # Check for authentication
             access_token = request.COOKIES.get('access_token')
             if not access_token:
@@ -20,6 +22,14 @@ def register_ration_card(request):
                     request.FILES['supporting_document'].name,
                     request.FILES['supporting_document'].read()
                 )
+            
+            # Add family member images
+            for key in request.FILES.keys():
+                if key.startswith('family_members[') and key.endswith('].image'):
+                    files[key] = (
+                        request.FILES[key].name,
+                        request.FILES[key].read()
+                    )
             
             # Extract head details from the form data
             form_data = {
@@ -318,6 +328,66 @@ def admin_verify_card(request, card_number):
             
             gateway_response = JsonResponse(response_data, status=response.status_code)
             
+            for cookie in response.cookies:
+                gateway_response.set_cookie(
+                    key=cookie.name,
+                    value=cookie.value,
+                    httponly=cookie.has_nonstandard_attr('HttpOnly'),
+                    secure=cookie.secure,
+                    samesite=cookie.get_nonstandard_attr('SameSite')
+                )
+            
+            return gateway_response
+            
+        except requests.RequestException as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    else:
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+def face_authentication(request):
+    if request.method == 'POST':
+        try:
+            # Check for access token
+            access_token = request.COOKIES.get('access_token')
+            if not access_token:
+                return JsonResponse({'error': 'Authorization credentials not found'}, status=401)
+            
+            # Get the URL for the ration shop service
+            url = os.environ.get('RATION_SHOP_SVC_ADDRESS', 'http://localhost:8002/ration-card/face-auth/')
+            
+            # Prepare headers
+            headers = {
+                'Authorization': f'Bearer {access_token}',
+            }
+            
+            # Handle file upload
+            if request.FILES:
+                # Create a new multipart/form-data request
+                files = {
+                    'live_image': request.FILES['live_image']
+                }
+                
+                # Include card number from POST data
+                post_data = {
+                    'card_number': request.POST.get('card_number', '')
+                }
+                
+                # Forward the request to the ration shop service
+                response = requests.post(url, headers=headers, files=files, data=post_data)
+            else:
+                # If no files are present, it's an invalid request
+                return JsonResponse({'error': 'No image uploaded'}, status=400)
+            
+            # Parse the response
+            try:
+                response_data = response.json()
+            except ValueError:
+                response_data = {}
+            
+            # Create gateway response
+            gateway_response = JsonResponse(response_data, status=response.status_code)
+            
+            # Forward any cookies from the service response
             for cookie in response.cookies:
                 gateway_response.set_cookie(
                     key=cookie.name,

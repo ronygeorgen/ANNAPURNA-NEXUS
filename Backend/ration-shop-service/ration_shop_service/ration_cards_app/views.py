@@ -15,35 +15,50 @@ from django.core.exceptions import ValidationError
 from stocks_app.models import Quota
 from ration_shops_app.models import SubAdminAuth
 from .models import QuotaAllocation
+import face_recognition
+import numpy as np
+from .utils import AdvancedLivenessDetector
 
 class RationCardRegistrationView(APIView):
     authentication_classes = [UserJWTAuthenticationCards]
     parser_classes = (MultiPartParser, FormParser)
-    
+
     @transaction.atomic
     def post(self, request, *args, **kwargs):
+        print("Request DATA:", request.data)
+        print("Request FILES:", request.FILES)
+
         try:
-            
             jwt_payload = request.user
+
             # Extract and validate family members data
             family_members_data = json.loads(request.data.get('family_members', '[]'))
-            
-            # Create family members first
+
             family_members = []
-            for member_data in family_members_data:
-                serializer = FamilyMemberSerializer(data=member_data)
+            for index, member_data in enumerate(family_members_data):
+                # Construct key for the family member image
+                face_image_key = f'family_members[{index}].image'
+
+                # Process each family member
+                processed_member_data = member_data.copy()
+
+                # Assign image if provided
+                if face_image_key in request.FILES:
+                    processed_member_data['face_image'] = request.FILES[face_image_key]
+
+                # Validate and save family member
+                serializer = FamilyMemberSerializer(data=processed_member_data)
                 if serializer.is_valid(raise_exception=True):
                     family_member = serializer.save()
                     family_members.append(family_member)
-            
+
+            # Validate the shop instance
             shop_id = request.data.get('registered_shop')
             try:
                 shop_instance = RationShop.objects.get(shop_id=shop_id)
             except RationShop.DoesNotExist:
-                return Response({
-                    'message': 'Invalid shop selected'
-                }, status=status.HTTP_400_BAD_REQUEST)
-            print('shoop instance in views: ',shop_instance)
+                return Response({'message': 'Invalid shop selected'}, status=status.HTTP_400_BAD_REQUEST)
+
             # Prepare ration card data
             card_data = {
                 'head_name': request.data.get('head_name'),
@@ -54,39 +69,31 @@ class RationCardRegistrationView(APIView):
                 'registered_shop': shop_instance.shop_id,
                 'requester_id': jwt_payload['user_id'],
                 'requester_email': jwt_payload['email'],
-                # 'supporting_document': request.FILES.get('supporting_document'),
-                # Add any additional fields needed
             }
 
-            # Add supporting document if provided
+            # Assign supporting document
             if 'supporting_document' in request.FILES:
                 card_data['supporting_document'] = request.FILES['supporting_document']
-            
-            # Create ration card
+
+            # Create the ration card
             card_serializer = RationCardSerializer(data=card_data)
             if card_serializer.is_valid(raise_exception=True):
                 ration_card = card_serializer.save()
-                
-                # Add family members to the ration card
+
+                # Associate family members with the ration card
                 ration_card.family_members.set(family_members)
-                
+
                 return Response({
                     'message': 'Ration card application submitted successfully',
                     'card_number': ration_card.card_number
                 }, status=status.HTTP_201_CREATED)
-                
+
         except json.JSONDecodeError:
-            return Response({
-                'message': 'Invalid family members data format'
-            }, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'message': 'Invalid family members data format'}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
-            # Roll back transaction on error
             transaction.set_rollback(True)
-            return Response({
-                'message': 'Failed to create ration card',
-                'error': str(e)
-            }, status=status.HTTP_400_BAD_REQUEST)
-        
+            return Response({'message': 'Failed to create ration card', 'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
 
 class RationCardListView(APIView):
     authentication_classes = [SubAdminJWTAuthentication]
@@ -432,3 +439,73 @@ class RationCardVerificationView(APIView):
                 )
 
         return True
+
+
+class FaceAuthenticationView(APIView):
+    def post(self, request):
+        # Receive live image and ration card details
+        live_image = request.FILES.get('live_image')
+        card_number = request.data.get('card_number')
+
+        try:
+            
+            print('im in FaceAuthenticationView ')
+            # Fetch ration card and family members
+            ration_card = RationCard.objects.get(card_number=card_number)
+            family_members = ration_card.family_members.all()
+
+            # Liveness detection first
+            liveness_detector = AdvancedLivenessDetector()
+            if not liveness_detector.detect_liveness(live_image):
+                return Response({
+                    'error': 'Liveness check failed. Possible photo replay attack.'
+                }, status=status.HTTP_403_FORBIDDEN)
+
+            try:
+                live_image_encodings = face_recognition.face_encodings(
+                    face_recognition.load_image_file(live_image)
+                )
+                if not live_image_encodings:
+                    return Response({
+                        'error': 'No face detected in the image'
+                    }, status=status.HTTP_400_BAD_REQUEST)
+                
+                live_image_encoding = live_image_encodings[0]
+            except Exception as e:
+                return Response({
+                    'error': f'Face recognition error: {str(e)}'
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+            # Load live image encoding
+            # live_image_encoding = face_recognition.face_encodings(
+            #     face_recognition.load_image_file(live_image)
+            # )[0]
+
+            # Compare with stored face encodings
+            for member in family_members:
+                if member.face_encoding:
+                    stored_encoding = np.frombuffer(
+                        member.face_encoding, 
+                        dtype=np.float64
+                    )
+                    
+                    match = face_recognition.compare_faces(
+                        [stored_encoding], 
+                        live_image_encoding,
+                        # tolerance=0.6  # Default is 0.6, lower values are stricter
+                    )
+
+                    if match[0]:
+                        return Response({
+                            'authenticated': True,
+                            'member': member.name
+                        }, status=status.HTTP_200_OK)
+
+            return Response({
+                'error': 'No matching face found'
+            }, status=status.HTTP_401_UNAUTHORIZED)
+
+        except RationCard.DoesNotExist:
+            return Response({
+                'error': 'Invalid Ration Card'
+            }, status=status.HTTP_404_NOT_FOUND)

@@ -207,7 +207,7 @@ function SelectedShop() {
               disabled={!isVerified}
               onClick={() => {
                 if (isVerified && cardDetails){
-                  navigate('/home/selected-shop/choose-subsidies/',{
+                  navigate('/home/selected-shop/face-recognition/',{
                     state: {
                       shop: shop,
                       cardDetails: cardDetails

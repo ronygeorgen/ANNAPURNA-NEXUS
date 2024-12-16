@@ -27,3 +27,5 @@ __pycache__/
 .DS_Store
 Thumbs.db
 
+# ML model
+Backend/ration-shop-service/ration_shop_service/ml_models/

@@ -1,9 +1,12 @@
 # ration-shop-service
+from pickle import TRUE
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
 from ration_shops_app.models import SubAdminAuth, RationShop, ShopImage
 from stocks_app.models import Quota, ShopStock, Item
+import face_recognition
+import numpy as np
 
 KERALA_CARD_TYPES = [
     ('antyodaya', 'Antyodaya Anna Yojana (AAY)'),
@@ -57,12 +60,40 @@ class FamilyMember(models.Model):
     relation = models.CharField(max_length=10, choices=RELATION_CHOICES)
     aadhaar_number = models.CharField(max_length=20, unique=True)
     is_active = models.BooleanField(default=True)
+    face_encoding = models.BinaryField(null=True, blank=True)
+    face_image = models.ImageField(upload_to='face_images/', null=True, blank=True)
     additional_details = models.JSONField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"{self.name} - {self.get_relation_display()}"
+    
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        # Call generate_face_encoding if face_image is present
+        if self.face_image and not self.face_encoding:
+            self.generate_face_encoding()
+            super().save(update_fields=['face_encoding'])
+
+    def generate_face_encoding(self):
+        """
+        Generate and save face encoding when image is uploaded
+        """
+        if self.face_image:
+            # Load the image
+            image = face_recognition.load_image_file(self.face_image.path)
+            
+            # Detect face encodings
+            face_encodings = face_recognition.face_encodings(image)
+            
+            # If a face is found
+            if face_encodings:
+                # Convert to binary for storage
+                self.face_encoding = face_encodings[0].tobytes()
+                self.save()
+        
+        return self.face_encoding
 
 class RationCard(models.Model):
     """Main model for Ration Card"""

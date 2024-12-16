@@ -7,7 +7,7 @@ from .views import (RegisterView, LoginView, LogoutView,AdminLoginView,
                     GetRationCards, VerifyRationCardByNumber,FetchCardForAdminView, CreateProductItems,
                     GetQuotaInfo, CreateOrder, GetOrders, GetOrdersSubAdmin, GetOrdersUser, GetAllShops,
                     GetAllShopsCardbased, StripePay, SaveStripeOrder, VerifyOrderStripe, ShopVerifyCard,
-                    FetchCardTypes, AdminVerifyCard, GetUsersCount, OrderedProductsCountAdmin, OrderRevenueAdmin)
+                    FetchCardTypes, AdminVerifyCard, GetUsersCount, OrderedProductsCountAdmin, OrderRevenueAdmin, FaceAuth)
 urlpatterns = [
     path('user/register/', RegisterView.as_view(), name = 'register'),
     path('user/login/', LoginView.as_view(), name='login'),
@@ -35,6 +35,7 @@ urlpatterns = [
     path('ration-card/<str:card_number>/shop-verify/', ShopVerifyCard.as_view()),
     path('ration-card/verify-card-admin/<str:card_number>/', AdminVerifyCard.as_view()),
     path('ration-card/card-types/', FetchCardTypes.as_view()),
+    path('ration-card/face-auth/', FaceAuth.as_view()),
 
     path('product-management/create/', CreateProductItems.as_view()),
     path('product-management/quota-info/', GetQuotaInfo.as_view()),
