@@ -343,6 +343,7 @@ def admin_verify_card(request, card_number):
             return JsonResponse({'error': str(e)}, status=500)
     else:
         return JsonResponse({'error': 'Method not allowed'}, status=405)
+    
 
 def face_authentication(request):
     if request.method == 'POST':
@@ -360,12 +361,19 @@ def face_authentication(request):
                 'Authorization': f'Bearer {access_token}',
             }
             
-            # Handle file upload
+            # Handle file upload (support both image and video)
             if request.FILES:
-                # Create a new multipart/form-data request
-                files = {
-                    'live_image': request.FILES['live_image']
-                }
+                # Check if video or image is uploaded
+                if 'live_video' in request.FILES:
+                    files = {
+                        'live_video': request.FILES['live_video']
+                    }
+                elif 'live_image' in request.FILES:
+                    files = {
+                        'live_image': request.FILES['live_image']
+                    }
+                else:
+                    return JsonResponse({'error': 'No image or video uploaded'}, status=400)
                 
                 # Include card number from POST data
                 post_data = {
@@ -376,7 +384,7 @@ def face_authentication(request):
                 response = requests.post(url, headers=headers, files=files, data=post_data)
             else:
                 # If no files are present, it's an invalid request
-                return JsonResponse({'error': 'No image uploaded'}, status=400)
+                return JsonResponse({'error': 'No image or video uploaded'}, status=400)
             
             # Parse the response
             try:

@@ -128,7 +128,7 @@ class AdvancedLivenessDetector:
                 
                 # More aggressive blink detection
                 # Allow for partial blinks or different eye shapes
-                is_blink = ear < 0.38  # Raised threshold slightly
+                is_blink = ear < 0.3  # Raised threshold slightly
                 print(f"Is Blink: {is_blink}")
                 return is_blink
             

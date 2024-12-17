@@ -13,7 +13,8 @@ export default {
   			'float-fast': 'float 4s ease-in-out infinite',
   			'bounce-gentle': 'bounce-gentle 2s ease-in-out infinite',
   			'pulse-subtle': 'pulse-subtle 2s ease-in-out infinite',
-  			'spin-slow': 'spin 8s linear infinite'
+  			'spin-slow': 'spin 8s linear infinite',
+			scan: 'scan 2s linear infinite',
   		},
   		keyframes: {
   			float: {
@@ -39,7 +40,11 @@ export default {
   				'50%': {
   					opacity: '0.8'
   				}
-  			}
+  			},
+			scan: {
+				'0%': { top: '0%' },
+				'100%': { top: '100%' },
+			},
   		},
   		borderRadius: {
   			lg: 'var(--radius)',

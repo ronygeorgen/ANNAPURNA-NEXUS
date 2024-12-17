@@ -152,6 +152,15 @@ KAFKA_CONSUMER_GROUP_STOCK = 'ration_card_stock_consumer'
 SHAPE_PREDICTOR_PATH = os.path.join(BASE_DIR, 'ml_models', 'shape_predictor_68_face_landmarks.dat')
 LIVENESS_MODEL_PATH = os.path.join(BASE_DIR, 'ml_models', 'model.h5')
 
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# Subdirectories for specific file types
+VIDEO_DIR = os.path.join(MEDIA_ROOT, 'liveness_videos')  # Video storage
+IMAGE_DIR = os.path.join(MEDIA_ROOT, 'liveness_images')  # Image storage
+TEMP_FRAME_DIR = os.path.join(MEDIA_ROOT, 'temp_frames')  # Temporary frame storage
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -189,8 +198,6 @@ DATABASES = {
     }
 }
 
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
