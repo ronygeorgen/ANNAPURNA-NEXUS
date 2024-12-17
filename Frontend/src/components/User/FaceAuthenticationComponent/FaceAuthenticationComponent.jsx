@@ -16,6 +16,7 @@ const ScanningEffect = () => {
 const FaceAuthenticationComponent = () => {
   const webcamRef = useRef(null);
   const [error, setError] = useState(null);
+  const [error2, setError2] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(null);
   const [isCapturing, setIsCapturing] = useState(false);
   const location = useLocation();
@@ -59,6 +60,7 @@ const FaceAuthenticationComponent = () => {
         } catch (err) {
           setIsAuthenticated(false);
           setError(err.response.data.error || 'Authentication failed');
+          setError2(err.response.data.reason || 'Authentication failed');
         } finally {
           setIsCapturing(false);
         }
@@ -125,7 +127,7 @@ const FaceAuthenticationComponent = () => {
               )}
             </button>
             {error && (
-              <p className="mt-2 text-sm text-red-600 text-center">{error}</p>
+              <p className="mt-2 text-sm text-red-600 text-center">{error} : {error2}</p>
             )}
             {isAuthenticated !== null && (
               <div className={`mt-4 p-3 rounded-md ${
