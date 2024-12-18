@@ -349,6 +349,16 @@ export default function ChooseSubsidies() {
                                                 <Loader2 className="animate-spin text-orange-500 w-12 h-12" />
                                             </div>
                                         ) : (
+                                        <>
+                                            {normalItems.length === 0 ? ( // Check if no normal items
+                                                <div className="flex justify-center items-center h-full">
+                                                    <Card className="p-4 text-center">
+                                                        <h2 className="text-xl font-semibold text-gray-500">Empty quota</h2>
+                                                    </Card>
+                                                </div>
+                                            ) : (
+                                        
+                                        
                                             <>
                                                 <h2 className="text-xl font-semibold mb-4">Monthly Quota</h2>
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -371,7 +381,8 @@ export default function ChooseSubsidies() {
                                                         </Card>
                                                     ))}
                                                 </div>
-
+                                                </>
+                                                )}
                                                 {hasAdditionalItems && (
                                                     <>
                                                         <h2 className="text-xl font-semibold mb-4 mt-8">Additional Items</h2>

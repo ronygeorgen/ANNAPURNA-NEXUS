@@ -33,6 +33,7 @@ import SubAdminOrdersPage from './pages/SubAdminOrders';
 import StripeSuccessPage from './pages/StripeSuccess';
 import CashOnDeliverySuccessPage from './pages/CashOnDeliverySuccess';
 import FaceAuthenticationComponentPage from './pages/FaceAuthenticationComponent';
+import OtpComponentPage from './pages/OtpComponent';
 
 const App = () => {
   const { isAuthenticated, user } = useSelector((state) => state.auth);
@@ -81,6 +82,7 @@ const App = () => {
         <Route path="/home" element={<ProtectedRoute allowAdmin={false} allowSubAdmin={false}> <HomePage /> </ProtectedRoute>} />
         <Route path="/home/selected-shop/" element={<ProtectedRoute allowAdmin={false} allowSubAdmin={false}> <SelectedShopPage /> </ProtectedRoute>} />
         <Route path="/home/selected-shop/face-recognition/" element={<ProtectedRoute allowAdmin={false} allowSubAdmin={false}> <FaceAuthenticationComponentPage /> </ProtectedRoute>} />
+        <Route path="/home/selected-shop/otp/" element={<ProtectedRoute allowAdmin={false} allowSubAdmin={false}> <OtpComponentPage /> </ProtectedRoute>} />
         <Route path="/home/ration-card-registration-form/" element={<ProtectedRoute allowAdmin={false} allowSubAdmin={false}> <RationCardRegistrationFormPage /> </ProtectedRoute>} />
         <Route path="/home/selected-shop/choose-subsidies/" element={<ProtectedRoute allowAdmin={false} allowSubAdmin={false}> <ChooseSubsidiesPage /> </ProtectedRoute>} />
         <Route path="/home/selected-shop/choose-subsidies/checkout-page/" element={<ProtectedRoute allowAdmin={false} allowSubAdmin={false}> <CheckoutPage /> </ProtectedRoute>} />

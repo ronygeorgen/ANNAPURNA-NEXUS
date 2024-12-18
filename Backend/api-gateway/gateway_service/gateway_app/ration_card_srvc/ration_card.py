@@ -37,6 +37,7 @@ def register_ration_card(request):
                 'head_age': request.POST.get('head_age'),
                 'head_monthly_income': request.POST.get('head_monthly_income'),
                 'head_aadhaar': request.POST.get('head_aadhaar'),
+                'mobile_number': request.POST.get('mobile_number'),
                 'household_address': request.POST.get('household_address'),
                 'registered_shop':request.data.get('registered_shop'),
                 'card_type': request.POST.get('card_type'),
@@ -385,6 +386,127 @@ def face_authentication(request):
             else:
                 # If no files are present, it's an invalid request
                 return JsonResponse({'error': 'No image or video uploaded'}, status=400)
+            
+            # Parse the response
+            try:
+                response_data = response.json()
+            except ValueError:
+                response_data = {}
+            
+            # Create gateway response
+            gateway_response = JsonResponse(response_data, status=response.status_code)
+            
+            # Forward any cookies from the service response
+            for cookie in response.cookies:
+                gateway_response.set_cookie(
+                    key=cookie.name,
+                    value=cookie.value,
+                    httponly=cookie.has_nonstandard_attr('HttpOnly'),
+                    secure=cookie.secure,
+                    samesite=cookie.get_nonstandard_attr('SameSite')
+                )
+            
+            return gateway_response
+            
+        except requests.RequestException as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    else:
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+
+
+def send_otp(request):
+    if request.method == 'POST':
+        try:
+            # Check for access token
+            access_token = request.COOKIES.get('access_token')
+            if not access_token:
+                return JsonResponse({'error': 'Authorization credentials not found'}, status=401)
+            
+            # Get the URL for the ration shop service
+            url = os.environ.get('RATION_SHOP_SVC_ADDRESS', 'http://localhost:8002/ration-card/send-otp/')
+            
+            # Prepare headers
+            headers = {
+                'Authorization': f'Bearer {access_token}',
+            }
+            
+            # Handle file upload (support both image and video)
+            
+                
+            try:
+                body = json.loads(request.body)
+                post_data = {
+                    'card_number': body.get('card_number', ''),
+                    'user_email': body.get('user_email', ''),
+                    'phone_number': body.get('phone_number', '')
+                }
+            except json.JSONDecodeError:
+                return JsonResponse({'error': 'Invalid JSON body'}, status=400)
+                
+            # Forward the request to the ration shop service
+            response = requests.post(url, headers=headers, data=post_data)
+            
+            
+            # Parse the response
+            try:
+                response_data = response.json()
+            except ValueError:
+                response_data = {}
+            
+            # Create gateway response
+            gateway_response = JsonResponse(response_data, status=response.status_code)
+            
+            # Forward any cookies from the service response
+            for cookie in response.cookies:
+                gateway_response.set_cookie(
+                    key=cookie.name,
+                    value=cookie.value,
+                    httponly=cookie.has_nonstandard_attr('HttpOnly'),
+                    secure=cookie.secure,
+                    samesite=cookie.get_nonstandard_attr('SameSite')
+                )
+            
+            return gateway_response
+            
+        except requests.RequestException as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    else:
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+
+def verify_otp(request):
+    if request.method == 'POST':
+        try:
+            # Check for access token
+            access_token = request.COOKIES.get('access_token')
+            if not access_token:
+                return JsonResponse({'error': 'Authorization credentials not found'}, status=401)
+            
+            # Get the URL for the ration shop service
+            url = os.environ.get('RATION_SHOP_SVC_ADDRESS', 'http://localhost:8002/ration-card/verify-otp/')
+            
+            # Prepare headers
+            headers = {
+                'Authorization': f'Bearer {access_token}',
+            }
+            
+            # Handle file upload (support both image and video)
+            
+                
+            try:
+                body = json.loads(request.body)
+                post_data = {
+                    'card_number': body.get('card_number', ''),
+                    'user_email': body.get('user_email', ''),
+                    'otp': body.get('otp', '')
+                }
+            except json.JSONDecodeError:
+                return JsonResponse({'error': 'Invalid JSON body'}, status=400)
+                
+            # Forward the request to the ration shop service
+            response = requests.post(url, headers=headers, data=post_data)
+            
             
             # Parse the response
             try:

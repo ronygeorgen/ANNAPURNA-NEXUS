@@ -56,6 +56,7 @@ function SelectedShop() {
 
         if (response.data && response.data.card_number) {
           setCardDetails(response.data)
+          
           setIsVerified(true)
           toast.success('Card verified successfully!')
       } else {

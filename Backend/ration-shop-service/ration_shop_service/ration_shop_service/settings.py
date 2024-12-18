@@ -113,7 +113,18 @@ STOCKS_APP_REST_FRAMEWORK = {
 ]
 }
 
+# Redis Configuration
+REDIS_URL = env('REDIS_URL')  # Adjust as per your Redis setup
 
+# Twilio Configuration
+TWILIO_ACCOUNT_SID = env('TWILIO_ACCOUNT_SID')
+TWILIO_AUTH_TOKEN = env('TWILIO_AUTH_TOKEN')
+TWILIO_PHONE_NUMBER = env('TWILIO_PHONE_NUMBER')
+
+# OTP Configuration
+OTP_EXPIRATION_TIME = 300  
+OTP_RESEND_COOLDOWN = 30   
+MAX_OTP_ATTEMPTS = 3
 
 
 # REST_FRAMEWORK = {

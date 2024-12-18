@@ -374,3 +374,21 @@ class FaceAuth(APIView):
             return response
         except Exception as e:
             return Response({'error': str(e)}, status=500)
+        
+class SendOtp(APIView):
+    permission_classes = [AllowAny]
+    def post(self, request, *args, **kwargs):
+        try:
+            response = ration_card.send_otp(request)
+            return response
+        except Exception as e:
+            return Response({'error': str(e)}, status=500)
+        
+class VerifyOtp(APIView):
+    permission_classes = [AllowAny]
+    def post(self, request, *args, **kwargs):
+        try:
+            response = ration_card.verify_otp(request)
+            return response
+        except Exception as e:
+            return Response({'error': str(e)}, status=500)

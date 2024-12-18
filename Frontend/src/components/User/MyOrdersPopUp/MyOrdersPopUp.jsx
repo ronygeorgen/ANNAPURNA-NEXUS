@@ -10,6 +10,8 @@ import api from '../../../services/api'
 import { toast } from 'sonner'
 import jsPDF from 'jspdf'
 import html2canvas from 'html2canvas'
+import { useSelector } from 'react-redux';
+
 
 export function MyOrdersPopUp() {
     const [cardNumber, setCardNumber] = useState('')
@@ -17,6 +19,8 @@ export function MyOrdersPopUp() {
     const [userOrders, setUserOrders] = useState([])
     const [isLoading, setIsLoading] = useState(false)
     const [shopNames, setShopNames] = useState({})
+    const userEmail = useSelector((state) => state.auth.user?.email);
+
 
     const downloadOrderAsPDF = async (order, pdfWidth = 500, pdfHeight = 490) => {
       const input = document.getElementById(`order-card-${order.id}`);
@@ -66,23 +70,10 @@ export function MyOrdersPopUp() {
       }
     }
 
-    const getUserEmail = () => {
-        const authData = localStorage.getItem('persist:auth')
-        if (authData) {
-          try {
-            const parsedData = JSON.parse(authData)
-            const userData = JSON.parse(parsedData.user)
-            return userData.email
-          } catch (error) {
-            console.error('Error parsing user data:', error)
-            return null
-          }
-        }
-        return null
-    }
+    
 
     const fetchUserOrders = async () => {
-        const userEmail = getUserEmail()
+
         if (!userEmail) {
           toast.error('User email not found')
           return

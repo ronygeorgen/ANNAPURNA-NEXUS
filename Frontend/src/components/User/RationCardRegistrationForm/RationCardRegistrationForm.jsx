@@ -65,6 +65,7 @@ export default function RationCardRegistrationForm() {
       data.append('head_age', values.head_details.age);
       data.append('head_monthly_income', values.head_details.monthly_income);
       data.append('head_aadhaar', values.head_details.aadhaar);
+      data.append('mobile_number', values.head_details.mobile);
   
       // Add address and registered shop
       data.append('household_address', values.address);

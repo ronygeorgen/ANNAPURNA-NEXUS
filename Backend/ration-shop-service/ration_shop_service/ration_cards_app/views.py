@@ -27,6 +27,8 @@ from django.conf import settings
 import math
 from scipy.spatial import distance
 from skimage.metrics import structural_similarity
+from .services.otp_services import OTPService
+
 
 
 class RationCardRegistrationView(APIView):
@@ -75,6 +77,7 @@ class RationCardRegistrationView(APIView):
                 'head_age': request.data.get('head_age'),
                 'head_monthly_income': request.data.get('head_monthly_income'),
                 'head_aadhaar': request.data.get('head_aadhaar'),
+                'mobile_number': request.data.get('mobile_number'),
                 'household_address': request.data.get('household_address'),
                 'registered_shop': shop_instance.shop_id,
                 'requester_id': jwt_payload['user_id'],
@@ -896,3 +899,55 @@ class FaceAuthenticationView(APIView):
         except Exception as e:
             print(f"Error retrieving face encoding: {e}")
             return None
+
+
+
+class OTPView(APIView):
+    def post(self, request):
+        
+        user_email = request.data.get('user_email')
+        card_number = request.data.get('card_number')
+        phone_number = request.data.get('phone_number')
+        
+        if not all([user_email, card_number, phone_number]):
+            return Response({
+                'error': 'Missing required fields'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            otp_service = OTPService()
+            otp_service.send_otp(user_email, card_number, phone_number)
+            
+            return Response({
+                'message': 'OTP sent successfully',
+                'hint': 'OTP is valid for 5 minutes'
+            }, status=status.HTTP_200_OK)
+        
+        except Exception as e:
+            return Response({
+                'error': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class VerifyOtpView(APIView):
+    def post(self, request):
+        user_email = request.data.get('user_email')
+        card_number = request.data.get('card_number')
+        otp = request.data.get('otp')
+        
+        if not all([user_email, card_number, otp]):
+            return Response({
+                'error': 'Missing required fields'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        otp_service = OTPService()
+        result = otp_service.verify_otp(user_email, card_number, otp)
+        
+        if result['verified']:
+            return Response({
+                'message': result['message']
+            }, status=status.HTTP_200_OK)
+        else:
+            return Response({
+                'error': result['message'],
+                'remaining_attempts': result.get('remaining_attempts', 0)
+            }, status=status.HTTP_400_BAD_REQUEST)

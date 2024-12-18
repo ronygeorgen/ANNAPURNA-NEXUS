@@ -119,6 +119,7 @@ class RationCard(models.Model):
     head_age = models.IntegerField(validators=[MinValueValidator(18), MaxValueValidator(150)])
     head_monthly_income = models.DecimalField(max_digits=10, decimal_places=2)
     head_aadhaar = models.CharField(max_length=12, unique=True)
+    mobile_number = models.CharField(max_length=20, null=True, blank=True)
     
     # Family Members
     family_members = models.ManyToManyField(FamilyMember, related_name='ration_cards')
@@ -258,6 +259,16 @@ class QuotaAllocation(models.Model):
                 shop_stock.save()
         
         super().save(*args, **kwargs)
+
+
+class OTPVerification(models.Model):
+    user = models.EmailField(max_length=50)
+    card_number = models.CharField(max_length=20)
+    phone_number = models.CharField(max_length=15)
+    otp = models.CharField(max_length=6)
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_verified = models.BooleanField(default=False)
+    attempts = models.IntegerField(default=0)
 
 
 

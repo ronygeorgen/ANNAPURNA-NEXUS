@@ -40,7 +40,7 @@ class RationCardSerializer(serializers.ModelSerializer):
         fields = [
             'card_number','household_address','status',
             'head_name', 'head_age', 'head_monthly_income',
-            'head_aadhaar', 'supporting_document', 'registered_shop',
+            'head_aadhaar', 'mobile_number', 'supporting_document', 'registered_shop',
             'requester_id', 'requester_email', 'max_quantities','shop_verification_notes',
             'admin_verification_notes','admin_verified_at',
         ]
@@ -127,6 +127,7 @@ class CardVerificationSerializer(serializers.ModelSerializer):
             'head_age',
             'head_monthly_income',
             'head_aadhaar',
+            'mobile_number',
             'household_address',
             'status',
             'status_display',

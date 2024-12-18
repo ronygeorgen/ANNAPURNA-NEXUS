@@ -3,7 +3,7 @@ from django.contrib import admin
 from django.urls import path
 from .views import (RationCardRegistrationView, 
                     RationCardListView, VerifyCardView,FetchCardTypes, RationCardVerificationView,
-                    FetchCardForAdminView, QuotaInfoView, RationCardShopVerificationView, FaceAuthenticationView)
+                    FetchCardForAdminView, QuotaInfoView, RationCardShopVerificationView, FaceAuthenticationView, OTPView, VerifyOtpView)
 
 
 urlpatterns = [
@@ -16,4 +16,6 @@ urlpatterns = [
     path('card-types/', FetchCardTypes.as_view(), name='ration-card-shop-verification'),
     path('verify-card-admin/<str:card_number>/', RationCardVerificationView.as_view(), name='verify-card-admin'),
     path('face-auth/', FaceAuthenticationView.as_view(), name='verify-card-admin'),
+    path('send-otp/', OTPView.as_view(), name='otp-send'),
+    path('verify-otp/', VerifyOtpView.as_view(), name='verify-otp'),
 ]
