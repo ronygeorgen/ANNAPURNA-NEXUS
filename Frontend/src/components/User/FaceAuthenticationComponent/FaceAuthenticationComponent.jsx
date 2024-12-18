@@ -117,7 +117,7 @@ const FaceAuthenticationComponent = () => {
                 cardDetails
               }
             });
-          }, 3000);
+          }, 2000);
         } catch (err) {
           setIsAuthenticated(false);
           setError(err.response.data.error || 'Authentication failed');

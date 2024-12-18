@@ -73,7 +73,7 @@ class OTPService:
         
         # Send via Twilio
         message = self.twilio_client.messages.create(
-            body=f"Your OTP for card {card_number} is: {otp}",
+            body=f"Your OTP for ration card number {card_number} is: {otp}",
             from_=int(settings.TWILIO_PHONE_NUMBER),
             to='+91'+phone_number
         )
