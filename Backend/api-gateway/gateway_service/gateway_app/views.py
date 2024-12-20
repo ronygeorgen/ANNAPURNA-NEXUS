@@ -392,3 +392,12 @@ class VerifyOtp(APIView):
             return response
         except Exception as e:
             return Response({'error': str(e)}, status=500)
+
+class RequestedCardsUser(APIView):
+    permission_classes = [AllowAny]
+    def get(self, request, *args, **kwargs):
+        try:
+            response = ration_card.requested_ration_card_user(request)
+            return response
+        except Exception as e:
+            return Response({'error': str(e)}, status=500)

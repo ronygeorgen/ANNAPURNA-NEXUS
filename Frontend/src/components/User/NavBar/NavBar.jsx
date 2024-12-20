@@ -25,6 +25,7 @@ function NavBar({ handleLogout }) {
                     <div className="hidden md:flex space-x-4">
                     <Link to="/home" className="text-gray-700 hover:text-orange-500">Home</Link>
                     <Link to="#" className="text-gray-700 hover:text-orange-500">Services</Link>
+                    <Link to="/home/requested-cards" className="text-gray-700 hover:text-orange-500">Requested Cards</Link>
                     <MyOrdersPopUp/>
                     <Link to="#" className="text-gray-700 hover:text-orange-500">Contact</Link>
                     <Link to="#" className="text-gray-700 hover:text-orange-500">About</Link>

@@ -246,14 +246,6 @@ export default function SubAdminCardList() {
                     ))}
                   </ul>
                 </div>
-                {/* <div>
-                  <h3 className="font-semibold mb-2">Documents</h3>
-                  <ul className="list-disc list-inside">
-                    {selectedCard.documents.map((doc, index) => (
-                      <li key={index}>{doc}</li>
-                    ))}
-                  </ul>
-                </div> */}
                 <div>
                   <h3 className="font-semibold mb-2">Requested User Details</h3>
                   <div className="grid grid-cols-2 gap-2 text-sm">
@@ -261,27 +253,6 @@ export default function SubAdminCardList() {
                     
                   </div>
                 </div>
-
-                {/* <div>
-                  <h3 className="font-semibold mb-2">Verification History</h3>
-                  <ul className="space-y-2">
-                    {selectedCard.verificationHistory.map((history, index) => (
-                      <li key={index} className="bg-gray-50 p-2 rounded text-sm">
-                        <div>{history.date}: <span className={`font-medium ${getStatusColor(history.status)}`}>{history.status}</span></div>
-                        <div>{history.notes}</div>
-                      </li>
-                    ))}
-                  </ul>
-                </div> */}
-
-                {/* <div>
-                  <h3 className="font-semibold mb-2">Verification History</h3>
-                  <div className="text-sm text-gray-600">
-                    Status: <span className={`font-medium ${getStatusColor(selectedCard.status)}`}>
-                      {selectedCard.status.replace('_', ' ')}
-                    </span>
-                  </div>
-                </div> */}
 
               </div>
             )}

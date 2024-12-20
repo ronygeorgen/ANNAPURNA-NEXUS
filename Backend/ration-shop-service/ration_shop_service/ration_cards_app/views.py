@@ -1,4 +1,5 @@
 import uuid
+from grpc import Status
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -951,3 +952,24 @@ class VerifyOtpView(APIView):
                 'error': result['message'],
                 'remaining_attempts': result.get('remaining_attempts', 0)
             }, status=status.HTTP_400_BAD_REQUEST)
+
+class UserRequestedCards(APIView):
+    def get(self, request):
+        try:
+            user_email = request.query_params.get('user_email')
+            if not user_email:
+                return Response({
+                    'error': 'User email is required'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            cards = RationCard.objects.filter(
+                requester_email=user_email
+            ).order_by('-created_at')
+
+            serializer = RationCardRetrieveSerializer(cards, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({
+                'error': str(e)
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

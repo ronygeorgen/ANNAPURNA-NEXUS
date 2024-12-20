@@ -34,6 +34,7 @@ import StripeSuccessPage from './pages/StripeSuccess';
 import CashOnDeliverySuccessPage from './pages/CashOnDeliverySuccess';
 import FaceAuthenticationComponentPage from './pages/FaceAuthenticationComponent';
 import OtpComponentPage from './pages/OtpComponent';
+import RequestedCardsPage from './pages/RequestedCards';
 
 const App = () => {
   const { isAuthenticated, user } = useSelector((state) => state.auth);
@@ -49,11 +50,6 @@ const App = () => {
     useEffect(() => {
         window.scrollTo(0, 0);
     }, [pathname]);
-
-    // useEffect(() => {
-    //   window.scrollTo(0, 0)
-    // }, []);
-
     return null;
   }
 
@@ -88,6 +84,7 @@ const App = () => {
         <Route path="/home/selected-shop/choose-subsidies/checkout-page/" element={<ProtectedRoute allowAdmin={false} allowSubAdmin={false}> <CheckoutPage /> </ProtectedRoute>} />
         <Route path="/home/selected-shop/choose-subsidies/checkout-page/success" element={<ProtectedRoute allowAdmin={false} allowSubAdmin={false}> <StripeSuccessPage /> </ProtectedRoute>} />
         <Route path="/home/selected-shop/choose-subsidies/checkout-page/COD-success" element={<ProtectedRoute allowAdmin={false} allowSubAdmin={false}> <CashOnDeliverySuccessPage /> </ProtectedRoute>} />
+        <Route path="/home/requested-cards" element={<ProtectedRoute allowAdmin={false} allowSubAdmin={false}> <RequestedCardsPage /> </ProtectedRoute>} />
           
           {/* sub-admin routes */}
         <Route path="/sub-admin-login" element={<GuestRoute> <SubAdminLoginPage /> </GuestRoute>} />
