@@ -154,8 +154,8 @@ KAFKA_CONSUMER_GROUP = 'ration_shop_service_user_consumer'
 KAFKA_CLIENT_ID = 'ration_shop_service_provider'
 
 # below kafka for ration card
-KAFKA_TOPIC_STOCK_EVENTS = 'stock_events_topic'   
-KAFKA_CONSUMER_GROUP_STOCK = 'ration_card_stock_consumer'
+KAFKA_TOPIC_ORDER_EVENTS = 'order_events_topic'
+KAFKA_CONSUMER_GROUP_ORDERS = 'ration_shop_order_consumer'
 
 
 

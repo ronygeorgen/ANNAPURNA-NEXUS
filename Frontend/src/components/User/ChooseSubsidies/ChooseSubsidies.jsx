@@ -6,13 +6,12 @@ import { Progress } from "@/components/ui/progress"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ShoppingCart, Users, Package, Calendar, Plus, Store, MapPin, Phone, User, Loader2 } from 'lucide-react'
 import { logoutUser } from '../../../features/auth/authSlice'
-import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
 import api from '../../../services/api';
 import NavBar from '../NavBar/NavBar'
 import Cart from '../../common/Cart'
 import { toast } from 'sonner';
-
 
 export default function ChooseSubsidies() {
     const dispatch = useDispatch();
@@ -29,8 +28,11 @@ export default function ChooseSubsidies() {
 
     const shop = location.state?.shop;
     const cardDetails = location.state?.cardDetails;
-    console.log(cardDetails);
-    
+
+    const [cartItems, setCartItems] = useState(() => {
+        const savedCartItems = localStorage.getItem('cartItems');
+        return savedCartItems ? JSON.parse(savedCartItems) : [];
+    });
 
     const cardData = {
         card_number: cardDetails?.card_number || 'N/A',
@@ -48,6 +50,20 @@ export default function ChooseSubsidies() {
 
     useEffect(() => {
         const fetchQuotaInfo = async () => {
+            // Check if there are items in cart - if yes, don't fetch from backend
+            const existingCartItems = localStorage.getItem('cartItems');
+            const existingNormalItems = localStorage.getItem('normalItems');
+            
+            if (existingCartItems && JSON.parse(existingCartItems).length > 0) {
+                // If cart has items, load quota info from localStorage
+                if (existingNormalItems) {
+                    setNormalItems(JSON.parse(existingNormalItems));
+                    setAdditionalItems(JSON.parse(localStorage.getItem('additionalItems') || '[]'));
+                }
+                return; // Don't fetch from backend
+            }
+
+            // Only fetch from backend if cart is empty
             if (cardDetails?.card_type?.name || 'antyodaya') {
                 setQuotaLoading(true);
                 try {
@@ -61,36 +77,32 @@ export default function ChooseSubsidies() {
 
                     setQuotaInfo(response.data);
                     console.log(response.data);
-                    
 
-                    // Transform and store items in local storage
+                    // Transform and store items
                     const transformedNormalItems = response.data.regular_quota.map(item => ({
-                      ...item,
+                        ...item,
                         name: item.item_name,
                         image: item?.image || null,
                         price: `₹${item.price_per_unit}/${item.item_unit}`,
                         quota: item.max_quantity,
-                        remainingQuota: item.allocated_quantity,
+                        remainingQuota: item.remaining_quantity,
                     }));
 
                     const transformedAdditionalItems = response.data.additional_quota.map(item => ({
-                      ...item,
+                        ...item,
                         name: item.item_name,
                         image: item?.image || null,
                         price: `₹${item.price_per_unit}/${item.item_unit}`,
                         quota: item.max_quantity,
-                        remainingQuota: item.allocated_quantity,
+                        remainingQuota: item.remaining_quantity,
                     }));
 
-                    // Store in local storage
+                    // Store in localStorage and state
                     localStorage.setItem('normalItems', JSON.stringify(transformedNormalItems));
                     localStorage.setItem('additionalItems', JSON.stringify(transformedAdditionalItems));
 
-                    // Update state
                     setNormalItems(transformedNormalItems);
                     setAdditionalItems(transformedAdditionalItems);
-                    const storedNormalItems = localStorage.getItem('normalItems');
-                    const storedAdditionalItems = localStorage.getItem('additionalItems');
 
                 } catch (error) {
                     console.error('Error fetching quota information:', error);
@@ -100,153 +112,180 @@ export default function ChooseSubsidies() {
                     setQuotaLoading(false);
                 }
             }
-        }
-
-        // First, try to get items from local storage
-        const storedNormalItems = localStorage.getItem('normalItems');
-        const storedAdditionalItems = localStorage.getItem('additionalItems');
-        if (storedNormalItems && storedAdditionalItems) {
-            setNormalItems(JSON.parse(storedNormalItems));
-            setAdditionalItems(JSON.parse(storedAdditionalItems));
-        } else {
-            // If no items in local storage, fetch from API
-            fetchQuotaInfo();
-        }
-        }, [cardDetails?.card_type?.name, shop?.shop_id]);
-        const hasAdditionalItems = additionalItems.length > 0;
-
-        const handleLogout = async () => {
-            try {
-                await dispatch(logoutUser()).unwrap();
-                navigate('/login');
-                toast.success('Logged out successfully!')
-            } catch (error) {
-                toast.error("Logout failed", error);
-            }
         };
 
+        fetchQuotaInfo();
+    }, [cardDetails?.card_type?.name, shop?.shop_id]);
 
+    const handleAddToCart = (item) => {
+        if (item.remainingQuota <= 0) {
+            toast.error(`No quota remaining for ${item.name}`);
+            return;
+        }
 
-    // below part is cart
+        const newCartItems = [...cartItems];
+        const existingCartItem = newCartItems.find(cartItem => cartItem.item_name === item.item_name);
 
-        const [cartItems, setCartItems] = useState(() => {
-            const savedCartItems = localStorage.getItem('cartItems');
-            return savedCartItems ? JSON.parse(savedCartItems) : [];
-        });
+        if (existingCartItem) {
+            if (existingCartItem.quantity + item.remainingQuota > item.remaining_quantity) {
+                toast.error(`Cannot exceed allocated quota of ${item.remaining_quantity}`);
+                return;
+            }
+            existingCartItem.quantity += item.remainingQuota;
+        } else {
+            newCartItems.push({ ...item, quantity: item.remainingQuota });
+        }
 
-        // Update localStorage whenever cartItems or normalItems change
-        useEffect(() => {
-            localStorage.setItem('cartItems', JSON.stringify(cartItems));
-        }, [cartItems]);
+        // Update cart items
+        setCartItems(newCartItems);
+        localStorage.setItem('cartItems', JSON.stringify(newCartItems));
 
-        // useEffect(() => {
-        //     localStorage.setItem('normalItems', JSON.stringify(normalItems));
-        // }, [normalItems]);
+        // Update normal items
+        const updatedNormalItems = normalItems.map(prevItem =>
+            prevItem.item_name === item.item_name
+                ? { ...prevItem, remainingQuota: 0 }
+                : prevItem
+        );
+        setNormalItems(updatedNormalItems);
+        localStorage.setItem('normalItems', JSON.stringify(updatedNormalItems));
 
-        const handleAddToCart = (item) => {
-          if (item.remainingQuota <= 0) {
-              toast.error(`No quota remaining for ${item.name}`);
-              return;
-          }
-      
-          setCartItems((prevCart) => {
-              const existingCartItem = prevCart.find(cartItem => cartItem.name === item.name);
-      
-              if (existingCartItem) {
-                  // If item exists in the cart, increment its quantity
-                  return prevCart.map(cartItem =>
-                      cartItem.name === item.name
-                          ? { ...cartItem, quantity: cartItem.quantity + item.remainingQuota }
-                          : cartItem
-                  );
-              } else {
-                  // Add the item with its remaining quota
-                  return [...prevCart, { ...item, quantity: item.remainingQuota }];
-              }
-          });
-      
-          // Set remainingQuota to 0 since the entire quantity is added
-          setNormalItems(prevItems =>
-              prevItems.map(prevItem =>
-                  prevItem.name === item.name
-                      ? { ...prevItem, remainingQuota: 0 }
-                      : prevItem
-              )
-          );
-      
-          toast.success(`${item.name} added to cart`);
-      };
-      
+        toast.success(`${item.name} added to cart`);
+    };
+    const handleIncreaseQuantity = (item) => {
+        // Find the original item to check allocated quantity
+        const originalItem = normalItems.find(i => i.item_name === item.item_name);
+        if (!originalItem) return;
+    
+        // Find the cart item
+        const cartItem = cartItems.find(i => i.item_name === item.item_name);
+        if (!cartItem) return;
+    
+        // Check if increasing would exceed allocated quota
+        if (cartItem.quantity + 1 > originalItem.remaining_quantity) {
+            toast.error(`Cannot exceed allocated quota of ${originalItem.remaining_quantity}`);
+            return;
+        }
+    
+        // Update cart
+        const newCartItems = cartItems.map(i =>
+            i.item_name === item.item_name
+                ? { ...i, quantity: i.quantity + 1 }
+                : i
+        );
+        setCartItems(newCartItems);
+        localStorage.setItem('cartItems', JSON.stringify(newCartItems));
+    
+        // Update normal items
+        const updatedNormalItems = normalItems.map(i =>
+            i.item_name === item.item_name
+                ? { 
+                    ...i, 
+                    remainingQuota: i.remainingQuota - 1,
+                    // remaining_quantity: i.remaining_quantity - 1 
+                  }
+                : i
+        );
+        setNormalItems(updatedNormalItems);
+        localStorage.setItem('normalItems', JSON.stringify(updatedNormalItems));
+    };
 
     const handleRemoveFromCart = (item) => {
+        // Find the item being removed
+        const removedItem = cartItems.find(i => i.item_name === item.item_name);
+        if (!removedItem) return;
+    
         // Remove from cart
-        setCartItems(prev => prev.filter(i => i.item_name !== item.item_name));
-
-        // Restore quota
-        setNormalItems(prev => 
-            prev.map((i) => 
-                i.item_name === item.item_name 
-                ? { ...i, remainingQuota: i.remainingQuota + item.quantity } 
-                : i
-            )
-        );
+        const newCartItems = cartItems.filter(i => i.item_name !== item.item_name);
+        setCartItems(newCartItems);
+        localStorage.setItem('cartItems', JSON.stringify(newCartItems));
+    
+        // If cart is now empty, clear cart from localStorage but keep items data
+        if (newCartItems.length === 0) {
+            localStorage.removeItem('cartItems');
+        }
+    
+        // Check if item exists in normalItems
+        const isNormalItem = normalItems.some(i => i.item_name === item.item_name);
+        
+        if (isNormalItem) {
+            // Update normal items with restored quota
+            const updatedNormalItems = normalItems.map(prevItem =>
+                prevItem.item_name === item.item_name
+                    ? {
+                        ...prevItem,
+                        remainingQuota: prevItem.remaining_quantity,
+                        // remaining_quantity: prevItem.allocated_quantity
+                    }
+                    : prevItem
+            );
+            setNormalItems(updatedNormalItems);
+            localStorage.setItem('normalItems', JSON.stringify(updatedNormalItems));
+        } else {
+            // Update additional items with restored quota
+            const updatedAdditionalItems = additionalItems.map(prevItem =>
+                prevItem.item_name === item.item_name
+                    ? {
+                        ...prevItem,
+                        remainingQuota: prevItem.remaining_quantity,
+                        // remaining_quantity: prevItem.allocated_quantity
+                    }
+                    : prevItem
+            );
+            setAdditionalItems(updatedAdditionalItems);
+            localStorage.setItem('additionalItems', JSON.stringify(updatedAdditionalItems));
+        }
+    
         toast.success(`${item.name} removed from cart and quota restored.`);
     };
 
     const handleUpdateQuantity = (item, newQuantity) => {
-      setCartItems((prevCart) => {
-          if (newQuantity <= 0) {
-              // Remove the item if quantity is 0
-              return prevCart.filter(cartItem => cartItem.name !== item.name);
-          } else {
-              // Update the cart with the new quantity
-              return prevCart.map(cartItem =>
-                  cartItem.name === item.name
-                      ? { ...cartItem, quantity: newQuantity }
-                      : cartItem
-              );
-          }
-      });
-  
-      // Restore the remaining quota in "Shop Now"
-      setNormalItems(prevItems =>
-          prevItems.map(prevItem =>
-              prevItem.name === item.name
-                  ? {
-                      ...prevItem,
-                      remainingQuota: prevItem.remainingQuota + (item.quantity - newQuantity),
-                  }
-                  : prevItem
-          )
-      );
-  };
+        if (newQuantity <= 0) {
+            handleRemoveFromCart(item);
+            return;
+        }
 
-  const handleIncreaseQuantity = (item) => {
-    const selectedItem = normalItems.find(i => i.name === item.name);
+        const originalItem = normalItems.find(i => i.item_name === item.item_name);
+        if (!originalItem) return;
 
-    if (selectedItem.remainingQuota <= 0) {
-        toast.error(`No more ${item.name} available`);
-        return;
-    }
+        if (newQuantity > originalItem.remaining_quantity) {
+            toast.error(`Cannot exceed allocated quota of ${originalItem.remaining_quantity} kg`);
+            return;
+        }
 
-    setCartItems((prevCart) =>
-        prevCart.map(cartItem =>
-            cartItem.name === item.name
-                ? { ...cartItem, quantity: cartItem.quantity + 1 }
+        // Update cart
+        const newCartItems = cartItems.map(cartItem =>
+            cartItem.item_name === item.item_name
+                ? { ...cartItem, quantity: newQuantity }
                 : cartItem
-        )
-    );
+        );
+        setCartItems(newCartItems);
+        localStorage.setItem('cartItems', JSON.stringify(newCartItems));
 
-    setNormalItems((prevItems) =>
-        prevItems.map((prevItem) =>
-            prevItem.name === item.name
-                ? { ...prevItem, remainingQuota: prevItem.remainingQuota - 1 }
+        // Update normal items
+        const updatedNormalItems = normalItems.map(prevItem =>
+            prevItem.item_name === item.item_name
+                ? {
+                    ...prevItem,
+                    remainingQuota: prevItem.remaining_quantity - newQuantity,
+                    // remaining_quantity: prevItem.allocated_quantity - newQuantity
+                }
                 : prevItem
-        )
-    );
-};
+        );
+        setNormalItems(updatedNormalItems);
+        localStorage.setItem('normalItems', JSON.stringify(updatedNormalItems));
+    };
 
+    const handleLogout = async () => {
+        try {
+            await dispatch(logoutUser()).unwrap();
+            navigate('/login');
+            toast.success('Logged out successfully!')
+        } catch (error) {
+            toast.error("Logout failed", error);
+        }
+    };
 
+    const hasAdditionalItems = additionalItems.length > 0;
 
     return (
         <div className="min-h-screen bg-gray-100">
