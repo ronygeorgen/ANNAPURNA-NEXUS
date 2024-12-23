@@ -51,6 +51,7 @@ function SubAdminOrders() {
                 }
             });
             setOrders(response.data);
+            
             setErrors(null);
         } catch (error) {
             console.log('Error fetching orders: ', error);
@@ -92,9 +93,10 @@ function SubAdminOrders() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 ">
+                  
                   <div>
-                    <p className="font-medium">Customer</p>
-                    <p>{order.name}</p>
+                    <p className="font-medium">Ordered for</p>
+                    <p>{order.card_number}</p>
                   </div>
                   <div>
                     <p className="font-medium">Date & Time</p>
@@ -130,8 +132,12 @@ function SubAdminOrders() {
                     </DialogHeader>
                     <div className="grid grid-cols-2 gap-4 text-gray-900">
                       <div>
-                        <p className="font-bold">Customer Name</p>
+                        <p className="font-bold">Ordered by</p>
                         <p>{order.name}</p>
+                      </div>
+                      <div>
+                        <p className="font-bold">Ordered for</p>
+                        <p>{order.card_number}</p>
                       </div>
                       <div>
                         <p className="font-bold">Date & Time</p>

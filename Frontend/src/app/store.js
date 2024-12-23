@@ -3,6 +3,7 @@ import { persistStore, persistReducer, FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, 
 import storage from 'redux-persist/lib/storage';
 import authReducer from '../features/auth/authSlice';
 import profileReducer from '../features/sub-admin-profile/profileSlice'
+import dashboardReducer from '../features/sub-admin-dashboard/dashboardSlice'
 
 // Auth persist config
 const persistConfig = {
@@ -16,14 +17,21 @@ const profilePersistConfig = {
     storage,
     whitelist: ['data']
 }
+const dashboardPersistConfig = {
+    key: 'dashboard',
+    storage,
+    whitelist: ['metrics']
+}
 
 // Create persisted reducers
 const persistedReducer = persistReducer(persistConfig, authReducer);
 const persistedProfileReducer = persistReducer(profilePersistConfig, profileReducer);
+const persistedashboardReducer = persistReducer(dashboardPersistConfig, dashboardReducer);
 
 const rootReducers = combineReducers({
     auth: persistedReducer,
     profile: persistedProfileReducer,
+    dashboard: persistedashboardReducer,
 });
 
 export  const store = configureStore({

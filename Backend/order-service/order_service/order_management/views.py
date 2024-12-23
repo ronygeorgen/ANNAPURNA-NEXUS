@@ -9,6 +9,8 @@ import json
 from django.http import JsonResponse
 from django.conf import settings
 from django.db.models import Count, Sum
+from rest_framework.exceptions import NotFound
+from django.db import transaction
 
 env = environ.Env()
 
@@ -160,7 +162,6 @@ class StripeView(APIView):
                 {"error": "Stripe payment initialization failed", "details": str(e)},
                 status=503,
             )
-
 class StripeOrderSaveView(APIView):
     def post(self, request):
         stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -170,11 +171,13 @@ class StripeOrderSaveView(APIView):
             session_id = request.data.get('session_id')
             if not session_id:
                 return Response({"status": "error", "message": "Session ID is missing"}, status=status.HTTP_400_BAD_REQUEST)
+            
             # Retrieve the Stripe Checkout Session
             session = stripe.checkout.Session.retrieve(session_id)
+            
+            # Check for existing order
             existing_order = Order.objects.filter(payment__transaction_id=session_id).first()
             if existing_order:
-                # Return existing order details
                 serializer = OrderSerializer(existing_order)
                 return Response({
                     'order_id': str(existing_order.order_id),
@@ -184,7 +187,14 @@ class StripeOrderSaveView(APIView):
                 }, status=status.HTTP_200_OK)
             
             # Check payment status
-            if session.payment_status == 'paid':
+            if session.payment_status != 'paid':
+                return Response({
+                    'status': 'payment_pending',
+                    'message': 'Payment not confirmed'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Start transaction
+            with transaction.atomic():
                 # Extract order details from metadata
                 order_data = session.metadata
                 
@@ -217,13 +227,13 @@ class StripeOrderSaveView(APIView):
                     card_number=order_data.get('card_number', ''),
                     address=address,
                     payment=payment,
-                    total_amount=session.amount_total / 100,  
+                    total_amount=session.amount_total / 100,
                     status='PENDING'
                 )
                 
                 # Create order items
                 order_items_data = session.metadata.get('order_items', [])
-                for item_data in eval(order_items_data):  # Convert string representation to list
+                for item_data in eval(order_items_data):
                     order_item = OrderItem.objects.create(
                         item_name=item_data.get('item_name', ''),
                         quantity=item_data.get('quantity', 0),
@@ -231,22 +241,13 @@ class StripeOrderSaveView(APIView):
                     )
                     order.order_items.add(order_item)
                 
-                # Serialize and return order details
-                serializer = OrderSerializer(order)
                 return Response({
                     'order_id': str(order.order_id),
                     'status': 'success',
                     'message': 'Order saved successfully',
-                    'order_id': str(order.order_id),
                     'amount_paid': session.amount_total / 100
                 }, status=status.HTTP_201_CREATED)
-            
-            else:
-                return Response({
-                    'status': 'payment_pending',
-                    'message': 'Payment not confirmed'
-                }, status=status.HTTP_400_BAD_REQUEST)
-        
+                
         except Exception as e:
             return Response({
                 'status': 'error',
@@ -282,3 +283,91 @@ class RevenueView(APIView):
         return Response({
             'total': float(total_revenue)
         })
+    
+
+class SubAdminRevenueView(APIView):
+    def get(self, request):
+        # Get shop_id from query parameters
+        shop_id = request.GET.get('shop_id')
+        if not shop_id:
+            return Response({'error': 'Shop ID is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            # Calculate total revenue for delivered orders only (assuming status 'DELIVERED' for completed orders)
+            total_revenue = Order.objects.filter(
+                shop=shop_id,
+                status='PENDING'  # Assuming only delivered orders count towards revenue
+            ).aggregate(
+                total=Sum('total_amount')
+            )['total'] or 0
+
+            print("total_revenue: ", total_revenue)
+
+            return Response({'total_revenue': total_revenue}, status=status.HTTP_200_OK)
+        
+
+        except Order.DoesNotExist:
+            return Response({'error': 'No orders found for the provided shop'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            # Catch any unexpected error (e.g., database issues)
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class SubAdminOrdersView(APIView):
+    def get(self, request):
+        # Get shop_id from query parameters
+        shop_id = request.GET.get('shop_id')
+        if not shop_id:
+            return Response({'error': 'Shop ID is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            # Get all orders for the shop
+            orders = Order.objects.filter(shop=shop_id).order_by('-created_at')
+            
+            # If no orders exist, return a 404 error
+            if not orders.exists():
+                raise NotFound('No orders found for the provided shop.')
+
+            # Prepare order data for response
+            orders_data = [{
+                'order_id': str(order.order_id),
+                'user': order.user,
+                'total_amount': str(order.total_amount),
+                'status': order.status,
+                'created_at': order.created_at.isoformat(),
+            } for order in orders]
+
+            return Response({'orders': orders_data}, status=status.HTTP_200_OK)
+
+        except NotFound as e:
+            return Response({'error': str(e)}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            # Catch any unexpected error (e.g., database issues)
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class UserAddressesView(APIView):
+    def get(self, request, user_email):
+        try:
+            # Get all orders for the user
+            orders = Order.objects.filter(user=user_email)
+            
+            # Get unique addresses from those orders
+            address_ids = orders.values_list('address', flat=True).distinct()
+            addresses = Address.objects.filter(id__in=address_ids)
+            
+            # Serialize the addresses
+            serializer = AddressSerializer(addresses, many=True)
+            return Response(serializer.data)
+        except Exception as e:
+            return Response(
+                {"error": "Failed to fetch addresses", "details": str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+    def post(self, request):
+        serializer = AddressSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

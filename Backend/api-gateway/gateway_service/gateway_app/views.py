@@ -401,3 +401,22 @@ class RequestedCardsUser(APIView):
             return response
         except Exception as e:
             return Response({'error': str(e)}, status=500)
+
+class DashboardMatrix(APIView):
+    permission_classes = [AllowAny]
+    def get(self, request, *args, **kwargs):
+        try:
+            response = order_management.dashboard_metrics(request)
+            return response
+        except Exception as e:
+            return Response({'error': str(e)}, status=500)
+
+
+class PreviousAddress(APIView):
+    permission_classes = [AllowAny]
+    def get(self, request, user_email, *args, **kwargs):
+        try:
+            response = order_management.previous_address(request, user_email)
+            return response
+        except Exception as e:
+            return Response({'error': str(e)}, status=500)
