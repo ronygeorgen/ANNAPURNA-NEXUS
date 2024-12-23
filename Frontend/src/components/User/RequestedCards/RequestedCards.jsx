@@ -98,12 +98,21 @@ const VerticalStatusTimeline = ({ statusHistory }) => {
   );
 };
 
+
+const LoadingSpinner = () => (
+  <div className="flex flex-col items-center justify-center min-h-[60vh]">
+    <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-orange-500"></div>
+    <p className="mt-4 text-gray-600 text-lg">Loading ration cards...</p>
+  </div>
+);
+
 const RequestedCards = () => {
   const [cards, setCards] = useState([]);
   const [filteredCards, setFilteredCards] = useState([]);
   const [selectedCard, setSelectedCard] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
+  const [isLoading, setIsLoading] = useState(true);
   const userEmail = useSelector((state) => state.auth.user?.email);
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -132,6 +141,8 @@ const RequestedCards = () => {
         setFilteredCards(response.data);
       } catch (error) {
         toast.error('Failed to fetch ration cards');
+      }finally {
+        setIsLoading(false);
       }
     };
     fetchCards();
@@ -161,39 +172,44 @@ const RequestedCards = () => {
           <div className="flex flex-col md:flex-row justify-between items-center mb-8">
             <h1 className="text-3xl font-bold text-gray-800">Ration Card Dashboard</h1>
             
-            <div className="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4 mt-4 md:mt-0">
-              <div className="relative w-full md:w-64">
-                <input
-                  type="text"
-                  placeholder="Search cards..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
-                />
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400 absolute left-3 top-2.5" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
-                </svg>
+            {!isLoading && (
+              <div className="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4 mt-4 md:mt-0">
+                <div className="relative w-full md:w-64">
+                  <input
+                    type="text"
+                    placeholder="Search cards..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  />
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400 absolute left-3 top-2.5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="flex flex-wrap justify-center space-x-2">
+                  {displayStatuses.map((status) => (
+                    <button
+                      key={status}
+                      onClick={() => setStatusFilter(status)}
+                      className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                        statusFilter === status
+                          ? 'bg-orange-500 text-white'
+                          : 'bg-white text-gray-700 hover:bg-gray-100'
+                      } shadow-sm`}
+                    >
+                      {status === 'ALL' ? 'All' : formatStatus(status)}
+                    </button>
+                  ))}
+                </div>
               </div>
-              <div className="flex flex-wrap justify-center space-x-2">
-                {displayStatuses.map((status) => (
-                  <button
-                    key={status}
-                    onClick={() => setStatusFilter(status)}
-                    className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                      statusFilter === status
-                        ? 'bg-orange-500 text-white'
-                        : 'bg-white text-gray-700 hover:bg-gray-100'
-                    } shadow-sm`}
-                  >
-                    {status === 'ALL' ? 'All' : formatStatus(status)}
-                  </button>
-                ))}
-              </div>
-            </div>
+            )}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredCards.map((card) => (
+          {isLoading ? (
+            <LoadingSpinner />
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredCards.map((card) => (
               <div
                 key={card.id}
                 className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition duration-300"
@@ -218,6 +234,7 @@ const RequestedCards = () => {
               </div>
             ))}
           </div>
+          )}
 
           {selectedCard && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
