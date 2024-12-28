@@ -235,7 +235,7 @@ export function MyOrdersPopUp() {
     return (
         <Dialog>
           <DialogTrigger asChild>
-            <button className="text-gray-700 hover:text-[#ff6b00] transition-colors">
+          <button className="w-full text-left text-gray-600 hover:text-orange-500 md:hover:bg-transparent hover:bg-orange-500  md:font-medium transition-colors duration-200 md:w-auto md:p-0 rounded-md">
               My Orders
             </button>
           </DialogTrigger>
