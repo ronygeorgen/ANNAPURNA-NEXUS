@@ -61,7 +61,8 @@ class Order(models.Model):
         ('DELIVERED', 'Delivered'),
     ]
     order_id = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)  # Auto-generated Order ID
-    user = models.CharField(max_length=255)  # Store username or email as a string
+    userId = models.CharField(max_length=255, null=True, blank=True)  
+    user = models.CharField(max_length=255)  # Store email
     shop = models.IntegerField()  # Store shop ID as an integer
     card_number = models.CharField(max_length=16, blank=True, null=True)  # Card number used for the transaction
     address = models.ForeignKey('Address', on_delete=models.CASCADE)  # Shipping address

@@ -67,6 +67,7 @@ def prepare_order_data(instance):
 
     return {
         'order_id': str(instance.order_id),
+        'userId': instance.userId,
         'card_number': instance.card_number,
         'shop_id': instance.shop,
         'items': order_items_data,

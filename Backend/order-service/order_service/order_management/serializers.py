@@ -24,7 +24,7 @@ class OrderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order
-        fields = ['order_id', 'user', 'shop', 'card_number', 'address',
+        fields = ['order_id','userId', 'user', 'shop', 'card_number', 'address',
                  'order_items', 'payment', 'total_amount', 'status']
 
     def create(self, validated_data):
@@ -67,6 +67,7 @@ class OrderSerializer(serializers.ModelSerializer):
 
             return {
                 'id': str(representation.get('order_id', '')),
+                'userId': representation.get('userId', ''),
                 'shop': representation.get('shop',''),
                 'card_number': representation.get('card_number',''),
                 'name': representation.get('user', ''),

@@ -11,7 +11,6 @@ def create_order(request):
     if request.method == 'POST':
         try:
             json_data = json.loads(request.body)
-            print(json_data)
         except json.JSONDecodeError:
             return JsonResponse({'error': 'Invalid JSON'}, status=400)
         
@@ -322,7 +321,6 @@ def verify_order(request, order_id):
     if request.method == 'GET':
             
         try:
-            print(order_id)
             access_token = request.COOKIES.get('access_token')
             if not access_token:
                 return JsonResponse({'error': 'Authorization credentials not found'}, status=401)
@@ -341,7 +339,6 @@ def verify_order(request, order_id):
             except ValueError:
                 response_data = {}
             
-            print(response_data)
             gateway_response = JsonResponse(response_data, status=response.status_code)
             
             for cookie in response.cookies:
@@ -454,7 +451,8 @@ def fetch_service_data(url, headers, params=None):
     try:
         response = requests.get(url, headers=headers, params=params)
         return response.json() if response.status_code == 200 else None
-    except:
+    except Exception as e:
+        print('Exception in dashboard matrics function',e)
         return None
 
 def dashboard_metrics(request):
@@ -538,7 +536,6 @@ def dashboard_metrics(request):
 
 def previous_address(request, user_email):
     if request.method == 'GET':
-        print('user_email:', user_email)
         try:
             access_token = request.COOKIES.get('access_token')
             if not access_token:

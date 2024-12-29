@@ -140,6 +140,7 @@ class StripeView(APIView):
                 cancel_url="http://localhost:5173/home/selected-shop/choose-subsidies/checkout-page/",  
                 metadata={
                     'user': data.get('user', ''),
+                    'userId': data.get('userId', ''),
                     'shop': data.get('shop', ''),
                     'card_number': data.get('card_number', ''),
                     'first_name': data.get('address', {}).get('first_name', ''),
@@ -223,6 +224,7 @@ class StripeOrderSaveView(APIView):
                 # Create order
                 order = Order.objects.create(
                     user=order_data.get('user', ''),
+                    userId=order_data.get('userId', ''),
                     shop=order_data.get('shop', 0),
                     card_number=order_data.get('card_number', ''),
                     address=address,

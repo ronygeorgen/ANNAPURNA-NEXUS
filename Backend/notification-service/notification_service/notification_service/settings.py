@@ -35,12 +35,15 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'notifications',
+    'channels',
 ]
 
 MIDDLEWARE = [
@@ -72,6 +75,22 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'notification_service.wsgi.application'
+ASGI_APPLICATION = 'notification_service.asgi.application'
+
+
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('127.0.0.1', 6379)],
+        },
+    },
+}
+
+KAFKA_BOOTSTRAP_SERVERS = 'localhost:9092'
+KAFKA_TOPIC_ORDER_EVENTS = 'order_events_topic'
+KAFKA_CONSUMER_GROUP = 'notification_service_group'
 
 
 # Database

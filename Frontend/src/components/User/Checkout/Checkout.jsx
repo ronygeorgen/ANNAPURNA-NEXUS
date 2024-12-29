@@ -94,6 +94,7 @@ export default function Checkout({stripePromise}) {
   const location = useLocation();
   
   // Get user email from Redux store
+  const userId = useSelector(state => state.auth.user?.id);
   const userEmail = useSelector(state => state.auth.user?.email);
   console.log('User email:', userEmail);
   
@@ -232,6 +233,7 @@ export default function Checkout({stripePromise}) {
       };
 
       const orderData = {
+        userId: userId,
         user: userEmail,
         shop: shopDetails.shop_id,
         card_number: cardDetails?.card_number,
