@@ -12,15 +12,23 @@ export const ChatProvider = ({ children }) => {
     const socketRef = useRef(null);
 
     useEffect(() => {
-        return () => {
-            if (reconnectTimeoutRef.current) {
-                clearTimeout(reconnectTimeoutRef.current);
-            }
-            if (socketRef.current?.readyState === WebSocket.OPEN) {
-                socketRef.current.close();
-            }
-        };
-    }, []);
+      return () => {
+          clearAllStates();
+          if (reconnectTimeoutRef.current) {
+              clearTimeout(reconnectTimeoutRef.current);
+          }
+          if (socketRef.current?.readyState === WebSocket.OPEN) {
+              socketRef.current.close();
+          }
+      };
+  }, []);
+
+  const clearAllStates = useCallback(() => {
+      setMessages([]);
+      setMessagesByUser({});
+      setUsers([]);
+      setIsConnected(false);
+  }, []);
 
     const handleMessage = useCallback((data) => {
         switch (data.type) {
@@ -98,6 +106,7 @@ export const ChatProvider = ({ children }) => {
 
     const connectWebSocket = useCallback((userId, userEmail, shopId, is_sub_Admin = false) => {
         // Clear any existing timeouts
+        clearAllStates();
         if (reconnectTimeoutRef.current) {
             clearTimeout(reconnectTimeoutRef.current);
             reconnectTimeoutRef.current = null;
@@ -145,6 +154,7 @@ export const ChatProvider = ({ children }) => {
 
         // Return cleanup function
         return () => {
+          clearAllStates();
             if (ws.readyState === WebSocket.OPEN) {
                 ws.close();
             }
@@ -201,7 +211,8 @@ export const ChatProvider = ({ children }) => {
         connectWebSocket,
         sendMessage,
         getChatHistory,
-        clearMessages
+        clearMessages,
+        clearAllStates,
     };
 
     return (

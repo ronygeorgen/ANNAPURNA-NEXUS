@@ -7,7 +7,7 @@ const ChatModal = ({ isOpen, onClose }) => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [message, setMessage] = useState('');
   const [currentMessages, setCurrentMessages] = useState([]);
-  const { messagesByUser, users, sendMessage, connectWebSocket, getChatHistory, isConnected } = useChat();
+  const { messagesByUser, users, sendMessage, connectWebSocket, getChatHistory, isConnected, clearAllStates,clearMessages } = useChat();
   const modalRef = useRef(null);
   const messagesEndRef = useRef(null);
   const chatContainerRef = useRef(null);
@@ -17,8 +17,12 @@ const ChatModal = ({ isOpen, onClose }) => {
 
   useEffect(() => {
     if (isOpen) {
+        clearAllStates()
       const cleanup = connectWebSocket(user.id, user.email, shopData.shopID, true);
-      return () => cleanup();
+      return () => {
+        cleanup();
+        clearAllStates();
+      }
     }
   }, [isOpen, user.id, user.email, shopData.shopID, connectWebSocket]);
 
@@ -38,11 +42,7 @@ const ChatModal = ({ isOpen, onClose }) => {
     }
   }, [selectedUser, getChatHistory]);
 
-  useEffect(() => {
-    if (selectedUser && messagesByUser[selectedUser.user_id]) {
-      setCurrentMessages(messagesByUser[selectedUser.user_id]);
-    }
-  }, [selectedUser, messagesByUser]);
+  
 
   useEffect(() => {
     if (selectedUser) {
@@ -54,17 +54,35 @@ const ChatModal = ({ isOpen, onClose }) => {
   }, [users]);
 
   const handleUserSelect = (user) => {
-    setSelectedUser(user);
-    getChatHistory(user.user_id);
-  };
+    // Step 1: Clear states when switching users
+    setSelectedUser(user);      // Update selected user
+    setMessage([]);            // Clear previous messages
+    clearMessages();            // Clear user-specific buffer
+    clearAllStates();           // Reset states globally
+
+    clearAllStates(); // Clear previous connection states
+    connectWebSocket(user.id, user.email, shopData.shopID, true); // Reconnect socket
+
+
+    // Step 3: Establish a new WebSocket connection
+    connectWebSocket(user.id, user.email, shopData.shopID, true);
+    getChatHistory(user.user_id); // Fetch updated chat history
+};
 
   const handleSendMessage = (e) => {
     e.preventDefault();
-    if (message.trim() && selectedUser) {
-      sendMessage(message, user.id, 'shop', selectedUser.user_id);
-      setMessage('');
+    if (selectedUser) { // ERROR LINE
+        sendMessage(message, user.id, 'shop', selectedUser.user_id);
+        setMessage(''); // Clear input
     }
-  };
+};
+
+
+  useEffect(() => {
+    if (selectedUser && messagesByUser[selectedUser.user_id]) {
+      setCurrentMessages(messagesByUser[selectedUser.user_id]);
+    }
+  }, [selectedUser, messagesByUser]);
 
   if (!isOpen) return null;
 
@@ -152,7 +170,6 @@ const ChatModal = ({ isOpen, onClose }) => {
                     <button
                       type="submit"
                       className="bg-teal-500 text-white rounded-full p-2 hover:bg-teal-600 transition-colors"
-                      disabled={!message.trim()}
                     >
                       <Send className="h-5 w-5" />
                     </button>
