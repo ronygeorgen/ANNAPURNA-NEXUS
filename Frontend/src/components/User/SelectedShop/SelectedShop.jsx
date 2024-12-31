@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react'
 import { Phone, MessageSquare, MapPin } from 'lucide-react'
-// import coverImage from '../assets/Cover.jpg'
 import NavBar from '../NavBar/NavBar'
 import { logoutUser } from '../../../features/auth/authSlice'
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import api from '../../../services/api';
 import { toast } from 'sonner';
+import ChatBox from '../../common/ChatBox';
 
 
 
@@ -19,6 +19,7 @@ function SelectedShop() {
     const [cardDetails, setCardDetails] = useState(null)
     const [isLoading, setIsLoading] = useState(false)
     const [isVerified, setIsVerified] = useState(false)
+    const [isChatOpen, setIsChatOpen] = useState(false);
 
     const shop = location.state?.shop;
 
@@ -184,18 +185,16 @@ function SelectedShop() {
                       </p>
                   </div>
               )}
-              {/* <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded">
-                <h3 className="font-semibold text-yellow-800">Priority Household (PHH) - Yellow Card</h3>
-                <p className="text-sm text-yellow-700">Your card registered at {shop.name}</p>
-                <p className="text-sm text-yellow-700">{shop.location}</p>
-              </div> */}
 
               <div className="flex  gap-4">
                 <button className="flex items-center gap-2 px-6 py-2 bg-white rounded-lg shadow hover:shadow-md transition-shadow">
                   <Phone className="w-5 h-5 text-gray-600" />
                   <span className='lg:inline hidden'>Call</span>
                 </button>
-                <button className="flex items-center gap-2 px-6 py-2 bg-white rounded-lg shadow hover:shadow-md transition-shadow">
+                <button 
+                className="flex items-center gap-2 px-6 py-2 bg-white rounded-lg shadow hover:shadow-md transition-shadow"
+                onClick={() => setIsChatOpen(true)}
+                >
                   <MessageSquare className="w-5 h-5 text-gray-600" />
                   <span className='lg:inline hidden' >Message</span>
                 </button>
@@ -237,6 +236,7 @@ function SelectedShop() {
           </div>
         </div>
       </main>
+      {isChatOpen && <ChatBox shop={shop} onClose={() => setIsChatOpen(false)} />}
 
       {/* Footer */}
       <footer className="bg-gray-800 text-white py-8 mt-12">

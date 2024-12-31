@@ -6,6 +6,7 @@ import { store, persistor } from './app/store.js'
 import App from './App.jsx'
 import './index.css'
 import { BrowserRouter as Router, useLocation } from 'react-router-dom'
+import { ChatProvider } from './context/ChatContext'
 
 
 
@@ -15,7 +16,9 @@ createRoot(document.getElementById('root')).render(
     <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
         <Router>
-          <App />
+          <ChatProvider>
+            <App />
+          </ChatProvider>
         </Router>
       </PersistGate>
     </Provider>

@@ -1,5 +1,5 @@
-import React, {useEffect} from 'react'
-import { Home, CreditCard, ShoppingBag, Package, Store, Bell, Phone, User, Search, Settings, ChevronDown, LogOut } from 'lucide-react'
+import React, {useState, useEffect} from 'react'
+import { Home, CreditCard, ShoppingBag, Package, Store, Bell, Phone, User, Search, Settings, ChevronDown, LogOut, MessageCircle } from 'lucide-react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { useDispatch, useSelector } from 'react-redux';
 import { logoutUser } from '../../../features/auth/authSlice';
@@ -10,6 +10,7 @@ import { ProfileSchema } from '../../../utils/validationSchemas'
 import { fetchProfile, updateProfile, uploadProfilePicture, uploadShopImage, deleteShopImage, resetStatus } from '../../../features/sub-admin-profile/profileSlice'
 import api from '../../../services/api';
 import { fetchDashboardMetrics } from '../../../features/sub-admin-dashboard/dashboardSlice';
+import ChatModal from '../../common/ChatModal';
 
 
 
@@ -69,6 +70,7 @@ function SubAdminDashboard() {
   const navigate = useNavigate();
   const { metrics, loading, error } = useSelector((state) => state.dashboard);
   const { data: profileData } = useSelector((state) => state.profile);
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   useEffect(() => {
     dispatch(fetchDashboardMetrics());
@@ -130,6 +132,8 @@ function SubAdminDashboard() {
     </div>
   );
 
+  const toggleChat = () => setIsChatOpen(!isChatOpen);
+
   return (
     <div className="flex h-screen bg-gray-100">
       <SubAdminAside handleLogout={handleLogout} />
@@ -146,6 +150,13 @@ function SubAdminDashboard() {
               />
               <Search className="absolute left-3 top-2.5 text-gray-400" />
             </div>
+            <button
+              onClick={toggleChat}
+              className="mr-4 text-gray-500 hover:text-teal-500 transition-colors"
+            >
+              <MessageCircle className="h-6 w-6" />
+            </button>
+            
             <Settings className="text-gray-500 mr-4" />
             <div className="flex items-center">
               <span className="mr-2 text-sm text-gray-600">{profileData.ownerName}</span>
@@ -211,6 +222,7 @@ function SubAdminDashboard() {
                 </div>
               </div>
             </div>
+            <ChatModal isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
           </>
         )}
       </main>
