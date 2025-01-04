@@ -3,9 +3,14 @@ import { MapPin, Phone, User, Calendar, Eye } from 'lucide-react';
 import api from '../../../services/api';
 import { useParams, useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
+import { useDispatch, useSelector } from 'react-redux';
+
 
 import AdminAside from '../AdminAside/AdminAside';
 import AdminHeader from '../AdminHeader/AdminHeader';
+import VideoCallButton from '../../common/VideoCallButton';
+import VideoCallManager from '../../common/VideoCallManager';
+import VideoCallModal from '../../common/VideoCallModal';
 
 import {
   Table,
@@ -141,6 +146,16 @@ const ShopDetails = () => {
         </div>
     );
 
+    const user = useSelector(state => state.auth.user);
+        const userId = user?.id;
+
+        const videoCall = VideoCallManager({
+            userId,
+            shopId: shop.shop_id,
+            isAdmin: true,
+            email: user?.email
+        });
+
     return (
         <div className="flex min-h-screen bg-teal-900">
             <AdminAside />
@@ -178,6 +193,21 @@ const ShopDetails = () => {
                                         >
                                             {showRegisteredCards ? 'Requested Cards' : 'Registered Cards'}
                                         </Button>
+                                        <VideoCallButton
+                                            onClick={() => videoCall.startCall(shop.owner_id)}
+                                            isOnline={true}
+                                        />
+                                        <VideoCallModal
+                                            isOpen={videoCall.isReceivingCall || videoCall.isCallActive || videoCall.isCalling}
+                                            onClose={videoCall.endCall}
+                                            localStream={videoCall.localStream}
+                                            remoteStream={videoCall.remoteStream}
+                                            isReceivingCall={videoCall.isReceivingCall}
+                                            isCalling={videoCall.isCalling} // Add this prop
+                                            onAcceptCall={videoCall.acceptCall}
+                                            onRejectCall={videoCall.rejectCall}
+                                            callerName={shop.name}
+                                        />
                                     </div>
                                     <div className="relative h-48 md:h-full min-h-[200px]">
                                         {shop.profile_image ? (

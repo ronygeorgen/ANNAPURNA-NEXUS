@@ -7,6 +7,7 @@ from .ration_shop_srvc import ration_shop
 from .ration_card_srvc import ration_card
 from .product_management import product_manage
 from .order_management_srvc import order_management
+from .notification_srvc import notification
 from rest_framework.permissions import AllowAny, IsAuthenticated, IsAdminUser
 import json
 
@@ -420,3 +421,14 @@ class PreviousAddress(APIView):
             return response
         except Exception as e:
             return Response({'error': str(e)}, status=500)
+
+
+class ActiveSubAdmins(APIView):
+    permission_classes = [AllowAny]
+    def get(self, request, shopId, *args, **kwargs):
+        try:
+            response = notification.ActiveSubAdmins(request, shopId)
+            return response
+        except Exception as e:
+            return Response({'error': str(e)}, status=500)
+

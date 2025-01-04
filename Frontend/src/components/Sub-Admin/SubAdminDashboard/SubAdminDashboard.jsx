@@ -11,6 +11,7 @@ import { fetchProfile, updateProfile, uploadProfilePicture, uploadShopImage, del
 import api from '../../../services/api';
 import { fetchDashboardMetrics } from '../../../features/sub-admin-dashboard/dashboardSlice';
 import ChatModal from '../../common/ChatModal';
+import SubAdminVideoCall from '../SubAdminVideoCall/SubAdminVideoCall';
 
 
 
@@ -141,7 +142,9 @@ function SubAdminDashboard() {
       <main className="flex-1 p-8 overflow-auto">
         <div className="flex justify-between items-center mb-8">
           <h2 className="text-3xl font-bold">Dashboard</h2>
+
           <div className="flex items-center">
+          <SubAdminVideoCall shopId={profileData.shopID} />
             <div className="relative mr-4">
               <input
                 type="text"

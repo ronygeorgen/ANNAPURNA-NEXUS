@@ -9,6 +9,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'sonner';
 
 
+
 const AdminShopcardDisplay = () => {
     const [shops, setShops] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -41,6 +42,8 @@ const AdminShopcardDisplay = () => {
         try {
             const response = await api.get('/ration-shop/shops/', { withCredentials: true });
             setShops(response.data);
+            console.log('response data of shopn card',response.data);
+            
             setError(null);
         } catch (error) {
             console.error('Error fetching shops:', error);
@@ -53,8 +56,11 @@ const AdminShopcardDisplay = () => {
 
     const ShopCard = ({ shop }) => {
         const hasImage = shop.profile_image !== null;
+        
 
         return (
+            <>
+            
             <div 
             className="bg-teal-800 bg-opacity-50 rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 cursor-pointer backdrop-blur-sm border border-teal-700"
             onClick={() => handleShopSelect(shop)}
@@ -146,7 +152,12 @@ const AdminShopcardDisplay = () => {
                         )}
                     </div>
                 </div>
+                <div className="mt-4">
+                
             </div>
+            </div>
+            </>
+
         );
     };
 

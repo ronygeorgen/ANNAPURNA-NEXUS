@@ -81,7 +81,7 @@ class RationShopProfileSerializer(serializers.ModelSerializer):
         fields = [
             'shop_id', 'shopName', 'shopDescription', 'location', 
             'isOpen', 'profile_picture', 'shop_images', 'owner_details',
-            'ownerName'
+            'ownerName',
         ]
     
     
@@ -130,6 +130,7 @@ class RationShopProfileSerializer(serializers.ModelSerializer):
 
 class PublicShopDisplaySerializer(serializers.ModelSerializer):
     owner_name = serializers.CharField(source='owner.owner_name')
+    owner_id = serializers.CharField(source='owner.sub_admin_id')
     profile_image = serializers.SerializerMethodField()
     shop_images = serializers.SerializerMethodField()
 
@@ -144,7 +145,8 @@ class PublicShopDisplaySerializer(serializers.ModelSerializer):
             'mobile_number',
             'owner_name',
             'profile_image',
-            'shop_images'
+            'shop_images',
+            'owner_id'
         ]
 
     def get_profile_image(self, obj):

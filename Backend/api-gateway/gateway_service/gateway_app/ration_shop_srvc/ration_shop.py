@@ -329,6 +329,7 @@ def get_all_shops(request):
             
             try:
                 response_data = response.json()
+                print('Response data:', response_data)
             except ValueError:
                 response_data = {}
             

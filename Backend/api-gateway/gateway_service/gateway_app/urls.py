@@ -8,7 +8,7 @@ from .views import (RegisterView, LoginView, LogoutView,AdminLoginView,
                     GetQuotaInfo, CreateOrder, GetOrders, GetOrdersSubAdmin, GetOrdersUser, GetAllShops,
                     GetAllShopsCardbased, StripePay, SaveStripeOrder, VerifyOrderStripe, ShopVerifyCard,
                     FetchCardTypes, AdminVerifyCard, GetUsersCount, OrderedProductsCountAdmin, OrderRevenueAdmin, 
-                    FaceAuth, SendOtp, VerifyOtp, RequestedCardsUser, DashboardMatrix, PreviousAddress)
+                    FaceAuth, SendOtp, VerifyOtp, RequestedCardsUser, DashboardMatrix, PreviousAddress, ActiveSubAdmins)
 urlpatterns = [
     path('user/register/', RegisterView.as_view(), name = 'register'),
     path('user/login/', LoginView.as_view(), name='login'),
@@ -56,4 +56,6 @@ urlpatterns = [
     path('order-management/revenue/', OrderRevenueAdmin.as_view()),
     path('api/dashboard/metrics/', DashboardMatrix.as_view()),
     path('order-management/user-addresses/<str:user_email>/', PreviousAddress.as_view()),
+
+    path('notification/<str:shopId>/sub-admins/active/', ActiveSubAdmins.as_view()),
 ]

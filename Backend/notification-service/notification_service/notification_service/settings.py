@@ -94,6 +94,14 @@ KAFKA_BOOTSTRAP_SERVERS = 'localhost:9092'
 KAFKA_TOPIC_ORDER_EVENTS = 'order_events_topic'
 KAFKA_CONSUMER_GROUP = 'notification_service_group'
 
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_METHODS = ['GET', 'POST', 'PATCH','PUT', 'DELETE', 'OPTIONS']
+CORS_ALLOW_HEADERS = ['Authorization', 'Content-Type'] 
+
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
