@@ -28,6 +28,9 @@ const ChatBox = ({ onClose }) => {
       setInputMessage('');
     }
   };
+  const profilePictureUrl = shopData.profilePicture?.url || `${process.env.PUBLIC_URL}/default-shop-avatar.png`;
+
+
 
   return (
     <div ref={chatBoxRef} className="fixed bottom-4 right-4 w-80 bg-white rounded-lg shadow-xl overflow-hidden">
@@ -35,7 +38,7 @@ const ChatBox = ({ onClose }) => {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <img 
-              src={shopData.profilePicture} 
+              src={profilePictureUrl} 
               alt={shopData.shopName} 
               className="w-10 h-10 rounded-full object-cover border-2 border-white"
               onError={(e) => {
