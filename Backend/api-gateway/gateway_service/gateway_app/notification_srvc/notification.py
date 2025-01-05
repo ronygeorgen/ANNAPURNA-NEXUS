@@ -15,7 +15,7 @@ def ActiveSubAdmins(request, shopId):
                 return JsonResponse({'error': 'Authorization credentials not found'}, status=401)
             
             
-            orders_url = os.environ.get('RATION_SHOP_SVC_ADDRESS', f'http://localhost:8004/notification/{shopId}/sub-admins/active/')
+            orders_url = os.environ.get('RATION_SHOP_SVC_ADDRESS', f'http://localhost:8004/notification/video-call/check-online-status/{shopId}/')
 
             
             headers = {

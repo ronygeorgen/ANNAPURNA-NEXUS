@@ -6,16 +6,69 @@ const VideoCallManager = ({ userId, shopId, isAdmin, email }) => {
   const [remoteStream, setRemoteStream] = useState(null);
   const [isCallActive, setIsCallActive] = useState(false);
   const [isReceivingCall, setIsReceivingCall] = useState(false);
-  const [isCalling, setIsCalling] = useState(false); // New state for outgoing calls
+  const [isCalling, setIsCalling] = useState(false);
   const [currentCallData, setCurrentCallData] = useState(null);
+  const [isStreamInitialized, setIsStreamInitialized] = useState(false);
   const peerConnection = useRef(null);
+  const wsRef = useRef(null);
+  const currentCallDataRef = useRef(null);
+
+  useEffect(() => {
+    currentCallDataRef.current = currentCallData;
+  }, [currentCallData]);
 
   const configuration = {
     iceServers: [
       { urls: 'stun:stun.l.google.com:19302' },
-    ]
+      {
+        urls: [
+          "turn:bn-turn2.xirsys.com:80?transport=udp",
+          "turn:bn-turn2.xirsys.com:3478?transport=udp",
+          "turn:bn-turn2.xirsys.com:80?transport=tcp",
+          "turn:bn-turn2.xirsys.com:3478?transport=tcp",
+          "turns:bn-turn2.xirsys.com:443?transport=tcp",
+          "turns:bn-turn2.xirsys.com:5349?transport=tcp"
+        ],
+        username: "o8_s2lbVKiqxpNa5Ntw5kG_h7g9zYj-AbK49RHWtnH26b_exoUgSkD5MrvzAQkpMAAAAAGcrwiBzYXJhdGhz",
+        credential: "90886c3c-9c74-11ef-8e6e-0242ac140004"
+      }
+    ],
+    iceTransportPolicy: 'all',
+    bundlePolicy: 'max-bundle',
+    rtcpMuxPolicy: 'require'
   };
 
+  // Only initialize stream when starting or receiving a call
+  const initializeLocalStream = async () => {
+    if (isStreamInitialized && localStream?.active) return localStream;
+    
+    try {
+      console.log('Requesting media permissions...');
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: {
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+          facingMode: 'user'
+        }, 
+        audio: true 
+      });
+      
+      console.log('Media permissions granted, tracks:', stream.getTracks().length);
+      stream.getTracks().forEach(track => {
+        track.enabled = true;
+        console.log(`Track ${track.kind} enabled:`, track.enabled);
+      });
+      
+      setLocalStream(stream);
+      setIsStreamInitialized(true);
+      return stream;
+    } catch (error) {
+      console.error('Error getting local stream:', error);
+      throw error;
+    }
+  };
+
+  // WebSocket setup
   useEffect(() => {
     const wsUrl = `ws://localhost:8004/ws/video/${shopId}/${userId}/?email=${email}&is_sub_admin=${!isAdmin}`;
     const websocket = new WebSocket(wsUrl);
@@ -23,88 +76,268 @@ const VideoCallManager = ({ userId, shopId, isAdmin, email }) => {
     websocket.onopen = () => {
       console.log('WebSocket connected');
       setWs(websocket);
+      wsRef.current = websocket;
     };
 
     websocket.onmessage = handleWebSocketMessage;
 
+    websocket.onerror = (error) => {
+      console.error('WebSocket error:', error);
+    };
+
     return () => {
-      cleanupCall();
       if (websocket) {
         websocket.close();
       }
+      cleanupCall();
     };
   }, [shopId, userId, email, isAdmin]);
 
-  const cleanupCall = () => {
-    if (localStream) {
-      localStream.getTracks().forEach(track => track.stop());
-      setLocalStream(null);
-    }
+  useEffect(() => {
     if (peerConnection.current) {
-      peerConnection.current.close();
-      peerConnection.current = null;
+      const pc = peerConnection.current;
+      
+      const checkConnection = setInterval(() => {
+        console.log('Connection Status:', {
+          connectionState: pc.connectionState,
+          iceConnectionState: pc.iceConnectionState,
+          iceGatheringState: pc.iceGatheringState,
+          signalingState: pc.signalingState,
+          hasRemoteStream: !!remoteStream,
+          remoteStreamActive: remoteStream?.active,
+          remoteTracks: remoteStream?.getTracks().length
+        });
+      }, 5000);
+  
+      return () => clearInterval(checkConnection);
     }
-    setRemoteStream(null);
-    setIsCallActive(false);
-    setIsReceivingCall(false);
-    setIsCalling(false);
-    setCurrentCallData(null);
+  }, [peerConnection.current, remoteStream]);
+
+  const createPeerConnection = async () => {
+    if (peerConnection.current?.connectionState === 'connected') {
+      return peerConnection.current;
+    }
+
+    console.log('Creating new peer connection');
+    const pc = new RTCPeerConnection(configuration);
+    peerConnection.current = pc;
+
+    // Add connection state logging
+    pc.onconnectionstatechange = () => {
+      console.log('Connection State:', pc.connectionState);
+      console.log('ICE Connection State:', pc.iceConnectionState);
+      console.log('ICE Gathering State:', pc.iceGatheringState);
+      console.log('Signaling State:', pc.signalingState);
+    };
+  
+    let stream;
+    try {
+      stream = localStream;
+      if (!stream || !stream.active) {
+        stream = await initializeLocalStream();
+      }
+      
+      console.log('Adding tracks to peer connection...');
+      stream.getTracks().forEach(track => {
+        console.log('Adding track to peer connection:', track.kind, track.enabled);
+        pc.addTrack(track, stream);
+      });
+    } catch (error) {
+      console.error('Error setting up media:', error);
+      throw error;
+    }
+  
+    pc.ontrack = (event) => {
+      if (!event.track || !event.streams || !event.streams[0]) {
+        console.error('Invalid track event:', event);
+        return;
+      }
+
+      console.log('Received remote track:', {
+        kind: event.track.kind,
+        enabled: event.track.enabled,
+        readyState: event.track.readyState,
+        muted: event.track.muted,
+        id: event.track.id
+      });
+    
+      // Ensure track is enabled
+      event.track.enabled = true;
+      
+      const stream = event.streams[0];
+      console.log('Setting remote stream:', {
+        streamActive: stream.active,
+        trackCount: stream.getTracks().length
+      });
+
+      // Force all tracks to be enabled
+      stream.getTracks().forEach(track => {
+        track.enabled = true;
+        console.log(`Enabled ${track.kind} track:`, {
+          id: track.id,
+          enabled: track.enabled,
+          readyState: track.readyState
+        });
+      });
+
+      setRemoteStream(stream);
+    };
+  
+    pc.onicecandidate = (event) => {
+      console.log('New ICE candidate:', event.candidate);
+      if (event.candidate && wsRef.current && currentCallDataRef.current) {
+        wsRef.current.send(JSON.stringify({
+          type: 'ice_candidate',
+          candidate: event.candidate,
+          room_id: currentCallDataRef.current.roomId,
+          caller_id: currentCallDataRef.current.callerId,
+          receiver_id: currentCallDataRef.current.receiverId
+        }));
+      }
+    };
+  
+    return pc;
+  };
+
+  const startCall = async (receiverId) => {
+    try {
+      if (!wsRef.current) {
+        console.error('WebSocket not connected');
+        return;
+      }
+  
+      // Initialize stream at call start
+      await initializeLocalStream();
+  
+      const roomId = `room-${userId}-${receiverId}-${Date.now()}`;
+      const callData = {
+        roomId,
+        callerId: userId,
+        receiverId
+      };
+      
+      // Set the call data first
+      await new Promise(resolve => {
+        setCurrentCallData(callData);
+        resolve();
+      });
+  
+      setIsCalling(true);
+  
+      wsRef.current.send(JSON.stringify({
+        type: 'call_request',
+        room_id: roomId,
+        caller_id: userId,
+        receiver_id: receiverId
+      }));
+  
+    } catch (error) {
+      console.error('Error starting call:', error);
+      cleanupCall();
+    }
   };
 
   const handleWebSocketMessage = async (event) => {
     try {
       const data = JSON.parse(event.data);
-      console.log('Received WebSocket message:', data);
-      
+      console.log('Received message:', data.type);
+      const currentCallInfo = currentCallDataRef.current;
+  
       switch (data.type) {
         case 'call_request':
-          // Handle incoming call
-          if (data.caller_id && data.receiver_id) {
-            // Check if this user is the intended receiver
-            if (data.receiver_id.toString() === userId.toString()) {
-              setCurrentCallData({
-                roomId: `${data.caller_id}-${data.receiver_id}-${Date.now()}`,
-                callerId: data.caller_id,
-                receiverId: data.receiver_id
-              });
-              setIsReceivingCall(true);
-              console.log('Incoming call detected, showing call window');
+          if (data.receiver_id.toString() === userId.toString()) {
+            console.log('Received call request');
+            await initializeLocalStream();
+            setCurrentCallData({
+              roomId: data.room_id,
+              callerId: data.caller_id,
+              receiverId: data.receiver_id
+            });
+            setIsReceivingCall(true);
+          }
+          break;
+  
+        case 'call_accepted':
+          if (currentCallInfo?.callerId.toString() === userId.toString()) {
+            console.log('Call accepted, creating and sending offer');
+            setIsCalling(false);
+            setIsCallActive(true);
+            
+            try {
+              const pc = await createPeerConnection();
+              const offer = await pc.createOffer();
+              await pc.setLocalDescription(offer);
+              
+              wsRef.current?.send(JSON.stringify({
+                type: 'offer',
+                offer: offer,
+                room_id: currentCallInfo.roomId,
+                caller_id: currentCallInfo.callerId,
+                receiver_id: currentCallInfo.receiverId
+              }));
+            } catch (error) {
+              console.error('Error creating/sending offer:', error);
             }
           }
           break;
-          
-        case 'call_accepted':
-          setIsCalling(false); // Hide the calling dialog
-          setIsCallActive(true);
-          await createPeerConnection();
-          await createOffer();
-          break;
-          
-        case 'call_declined':
-          toast.error('Call was declined');
-          cleanupCall();
-          break;
-          
-        case 'call_ended':
-          cleanupCall();
+  
+        case 'offer':
+          if (data.offer && !peerConnection.current?.remoteDescription) {
+            console.log('Received offer:', data.offer);
+            try {
+              const pc = peerConnection.current || await createPeerConnection();
+              console.log('Setting remote description from offer');
+              await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
+              
+              console.log('Creating answer');
+              const answer = await pc.createAnswer();
+              console.log('Setting local description:', answer);
+              await pc.setLocalDescription(answer);
+              
+              wsRef.current?.send(JSON.stringify({
+                type: 'answer',
+                answer: answer,
+                room_id: data.room_id,
+                caller_id: data.caller_id,
+                receiver_id: data.receiver_id
+              }));
+            } catch (error) {
+              console.error('Error handling offer:', error);
+            }
+          }
           break;
 
-        case 'offer':
-          if (data.offer) {
-            await handleOffer(data.offer);
-          }
-          break;
-          
         case 'answer':
-          if (data.answer) {
-            await handleAnswer(data.answer);
+          if (data.answer && peerConnection.current && !peerConnection.current.remoteDescription) {
+            console.log('Received answer:', data.answer);
+            try {
+              await peerConnection.current.setRemoteDescription(
+                new RTCSessionDescription(data.answer)
+              );
+              console.log('Successfully set remote description from answer');
+            } catch (error) {
+              console.error('Error setting remote description:', error);
+            }
           }
           break;
-          
+  
         case 'ice_candidate':
-          if (data.candidate) {
-            await handleIceCandidate(data.candidate);
+          if (data.candidate && peerConnection.current?.remoteDescription) {
+            console.log('Received ICE candidate');
+            try {
+              await peerConnection.current.addIceCandidate(
+                new RTCIceCandidate(data.candidate)
+              );
+              console.log('Successfully added ICE candidate');
+            } catch (error) {
+              console.error('Error adding ICE candidate:', error);
+            }
           }
+          break;
+  
+        case 'call_ended':
+          console.log('Call ended');
+          cleanupCall();
           break;
       }
     } catch (error) {
@@ -112,143 +345,84 @@ const VideoCallManager = ({ userId, shopId, isAdmin, email }) => {
     }
   };
 
-  const createPeerConnection = async () => {
-    try {
-      peerConnection.current = new RTCPeerConnection(configuration);
-      
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: true, 
-        audio: true 
-      });
-      setLocalStream(stream);
-      
-      stream.getTracks().forEach(track => {
-        peerConnection.current.addTrack(track, stream);
-      });
-
-      peerConnection.current.ontrack = (event) => {
-        if (event.streams && event.streams[0]) {
-          setRemoteStream(event.streams[0]);
-        }
-      };
-
-      peerConnection.current.onicecandidate = (event) => {
-        if (event.candidate && ws && currentCallData) {
-          ws.send(JSON.stringify({
-            type: 'ice_candidate',
-            candidate: event.candidate,
-            caller_id: currentCallData.callerId,
-            receiver_id: currentCallData.receiverId
-          }));
-        }
-      };
-
-    } catch (error) {
-      console.error('Error creating peer connection:', error);
-      cleanupCall();
-    }
-  };
-
-  const startCall = async (receiverId) => {
-    if (!ws) {
-      console.error('WebSocket not connected');
-      return;
-    }
-
-    const roomId = `${userId}-${receiverId}-${Date.now()}`;
-    setCurrentCallData({
-      roomId,
-      callerId: userId,
-      receiverId
-    });
-
-    // Set calling state to show outgoing call dialog
-    setIsCalling(true);
-
-    // Send call request
-    ws.send(JSON.stringify({
-      type: 'call_request',
-      caller_id: userId,
-      receiver_id: receiverId
-    }));
-    
-    console.log('Call request sent:', {
-      type: 'call_request',
-      caller_id: userId,
-      receiver_id: receiverId
-    });
-
-    // Initialize local stream for the caller
-    try {
-      await createPeerConnection();
-    } catch (error) {
-      console.error('Error initializing call:', error);
-      cleanupCall();
-    }
-  };
-
   const acceptCall = async () => {
-    if (!currentCallData) {
-      console.error('No active call to accept');
-      return;
-    }
-
     try {
-      ws.send(JSON.stringify({
+      console.log('Accepting call');
+      if (!wsRef.current) {
+        console.error('No WebSocket connection');
+        return;
+      }
+  
+      // Ensure we have call data
+      if (!currentCallData) {
+        console.error('No call data available');
+        return;
+      }
+  
+      // Create peer connection first
+      const pc = await createPeerConnection();
+      
+      wsRef.current.send(JSON.stringify({
         type: 'call_accepted',
+        room_id: currentCallData.roomId,
         caller_id: currentCallData.callerId,
         receiver_id: currentCallData.receiverId
       }));
-
-      await createPeerConnection();
+  
       setIsReceivingCall(false);
       setIsCallActive(true);
+  
     } catch (error) {
       console.error('Error accepting call:', error);
       cleanupCall();
     }
   };
 
-  const rejectCall = () => {
-    if (!currentCallData) {
-      console.error('No active call to reject');
-      return;
+  const endCall = () => {
+    if (wsRef.current && currentCallData) {
+      wsRef.current.send(JSON.stringify({
+        type: 'call_ended',
+        room_id: currentCallData.roomId,
+        caller_id: currentCallData.callerId,
+        receiver_id: currentCallData.receiverId
+      }));
     }
-
-    ws.send(JSON.stringify({
-      type: 'call_declined',
-      caller_id: currentCallData.callerId,
-      receiver_id: currentCallData.receiverId
-    }));
-
     cleanupCall();
   };
 
-  const endCall = () => {
-    if (!currentCallData) {
-      console.error('No active call to end');
-      return;
+  const cleanupCall = () => {
+    if (peerConnection.current) {
+      peerConnection.current.close();
+      peerConnection.current = null;
+    }
+    
+    if (remoteStream) {
+      remoteStream.getTracks().forEach(track => track.stop());
+      setRemoteStream(null);
     }
 
-    ws.send(JSON.stringify({
-      type: 'call_ended',
-      caller_id: currentCallData.callerId,
-      receiver_id: currentCallData.receiverId
-    }));
+    if (localStream) {
+      localStream.getTracks().forEach(track => track.stop());
+      setLocalStream(null);
+    }
 
-    cleanupCall();
+    setIsStreamInitialized(false);
+    setIsCallActive(false);
+    setIsReceivingCall(false);
+    setIsCalling(false);
+    setCurrentCallData(null);
   };
 
   return {
     startCall,
     acceptCall,
-    rejectCall,
+    rejectCall: endCall,
     endCall,
     localStream,
     remoteStream,
     isCallActive,
     isReceivingCall,
-    isCalling, // Add this to the returned object
+    isCalling,
   };
 };
 

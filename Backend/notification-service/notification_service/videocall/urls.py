@@ -1,6 +1,6 @@
 from django.urls import path, include
-from .views import get_active_sub_admins
+from .views import check_online_status
 
 urlpatterns = [
-    path('<str:shopId>/sub-admins/active/', get_active_sub_admins, name='active-sub-admins'),
+    path('video-call/check-online-status/<str:shop_id>/', check_online_status, name='check-online-status'),
 ]

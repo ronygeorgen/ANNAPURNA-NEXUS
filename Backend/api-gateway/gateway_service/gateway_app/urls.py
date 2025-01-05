@@ -57,5 +57,5 @@ urlpatterns = [
     path('api/dashboard/metrics/', DashboardMatrix.as_view()),
     path('order-management/user-addresses/<str:user_email>/', PreviousAddress.as_view()),
 
-    path('notification/<str:shopId>/sub-admins/active/', ActiveSubAdmins.as_view()),
+    path('notification/video-call/check-online-status/<str:shopId>/', ActiveSubAdmins.as_view()),
 ]

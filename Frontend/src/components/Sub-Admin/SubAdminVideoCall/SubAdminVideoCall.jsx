@@ -1,5 +1,5 @@
 // SubAdminVideoCall.jsx
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Phone, PhoneOff } from 'lucide-react';
 import VideoCallManager from '../../common/VideoCallManager';
 import VideoCallModal from '../../common/VideoCallModal';
@@ -9,6 +9,7 @@ const SubAdminVideoCall = ({ shopId }) => {
   const [incomingCall, setIncomingCall] = useState(false);
   const [callerName, setCallerName] = useState('');
   const user = useSelector(state => state.auth.user);
+  const audioRef = useRef(new Audio('/Audio/Ringingtone.mp3'));
   
   const videoCall = VideoCallManager({
     userId: user?.id,
@@ -19,16 +20,22 @@ const SubAdminVideoCall = ({ shopId }) => {
 
   // Ring tone for incoming calls
   useEffect(() => {
-    const audio = new Audio('/Audio/Ringingtone.mp3'); // Add your ringtone
-    
     if (videoCall.isReceivingCall) {
-      audio.loop = true;
-      audio.play().catch(console.error);
+      // Play with user interaction handling
+      const playAudio = async () => {
+        try {
+          audioRef.current.loop = true;
+          await audioRef.current.play();
+        } catch (err) {
+          console.log('Audio playback failed:', err);
+        }
+      };
+      playAudio();
     }
 
     return () => {
-      audio.pause();
-      audio.currentTime = 0;
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
     };
   }, [videoCall.isReceivingCall]);
 

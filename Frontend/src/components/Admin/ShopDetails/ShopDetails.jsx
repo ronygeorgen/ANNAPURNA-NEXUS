@@ -203,11 +203,11 @@ const ShopDetails = () => {
                                             localStream={videoCall.localStream}
                                             remoteStream={videoCall.remoteStream}
                                             isReceivingCall={videoCall.isReceivingCall}
-                                            isCalling={videoCall.isCalling} // Add this prop
+                                            isCalling={videoCall.isCalling}
                                             onAcceptCall={videoCall.acceptCall}
                                             onRejectCall={videoCall.rejectCall}
                                             callerName={shop.name}
-                                        />
+                                            />
                                     </div>
                                     <div className="relative h-48 md:h-full min-h-[200px]">
                                         {shop.profile_image ? (
