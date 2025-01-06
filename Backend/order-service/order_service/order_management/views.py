@@ -11,6 +11,7 @@ from django.conf import settings
 from django.db.models import Count, Sum
 from rest_framework.exceptions import NotFound
 from django.db import transaction
+from .tasks import send_order_confirmation_email_task
 
 env = environ.Env()
 
@@ -24,6 +25,8 @@ class OrderCreateView(APIView):
         if serializer.is_valid():
             try:
                 order = serializer.save()
+                send_order_confirmation_email_task(str(order.order_id))
+
                 return Response({
                     'message': 'Order created successfully',
                     'order_id': order.order_id,
@@ -242,6 +245,8 @@ class StripeOrderSaveView(APIView):
                         total_price=item_data.get('total_price', 0)
                     )
                     order.order_items.add(order_item)
+
+                send_order_confirmation_email_task(str(order.order_id))
                 
                 return Response({
                     'order_id': str(order.order_id),

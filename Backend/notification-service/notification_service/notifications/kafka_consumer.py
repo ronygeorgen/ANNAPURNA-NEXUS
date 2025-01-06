@@ -42,44 +42,38 @@ class KafkaNotificationConsumer:
         try:
             if value['event_type'] == 'order_processed':
                 order_data = value['order_data']
-                user_id = order_data['userId']  # Extract user ID
+                user_id = order_data['userId']
                 message = f"Your order #{order_data['order_id']} for card number {order_data['card_number']} has been processed"
-                print(message)
-
-                # Create notification in database
-                notification = Notification.objects.create(
+                
+                # Check if notification exists
+                notification, created = Notification.objects.get_or_create(
                     user_id=user_id,
+                    order_id=order_data['order_id'],
                     message=message,
-                    order_id=order_data['order_id']
-                )
-                print(f"Notification created with ID: {notification.id}")
-
-                # Prepare the message for WebSocket
-                notification_data = {
-                    'id': str(notification.id),
-                    'message': message,
-                    'order_id': order_data['order_id'],
-                    'created_at': notification.created_at.isoformat(),
-                    'is_read': notification.is_read
-                }
-
-                # Get channel layer and send to group
-                channel_layer = get_channel_layer()
-                print(f"Sending to group: notifications_{user_id}")
-                print(f"Message data: {notification_data}")
-
-                async_to_sync(channel_layer.group_send)(
-                    f"notifications_{user_id}",
-                    {
-                        'type': 'notification_message',
-                        'message': notification_data
+                    defaults={
+                        'user_email': order_data.get('user_email', ''),
                     }
                 )
-                print("Message sent to channel layer successfully")
+                
+                if created:  # Only send WebSocket message if new notification
+                    notification_data = {
+                        'id': str(notification.id),
+                        'message': message,
+                        'order_id': order_data['order_id'],
+                        'created_at': notification.created_at.isoformat(),
+                        'is_read': notification.is_read
+                    }
+                    
+                    channel_layer = get_channel_layer()
+                    async_to_sync(channel_layer.group_send)(
+                        f"notifications_{user_id}",
+                        {
+                            'type': 'notification_message',
+                            'message': notification_data
+                        }
+                    )
         except Exception as e:
             print(f"Error in process_message: {str(e)}")
-            import traceback
-            print(traceback.format_exc())
 
     def stop(self):
         self.running = False

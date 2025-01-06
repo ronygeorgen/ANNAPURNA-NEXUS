@@ -74,3 +74,15 @@ class Order(models.Model):
 
     def __str__(self):
         return f"Order {self.order_id} by {self.user}"
+
+
+class StripePaymentIntent(models.Model):
+    idempotency_key = models.TextField(unique=True)
+    session_id = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=50)  # 'created', 'succeeded', 'failed'
+    
+    class Meta:
+        indexes = [
+            models.Index(fields=['idempotency_key']),
+        ]

@@ -1,4 +1,3 @@
-import { StrictMode, useEffect } from 'react'
 import { createRoot } from 'react-dom/client'
 import { Provider } from 'react-redux'
 import { PersistGate } from 'redux-persist/integration/react'
@@ -12,7 +11,6 @@ import { ChatProvider } from './context/ChatContext'
 
 
 createRoot(document.getElementById('root')).render(
-  <StrictMode>
     <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
         <Router>
@@ -21,6 +19,5 @@ createRoot(document.getElementById('root')).render(
           </ChatProvider>
         </Router>
       </PersistGate>
-    </Provider>
-  </StrictMode>,
+    </Provider>,
 )

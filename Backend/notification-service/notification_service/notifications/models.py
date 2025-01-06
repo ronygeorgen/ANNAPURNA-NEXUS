@@ -12,3 +12,4 @@ class Notification(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+        unique_together = ['user_id', 'order_id', 'message']
