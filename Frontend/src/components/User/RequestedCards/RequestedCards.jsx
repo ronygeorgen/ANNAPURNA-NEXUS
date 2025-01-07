@@ -8,7 +8,6 @@ import NavBar from '../NavBar/NavBar';
 
 const statusOrder = ['REQUESTED', 'SHOP_VERIFIED', 'ADMIN_APPROVED'];
 
-// Helper function to normalize status
 const normalizeStatus = (status) => {
   return status === 'PENDING' ? 'REQUESTED' : status;
 };
@@ -98,7 +97,6 @@ const VerticalStatusTimeline = ({ statusHistory }) => {
   );
 };
 
-
 const LoadingSpinner = () => (
   <div className="flex flex-col items-center justify-center min-h-[60vh]">
     <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-orange-500"></div>
@@ -152,7 +150,7 @@ const RequestedCards = () => {
     const filtered = cards.filter((card) => {
       const normalizedCardStatus = normalizeStatus(card.status);
       const matchesSearch = 
-        card.card_number.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        (normalizedCardStatus === 'ADMIN_APPROVED' ? card.card_number.toLowerCase().includes(searchTerm.toLowerCase()) : true) || 
         card.head_name.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesStatus = statusFilter === 'ALL' || 
         (statusFilter === 'REQUESTED' && normalizedCardStatus === 'REQUESTED') ||
@@ -219,7 +217,11 @@ const RequestedCards = () => {
                     <h2 className="text-xl font-semibold text-gray-800">{card.head_name}</h2>
                     <StatusBadge status={card.status} />
                   </div>
-                  <p className="text-gray-600 mb-2">Card Number: {card.card_number}</p>
+                  <p className="text-gray-600 mb-2">
+                    Card Number: {normalizeStatus(card.status) === 'ADMIN_APPROVED' 
+                      ? card.card_number 
+                      : 'N/A'}
+                  </p>
                   <p className="text-gray-600 mb-4 truncate">{card.household_address}</p>
                   <StatusTimeline status={card.status} />
                 </div>
@@ -252,65 +254,18 @@ const RequestedCards = () => {
                 </div>
 
                 <div className="grid grid-cols-2 gap-6 mb-6">
-                  <div>
-                    <p className="font-semibold text-gray-600">Card Number:</p>
-                    <p className="text-gray-800">{selectedCard.card_number}</p>
-                  </div>
+                  <p className="text-gray-600 mb-2">
+                    Card Number: {normalizeStatus(selectedCard.status) === 'ADMIN_APPROVED' 
+                      ? selectedCard.card_number 
+                      : 'N/A'}
+                  </p>
                   <div>
                     <p className="font-semibold text-gray-600">Card Type:</p>
                     <p className="text-gray-800">{selectedCard.card_type?.name || 'Not Assigned'}</p>
                   </div>
-                  <div>
-                    <p className="font-semibold text-gray-600">Age:</p>
-                    <p className="text-gray-800">{selectedCard.head_age}</p>
-                  </div>
-                  <div>
-                    <p className="font-semibold text-gray-600">Monthly Income:</p>
-                    <p className="text-gray-800">₹{selectedCard.head_monthly_income}</p>
-                  </div>
-                  <div>
-                    <p className="font-semibold text-gray-600">Aadhaar Number:</p>
-                    <p className="text-gray-800">{selectedCard.head_aadhaar}</p>
-                  </div>
-                  <div>
-                    <p className="font-semibold text-gray-600">Created At:</p>
-                    <p className="text-gray-800">{new Date(selectedCard.created_at).toLocaleString()}</p>
-                  </div>
-                  <div className="col-span-2">
-                    <p className="font-semibold text-gray-600">Address:</p>
-                    <p className="text-gray-800">{selectedCard.household_address}</p>
-                  </div>
                   <div className="col-span-2">
                     <p className="font-semibold text-gray-600">Registered Shop:</p>
                     <p className="text-gray-800">{selectedCard.registered_shop.name} - {selectedCard.registered_shop.location}</p>
-                  </div>
-                </div>
-
-                <div className="mb-6">
-                  <h3 className="text-xl font-semibold mb-4 text-gray-800">Family Members</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {selectedCard.family_members.map((member, index) => (
-                      <div key={index} className="bg-gray-50 p-4 rounded-lg">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <p className="font-medium text-gray-800">{member.name}</p>
-                            <p className="text-sm text-gray-600">
-                              Age: {member.age} | Relation: {member.relation}
-                            </p>
-                            <p className="text-sm text-gray-600">
-                              Aadhaar: {member.aadhaar_number}
-                            </p>
-                          </div>
-                          {member.face_image && (
-                            <img 
-                              src={member.face_image} 
-                              alt={member.name} 
-                              className="h-16 w-16 object-cover rounded-full"
-                            />
-                          )}
-                        </div>
-                      </div>
-                    ))}
                   </div>
                 </div>
 
@@ -332,11 +287,11 @@ const RequestedCards = () => {
                   note: selectedCard.cancellation_notes || 'Application Cancelled' 
                 }] : [])
               ]} />
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
-    </div>
     </div>
   );
 };

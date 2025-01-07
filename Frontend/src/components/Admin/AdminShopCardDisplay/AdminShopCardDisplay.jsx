@@ -44,6 +44,8 @@ const AdminShopcardDisplay = () => {
             setShops(response.data);
             console.log('response data of shopn card',response.data);
             
+            console.log('response data of shopn card',response.data);
+            
             setError(null);
         } catch (error) {
             console.error('Error fetching shops:', error);

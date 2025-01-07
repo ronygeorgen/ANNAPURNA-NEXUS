@@ -46,6 +46,10 @@ const ProductManagement = () => {
     totalQuantity: 0
   })
 
+    const [shops, setShops] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const handleLogout = async () => {
@@ -68,11 +72,6 @@ const ProductManagement = () => {
       if (formData.cardType && formData.shopId) {
         setIsLoading(true)
         try {
-          // Placeholder for API call
-          // Replace with actual API call logic
-          // const response = await fetch(`/api/family-count?cardType=${formData.cardType}&shopId=${formData.shopId}`)
-          // const data = await response.json()
-          // setFamilyCount(data.familyCount)
           
           // Temporary mock data for demonstration
           setFamilyCount(Math.floor(Math.random() * 50) + 1)
@@ -87,6 +86,30 @@ const ProductManagement = () => {
 
     fetchFamilyCount()
   }, [formData.cardType, formData.shopId])
+
+
+  useEffect(() => {
+    fetchShops();
+}, []);
+
+const fetchShops = async () => {
+    setLoading(true);
+    try {
+        const response = await api.get('/ration-shop/shops/', { withCredentials: true });
+        setShops(response.data);
+        console.log('response data of shopn card',response.data);
+        
+        console.log('response data of shopn card',response.data);
+        
+        setError(null);
+    } catch (error) {
+        console.error('Error fetching shops:', error);
+        setError('Failed to fetch shops. Please try again later.');
+        toast.error('Failed to fetch shops');
+    } finally {
+        setLoading(false);
+    }
+};
 
   const handleInputChange = (name, value) => {
     setFormData(prev => ({
@@ -166,17 +189,26 @@ const ProductManagement = () => {
               </div>
 
               <div className="space-y-2">
-                <Label className="text-white">Shop ID</Label>
-                <Input 
-                  value={formData.shopId}
-                  onChange={(e) => handleInputChange('shopId', e.target.value)}
-                  placeholder="Enter shop identifier"
-                  className="bg-teal-700 text-white border-teal-600 placeholder-teal-300"
-                />
+                  <Label className="text-white">Shop</Label>
+                  <Select 
+                    value={formData.shopId}
+                    onValueChange={(value) => handleInputChange('shopId', value)}
+                  >
+                    <SelectTrigger className="bg-teal-700 text-white border-teal-600">
+                      <SelectValue placeholder="Select Shop" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {shops.map((shop) => (
+                        <SelectItem key={shop.shop_id} value={shop.shop_id.toString()}>
+                          {shop.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-            </div>
 
-            {formData.cardType && formData.shopId && (
+            {/* {formData.cardType && formData.shopId && (
               <div className="bg-teal-700 p-4 rounded-lg shadow-inner">
                 <Label className="text-white font-bold">Total Family Members</Label>
                 <div className="text-3xl font-semibold text-orange-400 mt-2">
@@ -187,7 +219,7 @@ const ProductManagement = () => {
                       : 'No data available'}
                 </div>
               </div>
-            )}
+            )} */}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
@@ -239,7 +271,7 @@ const ProductManagement = () => {
               </div>
 
               <div className="space-y-2">
-                <Label className="text-white">Quota Max Quantity</Label>
+                <Label className="text-white">Quota Max Quantity Per Person</Label>
                 <Input 
                   type="number"
                   value={formData.quotaMaxQuantity}
@@ -262,7 +294,7 @@ const ProductManagement = () => {
               </div>
 
               <div className="space-y-2">
-                <Label className="text-white">Total Quantity</Label>
+                <Label className="text-white">Total Quantity for the shop</Label>
                 <Input 
                   type="number"
                   value={formData.totalQuantity}

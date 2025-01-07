@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { CreditCard, MapPin, Phone, ShoppingBag, User, ChevronRight, Check, X } from 'lucide-react';
+import { CreditCard, MapPin, Phone, ShoppingBag, User, ChevronRight, Check, X, Star, Home, } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -28,11 +29,9 @@ const AddressModal = ({ isOpen, onClose, addresses, onSelectAddress, isLoading }
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle className="text-xl font-semibold text-orange-700 flex items-center justify-between">
+          <DialogTitle className="text-xl font-semibold text-orange-700 flex items-center gap-2">
+            <MapPin className="h-5 w-5" />
             Select Previous Address
-            <Button variant="ghost" size="icon" onClick={onClose}>
-              <X className="h-4 w-4" />
-            </Button>
           </DialogTitle>
         </DialogHeader>
         
@@ -45,26 +44,52 @@ const AddressModal = ({ isOpen, onClose, addresses, onSelectAddress, isLoading }
           ) : addresses.length > 0 ? (
             <div className="space-y-4">
               {addresses.map((address, index) => (
-                <Card 
-                  key={index} 
-                  className="hover:shadow-md transition-shadow duration-300 cursor-pointer"
-                  onClick={() => {
-                    onSelectAddress(address);
-                    onClose();
-                  }}
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
                 >
-                  <CardContent className="p-4">
-                    <div className="flex items-start space-x-3">
-                      <MapPin className="h-5 w-5 text-orange-500 mt-1 flex-shrink-0" />
-                      <div className="flex-grow">
-                        <p className="font-medium">{address.first_name} {address.last_name}</p>
-                        <p className="text-sm text-gray-600">{address.address_line}</p>
-                        <p className="text-sm text-gray-600">{address.state}, {address.country} - {address.pincode}</p>
-                        <p className="text-sm text-gray-600">{address.mobile_number}</p>
+                  <Card 
+                    className={`hover:shadow-md transition-shadow duration-300 cursor-pointer ${
+                      address.is_primary ? 'border-2 border-orange-500' : ''
+                    }`}
+                    onClick={() => {
+                      onSelectAddress({
+                        ...address,
+                        is_primary: address.is_primary // Preserve primary status
+                      });
+                      onClose();
+                    }}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-start space-x-3">
+                        {address.is_primary ? (
+                          <Star className="h-5 w-5 text-orange-500 mt-1 flex-shrink-0" />
+                        ) : (
+                          <Home className="h-5 w-5 text-gray-500 mt-1 flex-shrink-0" />
+                        )}
+                        <div className="flex-grow">
+                          <div className="flex items-center gap-2">
+                            <p className="font-medium">
+                              {address.first_name} {address.last_name}
+                            </p>
+                            {address.is_primary && (
+                              <span className="bg-orange-100 text-orange-600 text-xs px-2 py-1 rounded-full">
+                                Primary
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-sm text-gray-600">{address.address_line}</p>
+                          <p className="text-sm text-gray-600">
+                            {address.state}, {address.country} - {address.pincode}
+                          </p>
+                          <p className="text-sm text-gray-600">{address.mobile_number}</p>
+                        </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
+                </motion.div>
               ))}
             </div>
           ) : (
@@ -111,7 +136,8 @@ export default function Checkout({stripePromise}) {
     landmark: '',
     state: '',
     country: '',
-    pincode: ''
+    pincode: '',
+    is_primary: false
   });
 
   const [paymentMethod, setPaymentMethod] = useState('COD');
@@ -147,7 +173,8 @@ export default function Checkout({stripePromise}) {
       landmark: address.landmark || '',
       state: address.state,
       country: address.country,
-      pincode: address.pincode
+      pincode: address.pincode,
+      is_primary: address.is_primary
     });
   };
 
@@ -439,6 +466,24 @@ export default function Checkout({stripePromise}) {
                       onChange={handleAddressInputChange} 
                       placeholder="Pincode" 
                     />
+                  </div>
+                  <div className="col-span-2 flex items-center gap-2">
+                    <Checkbox
+                      id="is_primary"
+                      checked={addressDetails.is_primary}
+                      onCheckedChange={(checked) => {
+                        setAddressDetails(prev => ({
+                          ...prev,
+                          is_primary: checked
+                        }));
+                      }}
+                    />
+                    <Label 
+                      htmlFor="is_primary" 
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                      Set as primary address
+                    </Label>
                   </div>
                 </form>
               </motion.div>

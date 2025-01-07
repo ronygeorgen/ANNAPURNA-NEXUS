@@ -19,7 +19,7 @@ class SubAdminListView(APIView):
     permission_classes = [IsAuthenticated, IsAdmin]
 
     def get(self, request):
-        sub_admins = SubAdminAuth.objects.filter(is_active=True)
+        sub_admins = SubAdminAuth.objects.filter(is_active=True, shops_owned__isnull=True)
         serializer = SubAdminSerializer(sub_admins, many=True)
         return Response(serializer.data)
 

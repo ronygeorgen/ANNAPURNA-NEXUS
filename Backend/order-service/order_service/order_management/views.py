@@ -353,19 +353,35 @@ class SubAdminOrdersView(APIView):
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+
+# views.py - Modified to work with orders
 class UserAddressesView(APIView):
     def get(self, request, user_email):
         try:
-            # Get all orders for the user
+            # Get addresses through orders
             orders = Order.objects.filter(user=user_email)
-            
-            # Get unique addresses from those orders
             address_ids = orders.values_list('address', flat=True).distinct()
-            addresses = Address.objects.filter(id__in=address_ids)
             
-            # Serialize the addresses
+            # Get primary address first
+            primary_address = Address.objects.filter(
+                id__in=address_ids,
+                is_primary=True
+            ).first()
+            
+            # Get non-primary addresses
+            other_addresses = Address.objects.filter(
+                id__in=address_ids,
+                is_primary=False
+            ).order_by('-id')[:4]
+            
+            addresses = []
+            if primary_address:
+                addresses.append(primary_address)
+            addresses.extend(other_addresses)
+            
             serializer = AddressSerializer(addresses, many=True)
             return Response(serializer.data)
+            
         except Exception as e:
             return Response(
                 {"error": "Failed to fetch addresses", "details": str(e)},
@@ -373,8 +389,28 @@ class UserAddressesView(APIView):
             )
 
     def post(self, request):
-        serializer = AddressSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            data = request.data
+            user_email = request.data.get('user')  # Get from request data
+
+            # If setting as primary, unset existing primary addresses
+            if data.get('is_primary'):
+                # Get addresses through orders for this user
+                orders = Order.objects.filter(user=user_email)
+                address_ids = orders.values_list('address', flat=True).distinct()
+                Address.objects.filter(
+                    id__in=address_ids,
+                    is_primary=True
+                ).update(is_primary=False)
+
+            serializer = AddressSerializer(data=data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            
+        except Exception as e:
+            return Response(
+                {"error": "Failed to create address", "details": str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )

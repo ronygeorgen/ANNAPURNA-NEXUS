@@ -38,12 +38,14 @@ const dashboardSlice = createSlice({
       pendingCards: 0,
       orderStats: []
     },
+    initialized: false,
     loading: false,
     error: null
   },
   reducers: {
     resetDashboard: (state) => {
       state.error = null;
+      state.initialized = false;
       state.loading = false;
     }
   },
@@ -56,10 +58,12 @@ const dashboardSlice = createSlice({
       .addCase(fetchDashboardMetrics.fulfilled, (state, action) => {
         state.loading = false;
         state.metrics = action.payload;
+        state.initialized = true;
       })
       .addCase(fetchDashboardMetrics.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+        state.initialized = true;
       });
   }
 });

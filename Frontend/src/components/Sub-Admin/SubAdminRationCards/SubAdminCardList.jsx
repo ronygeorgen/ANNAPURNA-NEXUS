@@ -92,10 +92,11 @@ export default function SubAdminCardList() {
       setRationCards(prevCards => 
         prevCards.map(card => 
           card.card_number === selectedCard.card_number 
-            ? {...card, status: selectedCard.status } 
+            ? {...card, status: "SHOP_VERIFIED" } 
             : card
         )
       )
+      setSelectedCard(prev => prev ? { ...prev, status: "SHOP_VERIFIED" } : null)
       toast.success(`Card ${selectedCard.card_number} verified successfully`)
       setSelectedCard(null)
       setShowConfirmation(false)
