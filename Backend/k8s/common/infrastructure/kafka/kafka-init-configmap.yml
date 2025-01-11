@@ -1,0 +1,43 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kafka-init-script
+data:
+  init-topics.sh: |
+    #!/bin/bash
+
+    MAX_ATTEMPTS=30
+    COUNTER=0
+
+    until kafka-topics --bootstrap-server kafka:9092 --list &>/dev/null; do
+        if [ $COUNTER -eq $MAX_ATTEMPTS ]; then
+            echo "Failed to connect to Kafka after $MAX_ATTEMPTS attempts"
+            exit 1
+        fi
+        echo "Waiting for Kafka to be ready... ($COUNTER/$MAX_ATTEMPTS)"
+        COUNTER=$((COUNTER+1))
+        sleep 5
+    done
+
+    create_topic() {
+        local topic=$1
+        if ! kafka-topics --bootstrap-server kafka:9092 --list | grep -q "^${topic}$"; then
+            echo "Creating ${topic} topic..."
+            kafka-topics --create --bootstrap-server kafka:9092 \
+                --replication-factor 1 \
+                --partitions 3 \
+                --topic "${topic}" \
+                --config retention.ms=86400000 \
+                --config min.insync.replicas=1 \
+                --config cleanup.policy=delete || {
+                    echo "Failed to create topic ${topic}"
+                    exit 1
+                }
+        else
+            echo "Topic ${topic} already exists"
+        fi
+    }
+
+    create_topic "user_events"
+    create_topic "ration_shop_events"
+    create_topic "order_events_topic"

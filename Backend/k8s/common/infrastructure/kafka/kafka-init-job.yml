@@ -1,0 +1,21 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: kafka-topic-init
+spec:
+  backoffLimit: 5
+  template:
+    spec:
+      containers:
+      - name: kafka-init
+        image: confluentinc/cp-kafka:latest
+        command: ['/bin/bash', '/scripts/init-topics.sh']
+        volumeMounts:
+        - name: config-volume
+          mountPath: /scripts
+      volumes:
+      - name: config-volume
+        configMap:
+          name: kafka-init-script
+          defaultMode: 0755
+      restartPolicy: OnFailure

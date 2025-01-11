@@ -1,5 +1,4 @@
 import uuid
-from grpc import Status
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -21,9 +20,7 @@ import face_recognition
 import numpy as np
 from .utils import AdvancedLivenessDetector
 import cv2
-import tempfile
 import os
-from deepface import DeepFace
 from django.conf import settings
 import math
 from scipy.spatial import distance

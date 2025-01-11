@@ -166,6 +166,7 @@ class StripeView(APIView):
                 {"error": "Stripe payment initialization failed", "details": str(e)},
                 status=503,
             )
+        
 class StripeOrderSaveView(APIView):
     def post(self, request):
         stripe.api_key = settings.STRIPE_SECRET_KEY

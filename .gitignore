@@ -29,3 +29,5 @@ Thumbs.db
 
 # ML model
 Backend/ration-shop-service/ration_shop_service/ml_models/
+
+Backend/k8s/common/secret.yml

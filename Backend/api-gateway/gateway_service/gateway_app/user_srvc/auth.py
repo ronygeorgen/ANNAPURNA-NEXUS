@@ -12,7 +12,7 @@ def register(request):
             return JsonResponse({'error': 'Invalid JSON'}, status=400)
 
         try:
-            user_service_url = os.environ.get('USER_SVC_ADDRESS', 'http://localhost:8000/user/register/')
+            user_service_url = (f"http://user-service:8000/user/register/")
             response = requests.post(user_service_url, json=json_data)
             gateway_response = JsonResponse(response.json(), status=response.status_code)
 
@@ -41,7 +41,8 @@ def login(request):
             return JsonResponse({'error': 'Invalid JSON'}, status=400)
 
         try:
-            login_service_url = os.environ.get('USER_SVC_ADDRESS', 'http://localhost:8000/user/login/')
+            user_service_url = os.environ.get("USER_SERVICE_URL")
+            login_service_url = (f"http://user-service:8000/user/login/")
             response = requests.post(login_service_url, json=json_data)
             gateway_response = JsonResponse(response.json(), status=response.status_code)
 
