@@ -3,7 +3,7 @@ kind: ConfigMap
 metadata:
   name: common-configmap
 data:
-  API_GATEWAY_DB: "an_api_gateway"
+  API_GATEWAY_DB: "an_gateway_service"
   # User Service DB
   USER_SERVICE_DB: "an_user_service"
   # Order Service DB
@@ -16,15 +16,15 @@ data:
   DEBUG: "True"
   ALLOWED_HOSTS: "*"
 
-  DATABASE_HOST: "postgres"
+  DATABASE_HOST: "host.docker.internal"
   DATABASE_PORT: "5432"
 
   REDIS_HOST: "redis"
   REDIS_URL: "redis://redis:6379/0"
   REDIS_PORT: "6379"
 
-  KAFKA_HOST: "kafka:9092"
-  KAFKA_BOOTSTRAP_SERVERS: "kafka:9092"
+  KAFKA_HOST: "kafka.default.svc.cluster.local:9092"
+  KAFKA_BOOTSTRAP_SERVERS: "kafka.default.svc.cluster.local:9092"
 
 
   EMAIL_HOST: "smtp.gmail.com"

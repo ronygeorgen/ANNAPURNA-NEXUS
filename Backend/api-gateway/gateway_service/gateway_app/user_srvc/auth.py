@@ -1,8 +1,24 @@
+from django.conf import settings
 import json
 from django.http import JsonResponse
 import requests
 import os
 
+# Constants for service URLs
+USER_SERVICE_BASE_URL = f"http://{os.getenv('USER_SERVICE_URL', 'user-service:8000')}"
+
+def _forward_cookies(response, gateway_response):
+    """Helper function to forward cookies from service response to gateway response"""
+    for cookie in response.cookies:
+        gateway_response.set_cookie(
+            key=cookie.name, 
+            value=cookie.value, 
+            httponly=cookie.has_nonstandard_attr('HttpOnly'),
+            secure=cookie.secure,
+            samesite=cookie.get_nonstandard_attr('SameSite')
+        )
+    return gateway_response
+    
 
 def register(request):
     if request.method == 'POST':
@@ -12,26 +28,13 @@ def register(request):
             return JsonResponse({'error': 'Invalid JSON'}, status=400)
 
         try:
-            user_service_url = (f"http://user-service:8000/user/register/")
-            response = requests.post(user_service_url, json=json_data)
+            url = f"{USER_SERVICE_BASE_URL}/user/register/"
+            response = requests.post(url, json=json_data)
             gateway_response = JsonResponse(response.json(), status=response.status_code)
-
-            for cookie in response.cookies:
-                gateway_response.set_cookie(
-                    key=cookie.name, 
-                    value=cookie.value, 
-                    httponly=cookie.has_nonstandard_attr('HttpOnly'),
-                    secure=cookie.secure,
-                    samesite=cookie.get_nonstandard_attr('SameSite')
-                )
-            
-            return gateway_response
-
+            return _forward_cookies(response, gateway_response)
         except requests.RequestException as e:
             return JsonResponse({'error': str(e)}, status=500)
-    else:
-        return JsonResponse({'error': 'Method not allowed'}, status=405)
-
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
 
 def login(request):
     if request.method == 'POST':
@@ -41,25 +44,13 @@ def login(request):
             return JsonResponse({'error': 'Invalid JSON'}, status=400)
 
         try:
-            user_service_url = os.environ.get("USER_SERVICE_URL")
-            login_service_url = (f"http://user-service:8000/user/login/")
-            response = requests.post(login_service_url, json=json_data)
+            url = f"{USER_SERVICE_BASE_URL}/user/login/"
+            response = requests.post(url, json=json_data)
             gateway_response = JsonResponse(response.json(), status=response.status_code)
-
-            for cookie in response.cookies:
-                gateway_response.set_cookie(
-                    key=cookie.name, 
-                    value=cookie.value, 
-                    httponly=cookie.has_nonstandard_attr('HttpOnly'),
-                    secure=cookie.secure,
-                    samesite=cookie.get_nonstandard_attr('SameSite')
-                )
-            
-            return gateway_response
+            return _forward_cookies(response, gateway_response)
         except requests.RequestException as e:
             return JsonResponse({'error': str(e)}, status=500)
-    else:
-        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
 
 def loginAdmin(request):
     if request.method == 'POST':
@@ -69,24 +60,13 @@ def loginAdmin(request):
             return JsonResponse({'error': 'Invalid JSON'}, status=400)
         
         try:
-            login_service_url = os.environ.get('USER_SVC_ADDRESS', 'http://localhost:8000/user/admin-login/')
-            response = requests.post(login_service_url, json=json_data)
+            url = f"{USER_SERVICE_BASE_URL}/user/admin-login/"
+            response = requests.post(url, json=json_data)
             gateway_response = JsonResponse(response.json(), status=response.status_code)
-
-            for cookie in response.cookies:
-                gateway_response.set_cookie(
-                    key=cookie.name, 
-                    value=cookie.value, 
-                    httponly=cookie.has_nonstandard_attr('HttpOnly'),
-                    secure=cookie.secure,
-                    samesite=cookie.get_nonstandard_attr('SameSite')
-                )
-            
-            return gateway_response
+            return _forward_cookies(response, gateway_response)
         except requests.RequestException as e:
             return JsonResponse({'error': str(e)}, status=500)
-    else:
-        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
 
 def loginSubAdmin(request):
     if request.method == 'POST':
@@ -96,24 +76,13 @@ def loginSubAdmin(request):
             return JsonResponse({'error': 'Invalid JSON'}, status=400)
         
         try:
-            login_service_url = os.environ.get('USER_SVC_ADDRESS', 'http://localhost:8000/user/sub-admin-login/')
-            response = requests.post(login_service_url, json=json_data)
+            url = f"{USER_SERVICE_BASE_URL}/user/sub-admin-login/"
+            response = requests.post(url, json=json_data)
             gateway_response = JsonResponse(response.json(), status=response.status_code)
-
-            for cookie in response.cookies:
-                gateway_response.set_cookie(
-                    key=cookie.name, 
-                    value=cookie.value, 
-                    httponly=cookie.has_nonstandard_attr('HttpOnly'),
-                    secure=cookie.secure,
-                    samesite=cookie.get_nonstandard_attr('SameSite')
-                )
-            
-            return gateway_response
+            return _forward_cookies(response, gateway_response)
         except requests.RequestException as e:
             return JsonResponse({'error': str(e)}, status=500)
-    else:
-        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
 
 def create_sub_admin(request):
     if request.method == 'POST':
@@ -124,120 +93,52 @@ def create_sub_admin(request):
 
         try:
             access_token = request.COOKIES.get('access_token')
-            # refresh_token = request.COOKIES.get('refresh_token')
-
             if not access_token:
                 return JsonResponse({'error': 'Authorization credentials not found'}, status=401)
 
-            create_sub_admin_url = os.environ.get('USER_SVC_ADDRESS', 'http://localhost:8000/user/create-sub-admin/')
-
+            url = f"{USER_SERVICE_BASE_URL}/user/create-sub-admin/"
             headers = {
                 'Authorization': f'Bearer {access_token}',  
                 'Content-Type': 'application/json',
             }
 
-            response = requests.post(create_sub_admin_url, json=json_data, headers=headers)
-            
-           
-            try:
-                response_data = response.json()
-            except ValueError:
-                response_data = {}
-
-            gateway_response = JsonResponse(response_data, status=response.status_code)
-
-            # Forward any new cookies from user service response
-            for cookie in response.cookies:
-                gateway_response.set_cookie(
-                    key=cookie.name,
-                    value=cookie.value,
-                    httponly=cookie.has_nonstandard_attr('HttpOnly'),
-                    secure=cookie.secure,
-                    samesite=cookie.get_nonstandard_attr('SameSite')
-                )
-
-            return gateway_response
-
+            response = requests.post(url, json=json_data, headers=headers)
+            gateway_response = JsonResponse(response.json(), status=response.status_code)
+            return _forward_cookies(response, gateway_response)
         except requests.RequestException as e:
             return JsonResponse({'error': str(e)}, status=500)
-    else:
-        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
 
 def refresh_token(request):
     if request.method == 'POST':
         try:
             refresh_token = request.COOKIES.get('refresh_token')
-            # if not refresh_token:
-            #     return JsonResponse({'error': 'Refresh token required'}, status=401)
-
-            # Forward to user service
-            refresh_url = os.environ.get('USER_SVC_ADDRESS', 'http://localhost:8000/user/refresh-token/')
+            url = f"{USER_SERVICE_BASE_URL}/user/refresh-token/"
             response = requests.post(
-                refresh_url,
+                url,
                 cookies={'refresh_token': refresh_token}
             )
-
-            # Create gateway response
             gateway_response = JsonResponse(response.json(), status=response.status_code)
-
-            # Forward any cookies from user service
-            for cookie in response.cookies:
-                gateway_response.set_cookie(
-                    key=cookie.name,
-                    value=cookie.value,
-                    httponly=cookie.has_nonstandard_attr('HttpOnly'),
-                    secure=cookie.secure,
-                    samesite=cookie.get_nonstandard_attr('SameSite')
-                )
-
-            return gateway_response
-
+            return _forward_cookies(response, gateway_response)
         except requests.RequestException as e:
             return JsonResponse({'error': str(e)}, status=500)
-    else:
-        return JsonResponse({'error': 'Method not allowed'}, status=405)
-    
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
 
 def get_all_users_count(request):
     if request.method == 'GET':
         try:
-            # Get access token from cookies
             access_token = request.COOKIES.get('access_token')
             if not access_token:
                 return JsonResponse({'error': 'Authorization credentials not found'}, status=401)
             
-            # Get the ration shop service address from environment variables
-            url = os.environ.get('RATION_SHOP_SVC_ADDRESS', 'http://localhost:8000/user/user-count/')
-            
-            # Set up headers with the access token
+            url = f"{USER_SERVICE_BASE_URL}/user/user-count/"
             headers = {
                 'Authorization': f'Bearer {access_token}',
             }
             
-            # Forward the request to the shop service
             response = requests.get(url, headers=headers)
-            
-            try:
-                response_data = response.json()
-            except ValueError:
-                response_data = {}
-            
-            # Create the gateway response
-            gateway_response = JsonResponse(response_data, status=response.status_code)
-            
-            # Forward any cookies from the shop service
-            for cookie in response.cookies:
-                gateway_response.set_cookie(
-                    key=cookie.name,
-                    value=cookie.value,
-                    httponly=cookie.has_nonstandard_attr('HttpOnly'),
-                    secure=cookie.secure,
-                    samesite=cookie.get_nonstandard_attr('SameSite')
-                )
-            
-            return gateway_response
-            
+            gateway_response = JsonResponse(response.json(), status=response.status_code)
+            return _forward_cookies(response, gateway_response)
         except requests.RequestException as e:
             return JsonResponse({'error': str(e)}, status=500)
-    else:
-        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    return JsonResponse({'error': 'Method not allowed'}, status=405)

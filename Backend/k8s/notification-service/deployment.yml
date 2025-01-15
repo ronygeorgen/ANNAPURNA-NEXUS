@@ -5,7 +5,7 @@ metadata:
   labels:
     app: notification-service
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: notification-service
@@ -30,6 +30,8 @@ spec:
             configMapKeyRef:
               name: common-configmap
               key: NOTIFICATION_DB
+        - name: RUN_MAIN
+          value: "true"
         resources:
           requests:
             memory: "256Mi"
@@ -37,15 +39,15 @@ spec:
           limits:
             memory: "512Mi"
             cpu: "200m"
-        readinessProbe:
-          httpGet:
-            path: /health
-            port: 8004
-          initialDelaySeconds: 15
-          periodSeconds: 10
-        livenessProbe:
-          httpGet:
-            path: /health
-            port: 8004
-          initialDelaySeconds: 30
-          periodSeconds: 20
+        # readinessProbe:
+        #   httpGet:
+        #     path: /health
+        #     port: 8004
+        #   initialDelaySeconds: 15
+        #   periodSeconds: 10
+        # livenessProbe:
+        #   httpGet:
+        #     path: /health
+        #     port: 8004
+        #   initialDelaySeconds: 30
+        #   periodSeconds: 20

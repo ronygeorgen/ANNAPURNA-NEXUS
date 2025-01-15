@@ -18,7 +18,6 @@ from ration_shops_app.models import SubAdminAuth
 from .models import QuotaAllocation
 import face_recognition
 import numpy as np
-from .utils import AdvancedLivenessDetector
 import cv2
 import os
 from django.conf import settings
@@ -525,7 +524,6 @@ class FaceAuthenticationView(APIView):
         video.release()
         return frames
 
-    from deepface import DeepFace
 
     def authenticate_face(self, frames, card_number):
         try:

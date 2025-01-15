@@ -90,7 +90,7 @@ CHANNEL_LAYERS = {
     },
 }
 
-KAFKA_BOOTSTRAP_SERVERS = 'localhost:9092'
+KAFKA_BOOTSTRAP_SERVERS = 'kafka:9092'
 KAFKA_TOPIC_ORDER_EVENTS = 'order_events_topic'
 KAFKA_CONSUMER_GROUP = 'notification_service_group'
 

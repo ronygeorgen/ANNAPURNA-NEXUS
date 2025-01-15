@@ -4,4 +4,4 @@ RUN apt-get update && apt-get install -y netcat-traditional
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 COPY . .
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8004"]
+CMD ["daphne", "-b", "0.0.0.0", "-p", "8004", "notification_service.asgi:application"]

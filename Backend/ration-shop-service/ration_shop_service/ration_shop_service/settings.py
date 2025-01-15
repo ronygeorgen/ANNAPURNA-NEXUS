@@ -145,7 +145,7 @@ SIMPLE_JWT = {
 }
 
 # Kafka Settings
-KAFKA_BOOTSTRAP_SERVERS = 'localhost:9092'
+KAFKA_BOOTSTRAP_SERVERS = 'kafka:9092'
 
 KAFKA_TOPIC_USER_EVENTS = 'user_events'       
 KAFKA_TOPIC_RATION_SHOP_CREATION_EVENTS = 'ration_shop_events'
