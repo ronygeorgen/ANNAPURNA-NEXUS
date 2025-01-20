@@ -1,0 +1,53 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: gateway-ingress
+  annotations:
+    # WebSocket configurations
+    nginx.ingress.kubernetes.io/websocket-services: "notification-service"
+    
+    # Timeout configurations
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    
+    # Body size configuration
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+    
+    # CORS configurations
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-methods: "PUT, GET, POST, PATCH, OPTIONS, DELETE"
+    nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "http://annapoornanexus.ronygeorge.online"
+    nginx.ingress.kubernetes.io/cors-allow-headers: "DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Authorization,X-Upgrade,X-Websocket-Protocol,Upgrade"
+    
+spec:
+  ingressClassName: nginx
+  # tls:
+  # - hosts:
+  #   - annapoornanexus.ronygeorge.online
+  #   secretName: annapoornanexus-tls
+  rules:
+  - host: annapoornanexus.ronygeorge.online
+    http:
+      paths:
+      - path: /ws
+        pathType: Prefix
+        backend:
+          service:
+            name: notification-service
+            port:
+              number: 8004
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: api-gateway
+            port:
+              number: 8005
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: frontend
+            port:
+              number: 3000

@@ -24,31 +24,11 @@ export default function StripeSuccess() {
                     navigate('/home');
                     return;
                 }
-
-                // // Check if order already exists in local storage
-                // const existingOrderId = localStorage.getItem('stripeOrderId');
-                // if (existingOrderId) {
-                //     // Fetch existing order details
-                //     try {
-                //         const response = await api.get(`/order-management/order-fetch-stripe/${existingOrderId}/`);
-                //         const { order_id, amount_paid } = response.data;
-                //         setOrderDetails({ orderId: order_id, amountPaid: amount_paid });
-                //         setHasProcessed(true);
-                //         return;
-                //     } catch (error) {
-                //         // If fetching existing order fails, proceed with order creation
-                //         localStorage.removeItem('stripeOrderId');
-                //     }
-                // }
-
                 // Call backend to verify and save the Stripe order
                 const response = await api.post('/order-management/save-stripe-order/', { 
                     session_id: sessionId
                 });
                 const { order_id, amount_paid } = response.data;
-                
-                // Store order ID in local storage to prevent duplicate orders
-                // localStorage.setItem('stripeOrderId', order_id);
 
                 setOrderDetails({ orderId: order_id, amountPaid: amount_paid });
 

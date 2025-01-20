@@ -1,6 +1,6 @@
 import React from 'react';
 
-import OtpComponent from '../components/User/OTPComponent/OtpComponent';
+import OtpComponent from '../components/User/OtpComponent/OtpComponent';
 
 
 function OtpComponentPage() {

@@ -4,7 +4,7 @@ import { store } from '../app/store'
 import { logoutUser } from '../features/auth/authSlice'
 
 const api = axios.create({
-    baseURL: 'http://localhost:8005',
+    baseURL: 'http://annapoornanexus.ronygeorge.online/api/',
     withCredentials: true,
 })
 

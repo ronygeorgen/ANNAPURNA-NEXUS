@@ -111,7 +111,7 @@ SIMPLE_JWT = {
     'ALGORITHM': 'HS256',
 }
 
-KAFKA_BOOTSTRAP_SERVERS = 'kafka:9092'
+KAFKA_BOOTSTRAP_SERVERS = 'kafka.default.svc.cluster.local:9092'
 
 KAFKA_TOPIC_USER_EVENTS = 'user_events'
 KAFKA_TOPIC_RATION_SHOP_CREATION_EVENTS = 'ration_shop_events'

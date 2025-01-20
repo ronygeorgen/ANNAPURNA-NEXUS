@@ -37,15 +37,55 @@ spec:
           limits:
             memory: "512Mi"
             cpu: "200m"
-        # readinessProbe:
-        #   httpGet:
-        #     path: /health
-        #     port: 8002
-        #   initialDelaySeconds: 15
-        #   periodSeconds: 10
-        # livenessProbe:
-        #   httpGet:
-        #     path: /health
-        #     port: 8002
-        #   initialDelaySeconds: 30
-        #   periodSeconds: 20
+      
+      - name: order-events-consumer
+        image: ronygeorgen/ration-shop-service:latest
+        command: ["python", "manage.py", "run_order_consumer"]
+        envFrom:
+        - configMapRef:
+            name: common-configmap
+        - secretRef:
+            name: common-secret
+        env:
+        - name: DATABASE_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: common-configmap
+              key: RATION_SHOP_DB
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+        lifecycle:
+          preStop:
+            exec:
+              command: ["/bin/sh", "-c", "sleep 10"]
+      
+      - name: user-events-consumer
+        image: ronygeorgen/ration-shop-service:latest
+        command: ["python", "manage.py", "run_kafka_consumer"]
+        envFrom:
+        - configMapRef:
+            name: common-configmap
+        - secretRef:
+            name: common-secret
+        env:
+        - name: DATABASE_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: common-configmap
+              key: RATION_SHOP_DB
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+        lifecycle:
+          preStop:
+            exec:
+              command: ["/bin/sh", "-c", "sleep 10"]
