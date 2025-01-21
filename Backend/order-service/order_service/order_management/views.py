@@ -295,63 +295,48 @@ class RevenueView(APIView):
 
 class SubAdminRevenueView(APIView):
     def get(self, request):
-        # Get shop_id from query parameters
         shop_id = request.GET.get('shop_id')
         if not shop_id:
             return Response({'error': 'Shop ID is required'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            # Calculate total revenue for delivered orders only (assuming status 'DELIVERED' for completed orders)
             total_revenue = Order.objects.filter(
                 shop=shop_id,
-                status='PENDING'  # Assuming only delivered orders count towards revenue
+                status='PENDING'
             ).aggregate(
                 total=Sum('total_amount')
             )['total'] or 0
 
-            print("total_revenue: ", total_revenue)
-
             return Response({'total_revenue': total_revenue}, status=status.HTTP_200_OK)
         
-
-        except Order.DoesNotExist:
-            return Response({'error': 'No orders found for the provided shop'}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
-            # Catch any unexpected error (e.g., database issues)
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            # Return 0 instead of error for empty data
+            return Response({'total_revenue': 0}, status=status.HTTP_200_OK)
 
 
 class SubAdminOrdersView(APIView):
     def get(self, request):
-        # Get shop_id from query parameters
         shop_id = request.GET.get('shop_id')
         if not shop_id:
             return Response({'error': 'Shop ID is required'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            # Get all orders for the shop
             orders = Order.objects.filter(shop=shop_id).order_by('-created_at')
             
-            # If no orders exist, return a 404 error
-            if not orders.exists():
-                raise NotFound('No orders found for the provided shop.')
-
-            # Prepare order data for response
+            # Return empty list instead of 404
             orders_data = [{
                 'order_id': str(order.order_id),
                 'user': order.user,
                 'total_amount': str(order.total_amount),
                 'status': order.status,
                 'created_at': order.created_at.isoformat(),
-            } for order in orders]
+            } for order in orders] if orders.exists() else []
 
             return Response({'orders': orders_data}, status=status.HTTP_200_OK)
 
-        except NotFound as e:
-            return Response({'error': str(e)}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
-            # Catch any unexpected error (e.g., database issues)
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            # Return empty list for any error
+            return Response({'orders': []}, status=status.HTTP_200_OK)
 
 
 

@@ -1,14 +1,5 @@
 from django.urls import path
-from .views import (RegisterView, LoginView, LogoutView,AdminLoginView, 
-                    CreateSubAdminView, SubAdminLoginView, CreateRationShopView, 
-                    GetSubAdminView, RefreshView, SubAdminProfileView,
-                    SubAdminProfilePictureUploadView, SubAdminShopImageUploadView,
-                    SubAdminShopImageDeleteView, GetRationShopsAtUserSide, CreateRationCard,
-                    GetRationCards, VerifyRationCardByNumber,FetchCardForAdminView, CreateProductItems,
-                    GetQuotaInfo, CreateOrder, GetOrders, GetOrdersSubAdmin, GetOrdersUser, GetAllShops,
-                    GetAllShopsCardbased, StripePay, SaveStripeOrder, VerifyOrderStripe, ShopVerifyCard,
-                    FetchCardTypes, AdminVerifyCard, GetUsersCount, OrderedProductsCountAdmin, OrderRevenueAdmin, 
-                    FaceAuth, SendOtp, VerifyOtp, RequestedCardsUser, DashboardMatrix, PreviousAddress, ActiveSubAdmins)
+from .views import *
 urlpatterns = [
     path('user/register/', RegisterView.as_view(), name = 'register'),
     path('user/login/', LoginView.as_view(), name='login'),
@@ -54,7 +45,7 @@ urlpatterns = [
     path('order-management/order-fetch-stripe/<str:order_id>/', VerifyOrderStripe.as_view()),
     path('order-management/ordered-products-count/', OrderedProductsCountAdmin.as_view()),
     path('order-management/revenue/', OrderRevenueAdmin.as_view()),
-    path('api/dashboard/metrics/', DashboardMatrix.as_view()),
+    path('dashboard/metrics/', DashboardMatrix.as_view()),
     path('order-management/user-addresses/<str:user_email>/', PreviousAddress.as_view()),
 
     path('notification/video-call/check-online-status/<str:shopId>/', ActiveSubAdmins.as_view()),

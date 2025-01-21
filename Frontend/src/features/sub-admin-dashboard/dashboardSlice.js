@@ -12,7 +12,7 @@ export const fetchDashboardMetrics = createAsyncThunk(
           throw new Error('Shop ID not found');
         }
   
-        const response = await api.get(`/api/dashboard/metrics/?shop_id=${shopId}`);
+        const response = await api.get(`/dashboard/metrics/?shop_id=${shopId}`);
         
         
         return {

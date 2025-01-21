@@ -973,52 +973,41 @@ class UserRequestedCards(APIView):
 
 class SubAdminRegisteredCardsView(APIView):
     def get(self, request, *args, **kwargs):
-        # Get shop_id from query parameters
         shop_id = request.GET.get('shop_id')
         
-        # Handle missing shop_id
         if not shop_id:
             return Response({'error': 'Shop ID is required'}, status=status.HTTP_400_BAD_REQUEST)
         
         try:
-            # Count total registered cards for the shop
             total_cards = RationCard.objects.filter(
                 registered_shop_id=shop_id,
                 status='ADMIN_APPROVED'
             ).count()
 
-            # If no cards found, return a not found response
-            if total_cards == 0:
-                raise NotFound('No registered cards found for this shop.')
-
+            # Always return count, even if 0
             return Response({'total_cards': total_cards}, status=status.HTTP_200_OK)
 
         except Exception as e:
-            # Handle any unexpected errors, such as database issues
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            # Return 0 for any error
+            return Response({'total_cards': 0}, status=status.HTTP_200_OK)
+
 
 class SubAdminPendingCardsView(APIView):
     def get(self, request, *args, **kwargs):
-        # Get shop_id from query parameters
         shop_id = request.GET.get('shop_id')
         
-        # Handle missing shop_id
         if not shop_id:
             return Response({'error': 'Shop ID is required'}, status=status.HTTP_400_BAD_REQUEST)
         
         try:
-            # Count pending cards for the shop
             pending_cards = RationCard.objects.filter(
                 registered_shop_id=shop_id,
                 status='PENDING'
             ).count()
 
-            # If no pending cards found, raise a not found error
-            if pending_cards == 0:
-                raise NotFound('No pending cards found for this shop.')
-
+            # Always return count, even if 0
             return Response({'pending_cards': pending_cards}, status=status.HTTP_200_OK)
 
         except Exception as e:
-            # Handle any unexpected errors, such as database issues
-            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            # Return 0 for any error
+            return Response({'pending_cards': 0}, status=status.HTTP_200_OK)

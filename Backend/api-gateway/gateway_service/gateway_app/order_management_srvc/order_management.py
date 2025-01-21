@@ -362,10 +362,13 @@ def ordered_revenue_admin(request):
 def fetch_service_data(url, headers, params=None):
     try:
         response = requests.get(url, headers=headers, params=params)
-        return response.json() if response.status_code == 200 else None
+        if response.status_code == 200:
+            return response.json()
+        print(f'Error fetching data from {url}: Status code {response.status_code}')
+        return {'error': f'Status code: {response.status_code}'}
     except Exception as e:
-        print('Exception in dashboard matrics function',e)
-        return None
+        print('Exception in dashboard metrics function:', str(e))
+        return {'error': str(e)}
 
 def dashboard_metrics(request):
     if request.method == 'GET':
@@ -383,11 +386,6 @@ def dashboard_metrics(request):
             headers = {'Authorization': f'Bearer {access_token}'}
             params = {'shop_id': shop_id}
             
-            # Service URLs
-            # order_service = os.environ.get('ORDER_SERVICE_URL', 'http://localhost:8003')
-            # ration_shop_service = os.environ.get('RATION_SHOP_SERVICE_URL', 'http://localhost:8002')
-            
-            # Define endpoints with params
             urls = {
                 'revenue': (f"{ORDER_SERVICE_BASE_URL}/order-management/sub-admin-revenue/", params),
                 'orders': (f"{ORDER_SERVICE_BASE_URL}/order-management/sub-admin-orders/", params),
@@ -407,18 +405,27 @@ def dashboard_metrics(request):
                     for key, future in futures.items()
                 }
             
-            # Calculate monthly stats from orders
+            # Check for errors in results
+            errors = {k: v['error'] for k, v in results.items() if isinstance(v, dict) and 'error' in v}
+            if errors:
+                return JsonResponse({'errors': errors}, status=500)
+            
+            # Calculate monthly stats from orders safely
             monthly_stats = []
-            if results['orders'] and results['orders'].get('orders'):
-                
+            orders = results.get('orders', {}).get('orders', [])
+            if orders:
                 monthly_data = defaultdict(lambda: {'total_sales': 0, 'count': 0})
                 
-                for order in results['orders']['orders']:
-                    if order['status'] == 'PENDING':
-                        date = parser.parse(order['created_at'])
-                        month_key = date.strftime('%b')
-                        monthly_data[month_key]['total_sales'] += float(order['total_amount'])
-                        monthly_data[month_key]['count'] += 1
+                for order in orders:
+                    if order.get('status') == 'PENDING' and order.get('created_at'):
+                        try:
+                            date = parser.parse(order['created_at'])
+                            month_key = date.strftime('%b')
+                            monthly_data[month_key]['total_sales'] += float(order.get('total_amount', 0))
+                            monthly_data[month_key]['count'] += 1
+                        except (ValueError, TypeError) as e:
+                            print(f"Error processing order: {str(e)}")
+                            continue
                 
                 monthly_stats = [
                     {
@@ -429,13 +436,14 @@ def dashboard_metrics(request):
                     for month, data in monthly_data.items()
                 ]
             
+            # Safely construct response data with defaults
             response_data = {
-                'revenue': sum(float(order['total_amount']) 
-                             for order in results['orders'].get('orders', [])
-                             if order['status'] == 'PENDING'),
-                'orders': results['orders'].get('orders', []),
-                'registered_cards': results['registered_cards'].get('total_cards', 0),
-                'pending_cards': results['pending_cards'].get('pending_cards', 0),
+                'revenue': sum(float(order.get('total_amount', 0)) 
+                             for order in orders
+                             if order.get('status') == 'PENDING'),
+                'orders': orders,
+                'registered_cards': results.get('registered_cards', {}).get('total_cards', 0),
+                'pending_cards': results.get('pending_cards', {}).get('pending_cards', 0),
                 'monthly_stats': monthly_stats
             }
             
@@ -443,8 +451,6 @@ def dashboard_metrics(request):
             
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
-    
-    return JsonResponse({'error': 'Method not allowed'}, status=405)
 
 def previous_address(request, user_email):
     if request.method == 'GET':

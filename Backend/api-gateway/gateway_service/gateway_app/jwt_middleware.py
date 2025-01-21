@@ -23,7 +23,7 @@ def jwt_middleware(get_response):
 
         token = request.COOKIES.get('access_token')
         if not token:
-            return JsonResponse({'error': 'Authentication required'}, status=status.HTTP_401_UNAUTHORIZED)
+            return JsonResponse({'error': 'Authentication requiredddd'}, status=status.HTTP_401_UNAUTHORIZED)
 
         # Log the token structure to ensure it is well-formed
         logger.info(f"Retrieved Token: {token}")

@@ -3,6 +3,7 @@ kind: Ingress
 metadata:
   name: gateway-ingress
   annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
     # WebSocket configurations
     nginx.ingress.kubernetes.io/websocket-services: "notification-service"
     
@@ -17,15 +18,15 @@ metadata:
     nginx.ingress.kubernetes.io/enable-cors: "true"
     nginx.ingress.kubernetes.io/cors-allow-methods: "PUT, GET, POST, PATCH, OPTIONS, DELETE"
     nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
-    nginx.ingress.kubernetes.io/cors-allow-origin: "http://annapoornanexus.ronygeorge.online"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "https://annapoornanexus.ronygeorge.online"
     nginx.ingress.kubernetes.io/cors-allow-headers: "DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Authorization,X-Upgrade,X-Websocket-Protocol,Upgrade"
     
 spec:
   ingressClassName: nginx
-  # tls:
-  # - hosts:
-  #   - annapoornanexus.ronygeorge.online
-  #   secretName: annapoornanexus-tls
+  tls:
+  - hosts:
+    - annapoornanexus.ronygeorge.online
+    secretName: annapoornanexus-tls
   rules:
   - host: annapoornanexus.ronygeorge.online
     http:
