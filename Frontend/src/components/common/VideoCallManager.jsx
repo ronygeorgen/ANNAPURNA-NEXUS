@@ -70,7 +70,7 @@ const VideoCallManager = ({ userId, shopId, isAdmin, email }) => {
 
   // WebSocket setup
   useEffect(() => {
-    const wsUrl = `ws://localhost:8004/ws/video/${shopId}/${userId}/?email=${email}&is_sub_admin=${!isAdmin}`;
+    const wsUrl = `wss://annapoornanexus.ronygeorge.online/ws/video/${shopId}/${userId}/?email=${email}&is_sub_admin=${!isAdmin}`;
     const websocket = new WebSocket(wsUrl);
     
     websocket.onopen = () => {

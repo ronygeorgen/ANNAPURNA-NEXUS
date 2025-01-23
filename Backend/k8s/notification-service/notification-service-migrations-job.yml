@@ -7,7 +7,7 @@ spec:
     spec:
       containers:
       - name: migrations
-        image: ronygeorgen/notification-service:latest
+        image: ronygeorgen/notification-service:l1
         command: 
         - /bin/sh
         - -c

@@ -13,6 +13,8 @@ from .models import SubAdminAuth, RationShop, ShopImage
 from .serializers import RationShopProfileSerializer, SubAdminSerializer, RationShopSerializer, PublicShopDisplaySerializer
 from rest_framework.parsers import MultiPartParser, FormParser
 from django.db import models
+import cloudinary
+from cloudinary.exceptions import Error as CloudinaryError
 
 class SubAdminListView(APIView):
     authentication_classes = [CookieJWTAuthentication]

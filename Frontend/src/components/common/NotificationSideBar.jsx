@@ -29,7 +29,10 @@ export function NotificationSideBar() {
 
   useEffect(() => {
     const connectWebSocket = () => {
-      const websocket = new WebSocket(`ws://localhost:8004/ws/notifications/${userId}/`)
+      // Determine the WebSocket protocol based on the current window protocol
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+      const host = window.location.host
+      const websocket = new WebSocket(`${protocol}//${host}/ws/notifications/${userId}/`)
       
       websocket.onopen = () => {
         console.log('Connected to notifications websocket')

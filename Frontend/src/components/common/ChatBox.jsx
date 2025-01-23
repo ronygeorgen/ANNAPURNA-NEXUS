@@ -3,19 +3,18 @@ import { useSelector } from 'react-redux';
 import { X, Send } from 'lucide-react';
 import { useChat } from '../../context/ChatContext.jsx';
 
-const ChatBox = ({ onClose }) => {
+const ChatBox = ({ shop, onClose }) => {
   const [inputMessage, setInputMessage] = useState('');
   const { messages, sendMessage, connectWebSocket, isConnected } = useChat();
   const chatBoxRef = useRef(null);
   const messagesEndRef = useRef(null);
 
   const user = useSelector(state => state.auth.user);
-  const shopData = useSelector(state => state.profile.data);
 
   useEffect(() => {
-    const cleanup = connectWebSocket(user.id, user.email, shopData.shopID);
+    const cleanup = connectWebSocket(user.id, user.email, shop.shop_id);
     return () => cleanup && cleanup();
-  }, [user.id, user.email, shopData.shopID, connectWebSocket]);
+  }, [user.id, user.email, shop.shop_id, connectWebSocket]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -28,7 +27,7 @@ const ChatBox = ({ onClose }) => {
       setInputMessage('');
     }
   };
-  const profilePictureUrl = shopData.profilePicture?.url || `${process.env.PUBLIC_URL}/default-shop-avatar.png`;
+  const profilePictureUrl = shop.profile_image || `${process.env.PUBLIC_URL}/default-shop-avatar.png`;
 
 
 
@@ -39,7 +38,7 @@ const ChatBox = ({ onClose }) => {
           <div className="flex items-center space-x-3">
             <img 
               src={profilePictureUrl} 
-              alt={shopData.shopName} 
+              alt={shop.name} 
               className="w-10 h-10 rounded-full object-cover border-2 border-white"
               onError={(e) => {
                 e.target.onerror = null;
@@ -47,7 +46,7 @@ const ChatBox = ({ onClose }) => {
               }}
             />
             <div>
-              <h3 className="font-semibold text-white">{shopData.shopName}</h3>
+              <h3 className="font-semibold text-white">{shop.name}</h3>
               <p className="text-xs text-orange-100">
                 {isConnected ? 'Connected' : 'Connecting...'}
               </p>

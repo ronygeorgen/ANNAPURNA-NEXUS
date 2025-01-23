@@ -109,8 +109,8 @@ export const ChatProvider = ({ children }) => {
         }
 
         const wsUrl = is_sub_Admin 
-            ? `ws://localhost:8004/ws/chat/${userId}/${shopId}/?is_sub_Admin=true&email=${encodeURIComponent(userEmail)}`
-            : `ws://localhost:8004/ws/chat/${userId}/${shopId}/?email=${encodeURIComponent(userEmail)}`;
+            ? `wss://annapoornanexus.ronygeorge.online/ws/chat/${userId}/${shopId}/?is_sub_Admin=true&email=${encodeURIComponent(userEmail)}`
+            : `wss://annapoornanexus.ronygeorge.online/ws/chat/${userId}/${shopId}/?email=${encodeURIComponent(userEmail)}`;
 
         const ws = new WebSocket(wsUrl);
         socketRef.current = ws;

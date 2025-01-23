@@ -139,8 +139,8 @@ class StripeView(APIView):
                 payment_method_types=['card'],
                 line_items= line_items,
                 mode="payment",
-                success_url="http://annapoornanexus.ronygeorge.online/home/selected-shop/choose-subsidies/checkout-page/success?session_id={CHECKOUT_SESSION_ID}", 
-                cancel_url="http://annapoornanexus.ronygeorge.online/home/selected-shop/choose-subsidies/checkout-page/",  
+                success_url="https://annapoornanexus.ronygeorge.online/home/selected-shop/choose-subsidies/checkout-page/success?session_id={CHECKOUT_SESSION_ID}", 
+                cancel_url="https://annapoornanexus.ronygeorge.online/home/selected-shop/choose-subsidies/checkout-page/",  
                 metadata={
                     'user': data.get('user', ''),
                     'userId': data.get('userId', ''),

@@ -14,6 +14,7 @@ from datetime import timedelta
 import environ
 import os
 from pathlib import Path
+import cloudinary
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -50,6 +51,8 @@ INSTALLED_APPS = [
     'ration_shops_app',
     'ration_cards_app',
     'stocks_app',
+    'cloudinary',
+    'cloudinary_storage',
 ]
 
 MIDDLEWARE = [
@@ -126,6 +129,9 @@ OTP_EXPIRATION_TIME = 300
 OTP_RESEND_COOLDOWN = 30   
 MAX_OTP_ATTEMPTS = 3
 
+
+
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 # REST_FRAMEWORK = {
 #     'DEFAULT_AUTHENTICATION_CLASSES': (

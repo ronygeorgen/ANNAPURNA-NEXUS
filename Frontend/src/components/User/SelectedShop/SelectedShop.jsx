@@ -28,7 +28,8 @@ function SelectedShop() {
         toast.error('No shop data')
         return null;
     }
-
+    
+    
     const handleLogout = async () => {
         try {
             await dispatch(logoutUser()).unwrap();
