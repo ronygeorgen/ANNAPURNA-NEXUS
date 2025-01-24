@@ -29,6 +29,8 @@
     "@vladmandic/face-api": "^1.7.14",
     "axios": "^1.6.2",
     "class-variance-authority": "^0.7.0",
+    "cloudinary-core": "^2.13.1",
+    "cloudinary-react": "^1.8.1",
     "clsx": "^2.0.0",
     "formik": "^2.4.5",
     "framer-motion": "^10.16.16",

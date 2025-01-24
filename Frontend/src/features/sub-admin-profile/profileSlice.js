@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "../../services/api";
+import { uploadToCloudinary } from "../../services/cloudinaryConfig";
 
 export const fetchProfile = createAsyncThunk(
     'profile/fetchProfile',
@@ -29,19 +30,19 @@ export const updateProfile = createAsyncThunk(
 
   export const uploadProfilePicture = createAsyncThunk(
     'profile/uploadProfilePicture',
-    async (imageFile, { rejectWithValue }) => {
+    async (imageData, { rejectWithValue }) => {
+      console.log('imagedata in slice: ',imageData)
       try {
-        const formData = new FormData();
-        formData.append('image', imageFile);
-        const response = await api.post('/ration-shop/profile/upload_picture/', formData ,{
-          withCredentials: true,
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
+        const response = await api.post('/ration-shop/profile/upload_picture/', {
+          profile_picture: imageData.cloudinaryUrl,
+          cloudinary_public_id: imageData.cloudinaryPublicId
+        }, {
+          withCredentials: true
         });
         // After successful upload, update the profile data in the state
       const profileResponse = await api.get('/ration-shop/profile/');
       return profileResponse.data;
+      
     } catch (error) {
       return rejectWithValue(error.response.data);
     }
@@ -49,24 +50,30 @@ export const updateProfile = createAsyncThunk(
 );
 
 
-  export const uploadShopImage = createAsyncThunk(
-    'profile/uploadShopImage',
-    async (imageFile, { rejectWithValue }) => {
-      try {
-        const formData = new FormData();
-        formData.append('image', imageFile);
-        const response = await api.post('/ration-shop/profile/upload_shop_image/', formData, {
-          withCredentials: true,
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        });
-        return response.data;
-      } catch (error) {
-        return rejectWithValue(error.response.data);
-      }
+export const uploadShopImage = createAsyncThunk(
+  'profile/uploadShopImage',
+  async (imageFile, { rejectWithValue }) => {
+    try {
+      // Upload to Cloudinary first
+      const cloudinaryResponse = await uploadToCloudinary(imageFile);
+
+      // Send Cloudinary URL to backend
+      const response = await api.post('/ration-shop/profile/upload_shop_image/', {
+        image_url: cloudinaryResponse.url,
+        cloudinary_public_id: cloudinaryResponse.public_id
+      }, {
+        withCredentials: true
+      });
+
+      return {
+        id: response.data.id, // Assuming backend returns an ID
+        url: cloudinaryResponse.url
+      };
+    } catch (error) {
+      return rejectWithValue(error.response?.data || error.message);
     }
-  );
+  }
+);
 
 
   export const deleteShopImage = createAsyncThunk(

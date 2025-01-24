@@ -107,7 +107,11 @@ DATABASES = {
 
 STRIPE_SECRET_KEY = env('STRIPE_API_KEY')
 
-KAFKA_BOOTSTRAP_SERVERS = 'kafka.default.svc.cluster.local:9092'
+# below kafka for dockerized containers
+# KAFKA_BOOTSTRAP_SERVERS = 'kafka.default.svc.cluster.local:9092'
+
+# below kafka for local
+KAFKA_BOOTSTRAP_SERVERS = 'localhost:9092'
 KAFKA_TOPIC_ORDER_EVENTS = 'order_events_topic'
 KAFKA_CLIENT_ID = 'order_service_producer'
 

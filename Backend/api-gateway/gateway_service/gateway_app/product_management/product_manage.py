@@ -3,21 +3,6 @@ from django.http import JsonResponse
 import requests
 import os
 
-# Define base URL using environment variable
-RATION_SHOP_BASE_URL = f"http://{os.getenv('RATION_SHOP_SERVICE_URL', 'ration-shop-service:8002')}"
-
-def _forward_cookies(response, gateway_response):
-    """Helper function to forward cookies from service response to gateway response"""
-    for cookie in response.cookies:
-        gateway_response.set_cookie(
-            key=cookie.name,
-            value=cookie.value,
-            httponly=cookie.has_nonstandard_attr('HttpOnly'),
-            secure=cookie.secure,
-            samesite=cookie.get_nonstandard_attr('SameSite')
-        )
-    return gateway_response  # Added return statement
-
 def create_product_items(request):
     if request.method == 'POST':
         try:
@@ -29,9 +14,9 @@ def create_product_items(request):
             access_token = request.COOKIES.get('access_token')
 
             if not access_token:
-                return JsonResponse({'error': 'Authorization credentials not found'}, status=401)
+                return JsonResponse({'error':'Authorization credentials not found'}, status=401)
 
-            create_product_url = f"{RATION_SHOP_BASE_URL}/product-management/create/"
+            create_product_url = os.environ.get('RATION_SHOP_SVC_ADDRESS', 'http://localhost:8002/product-management/create/')            
 
             headers = {
                 'Authorization': f'Bearer {access_token}',
@@ -45,16 +30,29 @@ def create_product_items(request):
                 response_data = {}
             
             gateway_response = JsonResponse(response_data, status=response.status_code)
-            return _forward_cookies(response, gateway_response)
+
+            # Forward any new cookies from user service response
+            for cookie in response.cookies:
+                gateway_response.set_cookie(
+                    key=cookie.name,
+                    value=cookie.value,
+                    httponly=cookie.has_nonstandard_attr('HttpOnly'),
+                    secure=cookie.secure,
+                    samesite=cookie.get_nonstandard_attr('SameSite')
+                )
+
+            return gateway_response
             
         except requests.RequestException as e:
             return JsonResponse({'error': str(e)}, status=500)
     else:
-        return JsonResponse({'error': 'Method not allowed'}, status=405)
+        return JsonResponse({'error':'Method not allowed'}, status=405)
+    
 
 def get_quota_info(request):
     if request.method == 'GET':
         try:
+            # Retrieve access token from cookies
             access_token = request.COOKIES.get('access_token')
             if not access_token:
                 return JsonResponse({
@@ -62,17 +60,20 @@ def get_quota_info(request):
                     'details': 'No access token present in cookies'
                 }, status=401)
 
+            # Get query parameters
             card_type = request.GET.get('cardType', 'antyodaya')
             shop_id = request.GET.get('shopId')
             card_number = request.GET.get('cardNumber')
 
-            quota_info_url = f"{RATION_SHOP_BASE_URL}/product-management/quota-info/"
+            # Construct request to quota info service
+            quota_info_url = os.environ.get('RATION_SHOP_SVC_ADDRESS', 'http://localhost:8002/product-management/quota-info/')
             
             headers = {
                 'Authorization': f'Bearer {access_token}',
                 'Content-Type': 'application/json',
             }
 
+            # Prepare query parameters
             params = {
                 'cardType': card_type
             }
@@ -81,17 +82,20 @@ def get_quota_info(request):
             if card_number:
                 params['cardNumber'] = card_number
 
+            # Make request to quota info service with timeout
             try:
                 response = requests.get(
                     quota_info_url, 
                     headers=headers, 
                     params=params,
-                    timeout=10
+                    timeout=10  # 10 seconds timeout
                 )
                 
+                # Handle different status codes
                 if response.status_code == 200:
                     try:
                         response_data = response.json()
+                        print(response_data)
                     except ValueError:
                         return JsonResponse({
                             'error': 'Invalid JSON response from quota info service',
@@ -126,13 +130,26 @@ def get_quota_info(request):
                     'details': 'Unable to connect to quota info service'
                 }, status=503)
 
+            # Create gateway response with original data
             gateway_response = JsonResponse(response_data, status=response.status_code)
-            return _forward_cookies(response, gateway_response)
+
+            # Propagate cookies from original response
+            for cookie in response.cookies:
+                gateway_response.set_cookie(
+                    key=cookie.name,
+                    value=cookie.value,
+                    httponly=cookie.has_nonstandard_attr('HttpOnly'),
+                    secure=cookie.secure,
+                    samesite=cookie.get_nonstandard_attr('SameSite', 'Lax')
+                )
+
+            return gateway_response
 
         except Exception as e:
+            # Catch-all for unexpected errors
             return JsonResponse({
                 'error': 'Unexpected error occurred',
                 'details': str(e)
             }, status=500)
     else:
-        return JsonResponse({'error': 'Method not allowed'}, status=405)
+        return JsonResponse({'error':'Method not allowed'}, status=405)

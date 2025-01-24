@@ -97,20 +97,22 @@ class SubAdminProfileView(APIView):
 class SubAdminProfilePictureUpload(APIView):
     authentication_classes = [CookieJWTAuthentication]
     permission_classes = [IsAuthenticated]
-    parser_classes = (MultiPartParser, FormParser)
 
     def post(self, request):
         shop = get_object_or_404(RationShop, owner=request.user)
+        cloudinary_url = request.data.get('profile_picture')
+        cloudinary_public_id = request.data.get('cloudinary_public_id')
         
-        if 'image' not in request.FILES:
-            return Response({'error': 'No image provided'}, status=status.HTTP_400_BAD_REQUEST)
+        if not cloudinary_url:
+            return Response({'error': 'No image URL provided'}, status=status.HTTP_400_BAD_REQUEST)
         
         shop.images.filter(image_type='PROFILE', is_active=True).update(is_active=False)
 
         # Add new profile picture
         profile_image = ShopImage.objects.create(
             shop=shop,
-            image=request.FILES['image'],
+            image=cloudinary_url,
+            cloudinary_public_id=cloudinary_public_id,
             image_type='PROFILE',
             is_active=True
         )
@@ -118,19 +120,21 @@ class SubAdminProfilePictureUpload(APIView):
         
         return Response({
             'id': profile_image.id,
-            'url': request.build_absolute_uri(profile_image.image.url)
+            'url': cloudinary_url
         })
 
 class SubAdminShopImageUpload(APIView):
     authentication_classes = [CookieJWTAuthentication]
     permission_classes = [IsAuthenticated]
-    parser_classes = (MultiPartParser, FormParser)
+    # parser_classes = (MultiPartParser, FormParser)
 
     def post(self, request):
         shop = get_object_or_404(RationShop, owner=request.user)
+        cloudinary_url = request.data.get('image_url')
+        cloudinary_public_id = request.data.get('cloudinary_public_id')
         
-        if 'image' not in request.FILES:
-            return Response({'error': 'No image provided'}, status=status.HTTP_400_BAD_REQUEST)
+        if not cloudinary_url:
+            return Response({'error': 'No image URL provided'}, status=status.HTTP_400_BAD_REQUEST)
 
         if shop.images.filter(image_type='SHOP', is_active=True).count() >= 3:
             return Response({'error': 'Maximum 3 shop images allowed'}, status=status.HTTP_400_BAD_REQUEST)
@@ -139,14 +143,15 @@ class SubAdminShopImageUpload(APIView):
 
         shop_image = ShopImage.objects.create(
             shop=shop,
-            image=request.FILES['image'],
+            image=cloudinary_url,
+            cloudinary_public_id=cloudinary_public_id,
             image_type='SHOP',
             is_active=True
         )
 
         return Response({
             'id': shop_image.id,
-            'url': request.build_absolute_uri(shop_image.image.url)
+            'url': cloudinary_url
         })
 
 class SubAdminShopImageDelete(APIView):

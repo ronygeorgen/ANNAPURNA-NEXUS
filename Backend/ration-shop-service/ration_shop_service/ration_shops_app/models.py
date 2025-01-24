@@ -54,7 +54,9 @@ class ShopImage(models.Model):
     ]
 
     shop = models.ForeignKey(RationShop, on_delete=models.CASCADE, related_name='images')
-    image = models.ImageField(upload_to='shop_images/')
+    image_media = models.ImageField(upload_to='shop_images/', null=True, blank=True)
+    image = models.URLField(max_length=500)
+    cloudinary_public_id = models.CharField(max_length=200, null=True, blank=True)
     image_type = models.CharField(max_length=10, choices=IMAGE_TYPE_CHOICES)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)

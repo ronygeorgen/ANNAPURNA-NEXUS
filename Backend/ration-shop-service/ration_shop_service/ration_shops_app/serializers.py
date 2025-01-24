@@ -5,7 +5,7 @@ class ShopImageSerializer(serializers.ModelSerializer):
     """Serializer for the ShopImage model."""
     class Meta:
         model = ShopImage
-        fields = ['id', 'image', 'image_type', 'is_active']
+        fields = ['id', 'image_media', 'image', 'cloudinary_public_id', 'image_type', 'is_active']
 
 
 class SubAdminSerializer(serializers.ModelSerializer):
@@ -41,7 +41,6 @@ class RationShopSerializer(serializers.ModelSerializer):
     shopName = serializers.CharField(source='name')
     ownerId = serializers.IntegerField(write_only=True)
     mobileNumber = serializers.CharField(source='mobile_number')
-    print('owner_id',ownerId)
     
     class Meta:
         model = RationShop
@@ -113,7 +112,7 @@ class RationShopProfileSerializer(serializers.ModelSerializer):
         if profile_pic:
             return {
                 'id': profile_pic.id,
-                'url': self.context['request'].build_absolute_uri(profile_pic.image.url)
+                'url': profile_pic.image
             }
         return None
     
@@ -123,7 +122,7 @@ class RationShopProfileSerializer(serializers.ModelSerializer):
         return [
             {
                 'id': img.id,
-                'url': self.context['request'].build_absolute_uri(img.image.url)
+                'url': img.image
             }
             for img in shop_images
         ]
@@ -154,18 +153,11 @@ class PublicShopDisplaySerializer(serializers.ModelSerializer):
             image_type='PROFILE', 
             is_active=True
         ).first()
-        if profile_pic:
-            return self.context['request'].build_absolute_uri(
-                profile_pic.image.url
-            )
-        return None
+        return profile_pic.image if profile_pic else None
     
     def get_shop_images(self, obj):
         shop_images = obj.images.filter(
             image_type='SHOP',
             is_active=True
         )
-        return [
-            self.context['request'].build_absolute_uri(img.image.url)
-            for img in shop_images
-        ]
+        return [img.image for img in shop_images]

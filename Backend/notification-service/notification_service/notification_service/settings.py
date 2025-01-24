@@ -80,17 +80,31 @@ WSGI_APPLICATION = 'notification_service.wsgi.application'
 ASGI_APPLICATION = 'notification_service.asgi.application'
 
 
+# below channel layers for docker containers
+# CHANNEL_LAYERS = {
+#     'default': {
+#         'BACKEND': 'channels_redis.core.RedisChannelLayer',
+#         'CONFIG': {
+#             'hosts': [(os.getenv('REDIS_HOST', 'redis'), int(os.getenv('REDIS_PORT', 6379)))],
+#         },
+#     },
+# }
 
+# below channel layers for local
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            'hosts': [(os.getenv('REDIS_HOST', 'redis'), int(os.getenv('REDIS_PORT', 6379)))],
+            "hosts": [('127.0.0.1', 6379)],
         },
     },
 }
 
-KAFKA_BOOTSTRAP_SERVERS = 'kafka.default.svc.cluster.local:9092'
+# below kafka for docker containers
+# KAFKA_BOOTSTRAP_SERVERS = 'kafka.default.svc.cluster.local:9092'
+
+# below kafka for local
+KAFKA_BOOTSTRAP_SERVERS = 'localhost:9092'
 KAFKA_TOPIC_ORDER_EVENTS = 'order_events_topic'
 KAFKA_CONSUMER_GROUP = 'notification_service_group'
 

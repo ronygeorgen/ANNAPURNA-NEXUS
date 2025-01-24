@@ -51,8 +51,8 @@ INSTALLED_APPS = [
     'ration_shops_app',
     'ration_cards_app',
     'stocks_app',
-    'cloudinary',
     'cloudinary_storage',
+    'cloudinary',
 ]
 
 MIDDLEWARE = [
@@ -129,15 +129,22 @@ OTP_EXPIRATION_TIME = 300
 OTP_RESEND_COOLDOWN = 30   
 MAX_OTP_ATTEMPTS = 3
 
-
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': env('CLOUD_NAME'),
+    'API_KEY': env('API_KEY'),
+    'API_SECRET': env('API_SECRET')
+}
 
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
-# REST_FRAMEWORK = {
-#     'DEFAULT_AUTHENTICATION_CLASSES': (
-#         'rest_framework_simplejwt.authentication.JWTAuthentication',
-#     ),
-# }
+# Cloudinary SDK Configuration
+cloudinary.config(
+    cloud_name = env('CLOUD_NAME'), 
+    api_key = env('API_KEY'), 
+    api_secret = env('API_SECRET')
+)
+
+
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
@@ -150,8 +157,11 @@ SIMPLE_JWT = {
     'ALGORITHM': 'HS256',
 }
 
-# Kafka Settings
-KAFKA_BOOTSTRAP_SERVERS = 'kafka.default.svc.cluster.local:9092'
+# below kafka for dockerized containers
+# KAFKA_BOOTSTRAP_SERVERS = 'kafka.default.svc.cluster.local:9092'
+
+# below kafka for local
+KAFKA_BOOTSTRAP_SERVERS = 'localhost:9092'
 
 KAFKA_TOPIC_USER_EVENTS = 'user_events'
 KAFKA_TOPIC_RATION_SHOP_CREATION_EVENTS = 'ration_shop_events'

@@ -3,32 +3,19 @@ import json
 import requests
 from django.http import JsonResponse
 
-# Constants for service URLs - Using ConfigMap environment variable
-RATION_SHOP_BASE_URL = f"http://{os.getenv('RATION_SHOP_SERVICE_URL', 'ration-shop-service:8002')}"
-
-def _forward_cookies(response, gateway_response):
-    """Helper function to forward cookies from service response to gateway response"""
-    for cookie in response.cookies:
-        gateway_response.set_cookie(
-            key=cookie.name,
-            value=cookie.value,
-            httponly=cookie.has_nonstandard_attr('HttpOnly'),
-            secure=cookie.secure,
-            samesite=cookie.get_nonstandard_attr('SameSite')
-        )
-    return gateway_response
-
 def register_ration_card(request):
     if request.method == 'POST':
         try:
             print("Request DATA:", request.data)
             print("Request FILES:", request.FILES)
+            # Check for authentication
             access_token = request.COOKIES.get('access_token')
             if not access_token:
                 return JsonResponse({'error': 'Authorization credentials not found'}, status=401)
             
-            upload_url = f"{RATION_SHOP_BASE_URL}/ration-card/create/"
-            
+            # Get the service address from environment variables
+            upload_url = os.environ.get('RATION_SHOP_SVC_ADDRESS', 'http://localhost:8002/ration-card/create/')            
+            # Prepare the multipart form data
             files = {}
             if 'supporting_document' in request.FILES:
                 files['supporting_document'] = (
@@ -36,6 +23,7 @@ def register_ration_card(request):
                     request.FILES['supporting_document'].read()
                 )
             
+            # Add family member images
             for key in request.FILES.keys():
                 if key.startswith('family_members[') and key.endswith('].image'):
                     files[key] = (
@@ -43,6 +31,7 @@ def register_ration_card(request):
                         request.FILES[key].read()
                     )
             
+            # Extract head details from the form data
             form_data = {
                 'head_name': request.POST.get('head_name'),
                 'head_age': request.POST.get('head_age'),
@@ -50,15 +39,17 @@ def register_ration_card(request):
                 'head_aadhaar': request.POST.get('head_aadhaar'),
                 'mobile_number': request.POST.get('mobile_number'),
                 'household_address': request.POST.get('household_address'),
-                'registered_shop': request.data.get('registered_shop'),
+                'registered_shop':request.data.get('registered_shop'),
                 'card_type': request.POST.get('card_type'),
                 'family_members': request.POST.get('family_members'),
             }
             
+            # Set up headers
             headers = {
                 'Authorization': f'Bearer {access_token}',
             }
             
+            # Make the request to the ration shop service
             response = requests.post(
                 upload_url,
                 data=form_data,
@@ -72,7 +63,18 @@ def register_ration_card(request):
                 response_data = {}
             
             gateway_response = JsonResponse(response_data, status=response.status_code)
-            return _forward_cookies(response, gateway_response)
+            
+            # Forward any cookies
+            for cookie in response.cookies:
+                gateway_response.set_cookie(
+                    key=cookie.name,
+                    value=cookie.value,
+                    httponly=cookie.has_nonstandard_attr('HttpOnly'),
+                    secure=cookie.secure,
+                    samesite=cookie.get_nonstandard_attr('SameSite')
+                )
+            
+            return gateway_response
             
         except requests.RequestException as e:
             return JsonResponse({
@@ -82,6 +84,7 @@ def register_ration_card(request):
     else:
         return JsonResponse({'error': 'Method not allowed'}, status=405)
 
+
 def get_ration_cards(request):
     if request.method == 'GET':
         try:
@@ -89,42 +92,56 @@ def get_ration_cards(request):
             if not access_token:
                 return JsonResponse({'error': 'Authorization credentials not found'}, status=401)
             
-            url = f"{RATION_SHOP_BASE_URL}/ration-card/fetch/"
+            ration_card_url = os.environ.get('RATION_SHOP_SVC_ADDRESS', 'http://localhost:8002/ration-card/fetch/')
             
             headers = {
                 'Authorization': f'Bearer {access_token}',
             }
             
-            response = requests.get(url, headers=headers)
+            response = requests.get(ration_card_url, headers=headers)
             
             try:
                 response_data = response.json()
             except ValueError:
                 response_data = {}
             
+            
             gateway_response = JsonResponse(response_data, status=response.status_code)
-            return _forward_cookies(response, gateway_response)
+            
+            for cookie in response.cookies:
+                gateway_response.set_cookie(
+                    key=cookie.name,
+                    value=cookie.value,
+                    httponly=cookie.has_nonstandard_attr('HttpOnly'),
+                    secure=cookie.secure,
+                    samesite=cookie.get_nonstandard_attr('SameSite')
+                )
+            
+            return gateway_response
             
         except requests.RequestException as e:
             return JsonResponse({'error': str(e)}, status=500)
     else:
         return JsonResponse({'error': 'Method not allowed'}, status=405)
+
 
 def verify_ration_card_by_number(request, card_number):
+
     if request.method == 'GET':
+            
         try:
             access_token = request.COOKIES.get('access_token')
             if not access_token:
                 return JsonResponse({'error': 'Authorization credentials not found'}, status=401)
             
-            url = f"{RATION_SHOP_BASE_URL}/ration-card/verify/{card_number}/"
+            ration_card_verify_url = os.environ.get('RATION_SHOP_SVC_ADDRESS', f'http://localhost:8002/ration-card/verify/{card_number}/')
             
             headers = {
                 'Authorization': f'Bearer {access_token}',
                 'Content-Type': 'application/json',
             }
             
-            response = requests.get(url, headers=headers)
+            response = requests.get(ration_card_verify_url, headers=headers)
             
             try:
                 response_data = response.json()
@@ -132,28 +149,41 @@ def verify_ration_card_by_number(request, card_number):
                 response_data = {}
             
             gateway_response = JsonResponse(response_data, status=response.status_code)
-            return _forward_cookies(response, gateway_response)
+            
+            for cookie in response.cookies:
+                gateway_response.set_cookie(
+                    key=cookie.name,
+                    value=cookie.value,
+                    httponly=cookie.has_nonstandard_attr('HttpOnly'),
+                    secure=cookie.secure,
+                    samesite=cookie.get_nonstandard_attr('SameSite')
+                )
+            
+            return gateway_response
             
         except requests.RequestException as e:
             return JsonResponse({'error': str(e)}, status=500)
     else:
         return JsonResponse({'error': 'Method not allowed'}, status=405)
 
+
 def fetch_card_for_admin_view(request, shop_id):
+
     if request.method == 'GET':
+            
         try:
             access_token = request.COOKIES.get('access_token')
             if not access_token:
                 return JsonResponse({'error': 'Authorization credentials not found'}, status=401)
             
-            url = f"{RATION_SHOP_BASE_URL}/ration-card/fetch-shop-card-admin/{shop_id}/"
+            ration_card_fetch_shop_admin_url = os.environ.get('RATION_SHOP_SVC_ADDRESS', f'http://localhost:8002/ration-card/fetch-shop-card-admin/{shop_id}/')
             
             headers = {
                 'Authorization': f'Bearer {access_token}',
                 'Content-Type': 'application/json',
             }
             
-            response = requests.get(url, headers=headers)
+            response = requests.get(ration_card_fetch_shop_admin_url, headers=headers)
             
             try:
                 response_data = response.json()
@@ -161,7 +191,17 @@ def fetch_card_for_admin_view(request, shop_id):
                 response_data = {}
             
             gateway_response = JsonResponse(response_data, status=response.status_code)
-            return _forward_cookies(response, gateway_response)
+            
+            for cookie in response.cookies:
+                gateway_response.set_cookie(
+                    key=cookie.name,
+                    value=cookie.value,
+                    httponly=cookie.has_nonstandard_attr('HttpOnly'),
+                    secure=cookie.secure,
+                    samesite=cookie.get_nonstandard_attr('SameSite')
+                )
+            
+            return gateway_response
             
         except requests.RequestException as e:
             return JsonResponse({'error': str(e)}, status=500)
@@ -175,10 +215,12 @@ def shop_verify_card(request, card_number):
             if not access_token:
                 return JsonResponse({'error': 'Authorization credentials not found'}, status=401)
             
-            url = f"{RATION_SHOP_BASE_URL}/ration-card/{card_number}/shop-verify/"
+            # Update URL to dynamically include card_number
+            url = os.environ.get('RATION_SHOP_SVC_ADDRESS', 'http://localhost:8002/ration-card/').rstrip('/') + f'/{card_number}/shop-verify/'
             
             try:
                 data = json.loads(request.body)
+                # Ensure card_number is in the data
                 data['card_number'] = card_number
             except json.JSONDecodeError:
                 return JsonResponse({'error': 'Invalid JSON'}, status=400)
@@ -196,12 +238,23 @@ def shop_verify_card(request, card_number):
                 response_data = {}
             
             gateway_response = JsonResponse(response_data, status=response.status_code)
-            return _forward_cookies(response, gateway_response)
+            
+            for cookie in response.cookies:
+                gateway_response.set_cookie(
+                    key=cookie.name,
+                    value=cookie.value,
+                    httponly=cookie.has_nonstandard_attr('HttpOnly'),
+                    secure=cookie.secure,
+                    samesite=cookie.get_nonstandard_attr('SameSite')
+                )
+            
+            return gateway_response
             
         except requests.RequestException as e:
             return JsonResponse({'error': str(e)}, status=500)
     else:
         return JsonResponse({'error': 'Method not allowed'}, status=405)
+
 
 def fetch_card_types(request):
     if request.method == 'GET':
@@ -210,8 +263,9 @@ def fetch_card_types(request):
             if not access_token:
                 return JsonResponse({'error': 'Authorization credentials not found'}, status=401)
             
-            url = f"{RATION_SHOP_BASE_URL}/ration-card/card-types/"
+            url = os.environ.get('RATION_SHOP_SVC_ADDRESS', 'http://localhost:8002/ration-card/card-types/')
             
+            # Remove JSON parsing for GET request
             headers = {
                 'Authorization': f'Bearer {access_token}',
                 'Content-Type': 'application/json',
@@ -225,12 +279,23 @@ def fetch_card_types(request):
                 response_data = {}
             
             gateway_response = JsonResponse(response_data, status=response.status_code)
-            return _forward_cookies(response, gateway_response)
+            
+            for cookie in response.cookies:
+                gateway_response.set_cookie(
+                    key=cookie.name,
+                    value=cookie.value,
+                    httponly=cookie.has_nonstandard_attr('HttpOnly'),
+                    secure=cookie.secure,
+                    samesite=cookie.get_nonstandard_attr('SameSite')
+                )
+            
+            return gateway_response
             
         except requests.RequestException as e:
             return JsonResponse({'error': str(e)}, status=500)
     else:
         return JsonResponse({'error': 'Method not allowed'}, status=405)
+    
 
 def admin_verify_card(request, card_number):
     if request.method == 'PATCH':
@@ -240,10 +305,12 @@ def admin_verify_card(request, card_number):
             if not access_token:
                 return JsonResponse({'error': 'Authorization credentials not found'}, status=401)
             
-            url = f"{RATION_SHOP_BASE_URL}/ration-card/verify-card-admin/{card_number}/"
+            # Update URL to dynamically include card_number
+            url = os.environ.get('RATION_SHOP_SVC_ADDRESS', f'http://localhost:8002/ration-card/verify-card-admin/{card_number}/')
             
             try:
                 data = json.loads(request.body)
+                # Ensure card_number is in the data
                 data['card_number'] = card_number
             except json.JSONDecodeError:
                 return JsonResponse({'error': 'Invalid JSON'}, status=400)
@@ -261,27 +328,43 @@ def admin_verify_card(request, card_number):
                 response_data = {}
             
             gateway_response = JsonResponse(response_data, status=response.status_code)
-            return _forward_cookies(response, gateway_response)
+            
+            for cookie in response.cookies:
+                gateway_response.set_cookie(
+                    key=cookie.name,
+                    value=cookie.value,
+                    httponly=cookie.has_nonstandard_attr('HttpOnly'),
+                    secure=cookie.secure,
+                    samesite=cookie.get_nonstandard_attr('SameSite')
+                )
+            
+            return gateway_response
             
         except requests.RequestException as e:
             return JsonResponse({'error': str(e)}, status=500)
     else:
         return JsonResponse({'error': 'Method not allowed'}, status=405)
+    
 
 def face_authentication(request):
     if request.method == 'POST':
         try:
+            # Check for access token
             access_token = request.COOKIES.get('access_token')
             if not access_token:
                 return JsonResponse({'error': 'Authorization credentials not found'}, status=401)
             
-            url = f"{RATION_SHOP_BASE_URL}/ration-card/face-auth/"
+            # Get the URL for the ration shop service
+            url = os.environ.get('RATION_SHOP_SVC_ADDRESS', 'http://localhost:8002/ration-card/face-auth/')
             
+            # Prepare headers
             headers = {
                 'Authorization': f'Bearer {access_token}',
             }
             
+            # Handle file upload (support both image and video)
             if request.FILES:
+                # Check if video or image is uploaded
                 if 'live_video' in request.FILES:
                     files = {
                         'live_video': request.FILES['live_video']
@@ -293,40 +376,64 @@ def face_authentication(request):
                 else:
                     return JsonResponse({'error': 'No image or video uploaded'}, status=400)
                 
+                # Include card number from POST data
                 post_data = {
                     'card_number': request.POST.get('card_number', '')
                 }
                 
+                # Forward the request to the ration shop service
                 response = requests.post(url, headers=headers, files=files, data=post_data)
             else:
+                # If no files are present, it's an invalid request
                 return JsonResponse({'error': 'No image or video uploaded'}, status=400)
             
+            # Parse the response
             try:
                 response_data = response.json()
             except ValueError:
                 response_data = {}
             
+            # Create gateway response
             gateway_response = JsonResponse(response_data, status=response.status_code)
-            return _forward_cookies(response, gateway_response)
+            
+            # Forward any cookies from the service response
+            for cookie in response.cookies:
+                gateway_response.set_cookie(
+                    key=cookie.name,
+                    value=cookie.value,
+                    httponly=cookie.has_nonstandard_attr('HttpOnly'),
+                    secure=cookie.secure,
+                    samesite=cookie.get_nonstandard_attr('SameSite')
+                )
+            
+            return gateway_response
             
         except requests.RequestException as e:
             return JsonResponse({'error': str(e)}, status=500)
     else:
         return JsonResponse({'error': 'Method not allowed'}, status=405)
 
+
+
 def send_otp(request):
     if request.method == 'POST':
         try:
+            # Check for access token
             access_token = request.COOKIES.get('access_token')
             if not access_token:
                 return JsonResponse({'error': 'Authorization credentials not found'}, status=401)
             
-            url = f"{RATION_SHOP_BASE_URL}/ration-card/send-otp/"
+            # Get the URL for the ration shop service
+            url = os.environ.get('RATION_SHOP_SVC_ADDRESS', 'http://localhost:8002/ration-card/send-otp/')
             
+            # Prepare headers
             headers = {
                 'Authorization': f'Bearer {access_token}',
             }
             
+            # Handle file upload (support both image and video)
+            
+                
             try:
                 body = json.loads(request.body)
                 post_data = {
@@ -337,34 +444,56 @@ def send_otp(request):
             except json.JSONDecodeError:
                 return JsonResponse({'error': 'Invalid JSON body'}, status=400)
                 
+            # Forward the request to the ration shop service
             response = requests.post(url, headers=headers, data=post_data)
             
+            
+            # Parse the response
             try:
                 response_data = response.json()
             except ValueError:
                 response_data = {}
             
+            # Create gateway response
             gateway_response = JsonResponse(response_data, status=response.status_code)
-            return _forward_cookies(response, gateway_response)
+            
+            # Forward any cookies from the service response
+            for cookie in response.cookies:
+                gateway_response.set_cookie(
+                    key=cookie.name,
+                    value=cookie.value,
+                    httponly=cookie.has_nonstandard_attr('HttpOnly'),
+                    secure=cookie.secure,
+                    samesite=cookie.get_nonstandard_attr('SameSite')
+                )
+            
+            return gateway_response
             
         except requests.RequestException as e:
             return JsonResponse({'error': str(e)}, status=500)
     else:
         return JsonResponse({'error': 'Method not allowed'}, status=405)
 
+
 def verify_otp(request):
     if request.method == 'POST':
         try:
+            # Check for access token
             access_token = request.COOKIES.get('access_token')
             if not access_token:
                 return JsonResponse({'error': 'Authorization credentials not found'}, status=401)
             
-            url = f"{RATION_SHOP_BASE_URL}/ration-card/verify-otp/"
+            # Get the URL for the ration shop service
+            url = os.environ.get('RATION_SHOP_SVC_ADDRESS', 'http://localhost:8002/ration-card/verify-otp/')
             
+            # Prepare headers
             headers = {
                 'Authorization': f'Bearer {access_token}',
             }
             
+            # Handle file upload (support both image and video)
+            
+                
             try:
                 body = json.loads(request.body)
                 post_data = {
@@ -375,15 +504,30 @@ def verify_otp(request):
             except json.JSONDecodeError:
                 return JsonResponse({'error': 'Invalid JSON body'}, status=400)
                 
+            # Forward the request to the ration shop service
             response = requests.post(url, headers=headers, data=post_data)
             
+            
+            # Parse the response
             try:
                 response_data = response.json()
             except ValueError:
                 response_data = {}
             
+            # Create gateway response
             gateway_response = JsonResponse(response_data, status=response.status_code)
-            return _forward_cookies(response, gateway_response)
+            
+            # Forward any cookies from the service response
+            for cookie in response.cookies:
+                gateway_response.set_cookie(
+                    key=cookie.name,
+                    value=cookie.value,
+                    httponly=cookie.has_nonstandard_attr('HttpOnly'),
+                    secure=cookie.secure,
+                    samesite=cookie.get_nonstandard_attr('SameSite')
+                )
+            
+            return gateway_response
             
         except requests.RequestException as e:
             return JsonResponse({'error': str(e)}, status=500)
@@ -393,29 +537,50 @@ def verify_otp(request):
 def requested_ration_card_user(request):
     if request.method == 'GET':
         try:
+            # Check for access token
             access_token = request.COOKIES.get('access_token')
             if not access_token:
                 return JsonResponse({'error': 'Authorization credentials not found'}, status=401)
             
-            url = f"{RATION_SHOP_BASE_URL}/ration-card/user-requested-cards/"
+            # Get the URL for the ration shop service
+            url = os.environ.get('RATION_SHOP_SVC_ADDRESS', 'http://localhost:8002/ration-card/user-requested-cards/')
             
+            # Prepare headers
             headers = {
                 'Authorization': f'Bearer {access_token}',
             }
             
+            # Handle file upload (support both image and video)
+            
+                
             user_email = request.GET.get('user_email')
             if not user_email:
                 return JsonResponse({'error': 'User email is required'}, status=400)
+            
                 
+            # Forward the request to the ration shop service
             response = requests.get(url, headers=headers, params={'user_email': user_email})
             
+            
+            # Parse the response
             try:
                 response_data = response.json()
             except ValueError:
                 response_data = {}
-                
+            # Create gateway response
             gateway_response = JsonResponse(response_data, safe=False, status=response.status_code)
-            return _forward_cookies(response, gateway_response)
+            
+            # Forward any cookies from the service response
+            for cookie in response.cookies:
+                gateway_response.set_cookie(
+                    key=cookie.name,
+                    value=cookie.value,
+                    httponly=cookie.has_nonstandard_attr('HttpOnly'),
+                    secure=cookie.secure,
+                    samesite=cookie.get_nonstandard_attr('SameSite')
+                )
+            
+            return gateway_response
             
         except requests.RequestException as e:
             return JsonResponse({'error': str(e)}, status=500)
