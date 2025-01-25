@@ -15,9 +15,14 @@ export default {
   			'pulse-subtle': 'pulse-subtle 2s ease-in-out infinite',
   			'spin-slow': 'spin 8s linear infinite',
 			scan: 'scan 2s linear infinite',
-			'shimmer': 'shimmer 1.5s infinite'
+			'shimmer': 'shimmer 1.5s infinite',
+			'slide-down': 'slideDown 0.5s ease-in-out'
   		},
   		keyframes: {
+			slideDown: {
+				'0%': { opacity: '0', transform: 'scaleY(0)' },
+				'100%': { opacity: '1', transform: 'scaleY(1)' }
+			  },
   			float: {
   				'0%, 100%': {
   					transform: 'translateY(0) scale(1)'

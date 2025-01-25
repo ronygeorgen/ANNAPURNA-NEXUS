@@ -153,7 +153,9 @@ class PublicShopDisplaySerializer(serializers.ModelSerializer):
             'profile_image',
             'shop_images',
             'owner_id',
-            'distance'
+            'distance',
+            'latitude',
+            'longitude'
         ]
 
     def get_profile_image(self, obj):

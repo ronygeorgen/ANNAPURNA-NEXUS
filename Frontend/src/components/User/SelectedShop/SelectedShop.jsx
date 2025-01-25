@@ -7,6 +7,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import api from '../../../services/api';
 import { toast } from 'sonner';
 import ChatBox from '../../common/ChatBox';
+import MapComponent from './MapComponent';
 
 
 
@@ -20,16 +21,21 @@ function SelectedShop() {
     const [isLoading, setIsLoading] = useState(false)
     const [isVerified, setIsVerified] = useState(false)
     const [isChatOpen, setIsChatOpen] = useState(false);
+    const [showMap, setShowMap] = useState(false);
 
     const shop = location.state?.shop;
-
+    const userLocation = useSelector((state) => state.auth.location);
+    
     if (!shop) {
-        navigate('/home');
+      navigate('/home');
         toast.error('No shop data')
         return null;
-    }
-    
-    
+      }
+      
+      const toggleDirections = () => {
+        setShowMap(!showMap);
+      };
+      
     const handleLogout = async () => {
         try {
             await dispatch(logoutUser()).unwrap();
@@ -203,9 +209,18 @@ function SelectedShop() {
                   <MessageSquare className="w-5 h-5 text-gray-600" />
                   <span className='lg:inline hidden' >Message</span>
                 </button>
-                <button className="flex items-center gap-2 px-6 py-2 bg-white rounded-lg shadow hover:shadow-md transition-shadow">
-                  <MapPin className="w-5 h-5 text-gray-600" />
-                  <span className='lg:inline hidden' >Directions</span>
+                <button 
+                  className={`flex items-center gap-2 px-6 py-2 rounded-lg shadow hover:shadow-md transition-shadow ${
+                    showMap 
+                      ? 'bg-orange-500 text-white' 
+                      : 'bg-white text-gray-600'
+                  }`}
+                  onClick={toggleDirections}
+                >
+                  <MapPin className="w-5 h-5" />
+                  <span className='lg:inline hidden'>
+                    {showMap ? 'Hide Map' : 'Directions'}
+                  </span>
                 </button>
               </div>
               <button className={`w-full px-6 py-3 ${isVerified ? 'bg-orange-500 hover:bg-orange-600' : 'bg-gray-400 cursor-not-allowed'} text-white rounded-lg font-semibold transition-colors`}
@@ -228,18 +243,24 @@ function SelectedShop() {
         </div>
 
         {/* Map Section */}
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-            <MapPin className="w-6 h-6" />
-            Directions
-          </h2>
-          <div className="h-[400px] bg-gray-100 rounded-lg overflow-hidden">
-            {/* Replace with actual map implementation */}
-            <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-              <span className="text-gray-500">Map View</span>
-            </div>
+        {showMap && userLocation.latitude && (
+          <div 
+            className="bg-white rounded-lg shadow-lg p-6 transition-all duration-500 ease-in-out transform origin-top 
+              animate-slide-down"
+          >
+            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+              <MapPin className="w-6 h-6" />
+              Directions
+            </h2>
+            <MapComponent 
+              userLocation={userLocation}
+              shopLocation={{
+                latitude: shop.latitude,
+                longitude: shop.longitude
+              }}
+            />
           </div>
-        </div>
+        )}
       </main>
       {isChatOpen && <ChatBox shop={shop} onClose={() => setIsChatOpen(false)} />}
 

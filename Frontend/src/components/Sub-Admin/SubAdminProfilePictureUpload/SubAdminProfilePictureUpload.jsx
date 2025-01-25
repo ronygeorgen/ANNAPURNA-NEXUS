@@ -27,7 +27,6 @@ const ProfilePictureUpload = ({ currentImage, onImageChange }) => {
         
         // Upload to Cloudinary
         const cloudinaryResponse = await uploadToCloudinary(file);
-        console.log('Cloudinary upload response in subadminprofilepicture.jsx:', cloudinaryResponse);
         
         
         // Update preview

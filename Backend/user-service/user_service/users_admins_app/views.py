@@ -85,7 +85,11 @@ class UpdateLocationView(APIView):
         user.longitude = longitude
         user.save()
         
-        return Response({'message': 'Location updated successfully'})
+        return Response({
+            'message': 'Location updated successfully',
+            'latitude': latitude,
+            'longitude': longitude
+        })
 
 class AdminLoginView(APIView):
     def post(self, request, *args, **kwargs):
