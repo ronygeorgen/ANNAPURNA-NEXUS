@@ -43,6 +43,8 @@ class Account(AbstractBaseUser):
     username = models.CharField(max_length=50, blank=True)
     email = models.EmailField(max_length=50, unique=True)
     phone_number = models.CharField(max_length=50, blank=True)
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
 
     #required
     date_joined = models.DateTimeField(auto_now_add=True)
@@ -56,6 +58,7 @@ class Account(AbstractBaseUser):
     REQUIRED_FIELDS = []
     
     objects = MyAccountManager()
+
 
 class UserProfile(models.Model):
     user = models.OneToOneField(Account, on_delete=models.CASCADE)
@@ -72,6 +75,7 @@ class UserProfile(models.Model):
             return f"{self.user.first_name} {self.user.last_name}"
         else:
             return self.user.email
+        
 
 class RationShop(models.Model):
     shop_id = models.IntegerField(unique=True)

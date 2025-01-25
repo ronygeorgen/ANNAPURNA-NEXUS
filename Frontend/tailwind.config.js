@@ -15,6 +15,7 @@ export default {
   			'pulse-subtle': 'pulse-subtle 2s ease-in-out infinite',
   			'spin-slow': 'spin 8s linear infinite',
 			scan: 'scan 2s linear infinite',
+			'shimmer': 'shimmer 1.5s infinite'
   		},
   		keyframes: {
   			float: {
@@ -45,6 +46,10 @@ export default {
 				'0%': { top: '0%' },
 				'100%': { top: '100%' },
 			},
+			'shimmer': {
+                    '0%': { transform: 'translateX(-100%)' },
+                    '100%': { transform: 'translateX(100%)' }
+            },
   		},
   		borderRadius: {
   			lg: 'var(--radius)',

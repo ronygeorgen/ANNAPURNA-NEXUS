@@ -11,6 +11,7 @@ urlpatterns = [
     path('ration-shop/create/', CreateRationShopView.as_view(), name='create-ration-shop'),
     path('refresh-token/', RefreshView.as_view(), name='refresh-view'),
     path('user/user-count/', GetUsersCount.as_view(), name='refresh-view'),
+    path('user/update-location/', UpdateLocation.as_view(), name='update-location'),
 
     path('ration-shop/profile/', SubAdminProfileView.as_view()),
     path('ration-shop/profile/update/', SubAdminProfileView.as_view()),

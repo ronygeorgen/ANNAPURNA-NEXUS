@@ -60,6 +60,41 @@ def login(request):
     else:
         return JsonResponse({'error': 'Method not allowed'}, status=405)
 
+def updatelocation(request):
+    if request.method == 'PATCH':
+        try:
+            access_token = request.COOKIES.get('access_token')
+            if not access_token:
+                return JsonResponse({'error': 'Authorization credentials not found'}, status=401)
+            json_data = json.loads(request.body)
+            print('json data====',json_data)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+
+        try:
+            url = os.environ.get('USER_SVC_ADDRESS', 'http://localhost:8000/user/update-location/')
+            headers = {
+                    'Authorization': f'Bearer {access_token}',
+                    'Content-Type': 'application/json'
+                }
+            response = requests.patch(url, json=json_data, headers=headers)
+            gateway_response = JsonResponse(response.json(), status=response.status_code)
+
+            for cookie in response.cookies:
+                gateway_response.set_cookie(
+                    key=cookie.name, 
+                    value=cookie.value, 
+                    httponly=cookie.has_nonstandard_attr('HttpOnly'),
+                    secure=cookie.secure,
+                    samesite=cookie.get_nonstandard_attr('SameSite')
+                )
+            
+            return gateway_response
+        except requests.RequestException as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    else:
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+
 def loginAdmin(request):
     if request.method == 'POST':
         try:

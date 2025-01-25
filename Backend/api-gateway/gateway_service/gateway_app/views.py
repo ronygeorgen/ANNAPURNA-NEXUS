@@ -31,6 +31,16 @@ class LoginView(APIView):
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+class UpdateLocation(APIView):
+    permission_classes = [AllowAny]
+
+    def patch(self, request, *args, **kwargs):
+        try:
+            response = auth.updatelocation(request)
+            return response
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 class AdminLoginView(APIView):
     permission_classes = [AllowAny]

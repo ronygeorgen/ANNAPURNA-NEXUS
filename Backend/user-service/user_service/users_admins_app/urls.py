@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import RegisterView, LoginView, AdminLoginView, CreateSubAdminView, SubAdminLoginView, RefreshTokenView, UserCountView
+from .views import *
 
 urlpatterns = [
     path('register/', RegisterView.as_view(), name='register'),
@@ -9,4 +9,5 @@ urlpatterns = [
     path('sub-admin-login/', SubAdminLoginView.as_view(), name='create_sub_admin'),
     path('refresh-token/', RefreshTokenView.as_view(), name='token_refresh'),
     path('user-count/', UserCountView.as_view(), name='token_refresh'),
+    path('update-location/', UpdateLocationView.as_view(), name='update_location'),
 ]

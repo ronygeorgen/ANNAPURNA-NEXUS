@@ -150,7 +150,11 @@ function SelectedShop() {
                     Status: {shop.is_open ? 'Open' : 'Closed'}
                   </p>
                   <p className="text-gray-600 text-sm">Location: {shop.location}</p>
+                  <span className="text-sm font-medium text-green-600">
+                    {shop.distance !== null ? `${shop.distance} km away` : 'Distance unavailable'}
+                  </span>
                 </div>
+                
               </div>
             </div>
 

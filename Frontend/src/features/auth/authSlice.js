@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import api from '../../services/api'
+import { fetchShops } from '../fetch-nearbyshop-home/shopsSlice';
 import { REHYDRATE } from 'redux-persist';
 
 export const registeruser = createAsyncThunk(
@@ -69,6 +70,46 @@ export const logoutUser = createAsyncThunk(
     }
 );
 
+
+export const updateUserLocation = createAsyncThunk(
+  'auth/updateUserLocation',
+  async (_, { rejectWithValue, dispatch }) => {
+    if ('geolocation' in navigator) {
+      try {
+        const position = await new Promise((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(
+            resolve,
+            (error) => reject(new Error(error.message || 'Failed to get geolocation'))
+          );
+        });
+
+        const { latitude, longitude } = position.coords;
+
+        const response = await api.patch('/user/update-location/', { 
+          latitude, 
+          longitude 
+        },{ withCredentials: true });
+
+        dispatch(fetchShops({ latitude, longitude }));
+
+        // Return the server's response data
+        return response.data;
+      } catch (error) {
+        // Handle API or geolocation errors
+        if (error.response && error.response.data) {
+          return rejectWithValue(error.response.data);
+        }
+        return rejectWithValue(error.message || 'Something went wrong');
+      }
+    } else {
+      return rejectWithValue('Geolocation not supported');
+    }
+  }
+);
+
+
+
+
 const authSlice = createSlice({
     name: 'auth',
     initialState: {
@@ -76,6 +117,10 @@ const authSlice = createSlice({
         isLoading: false,
         error: null,
         isAuthenticated: false,
+        location: {
+          latitude: null,
+          longitude: null
+        }
     },
     reducers: {
         clearError(state) {
@@ -116,7 +161,22 @@ const authSlice = createSlice({
                 state.isAuthenticated = false;
                 state.user = null;
             })
-        
+            // Update User Location
+            .addCase(updateUserLocation.pending, (state) => {
+              state.isLoading = true;
+              state.error = null;
+            })
+            .addCase(updateUserLocation.fulfilled, (state, action) => {
+              state.isLoading = false;
+              state.location = {
+                latitude: action.payload.latitude,
+                longitude: action.payload.longitude,
+              };
+            })
+            .addCase(updateUserLocation.rejected, (state, action) => {
+              state.isLoading = false;
+              state.error = action.payload;
+            })
             .addCase(logoutUser.fulfilled, (state) => {
                 state.user = null;
                 state.isAuthenticated = false;

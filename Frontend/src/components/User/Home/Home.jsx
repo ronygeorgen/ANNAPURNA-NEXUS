@@ -1,45 +1,50 @@
-import React, { useState,useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
 import { logoutUser } from '../../../features/auth/authSlice'
-import Button from '../../common/Button';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
-import  coverImage from '../../../assets/Cover.jpg'
+import coverImage from '../../../assets/Cover.jpg'
 import NavBar from '../NavBar/NavBar';
 import api from '../../../services/api';
 import { toast } from 'sonner';
+import { updateUserLocation } from '../../../features/auth/authSlice';
 
+// Shimmer Loader Component
+const ShopCardShimmer = () => {
+  return (
+    <div className="bg-white rounded-lg shadow-md overflow-hidden animate-pulse">
+      <div className="h-48 bg-gray-300"></div>
+      <div className="p-4 space-y-3">
+        <div className="h-6 bg-gray-300 rounded w-3/4"></div>
+        <div className="h-4 bg-gray-300 rounded w-full"></div>
+        <div className="h-4 bg-gray-300 rounded w-5/6"></div>
+        <div className="h-4 bg-gray-300 rounded w-2/3"></div>
+      </div>
+    </div>
+  );
+};
 
 export default function Home() {
-
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
-    const [shops, setShops] = useState([]);
     const location = useLocation()
 
+    const { shops, loading, error } = useSelector(state => state.shops);
     
-    
+    const sortedShops = [...shops].sort((a, b) => 
+      (a.distance || Infinity) - (b.distance || Infinity)
+    );
 
     useEffect(() => {
-      fetchShops();
-  }, []);
-
+        const requestLocationPermission = async () => {
+          try {
+            const locationResult = await dispatch(updateUserLocation()).unwrap();
+          } catch (error) {
+            console.error('Location permission error:', error);
+          }
+        };
     
-    const fetchShops = async () => {
-      setLoading(true);
-    try {
-      const response = await api.get('/ration-shop/shops/', {withCredentials:true});
-      setShops(response.data);
-      setError(null);
-    } catch (error) {
-      console.log(error)
-        setError('Failed to fetch shops. Please try again later.');
-        toast.error('Failed to fetch shops');
-      } finally {
-        setLoading(false);
-      }
-    };
+        requestLocationPermission();
+      }, [dispatch, navigate]);
     
     const handleLogout = async () => {
         try {
@@ -47,7 +52,6 @@ export default function Home() {
             navigate('/login');
             toast.success('Logged out successfully!')
         } catch (error) {
-          
             toast.error("Logout failed", error);
         }
     };
@@ -180,14 +184,45 @@ export default function Home() {
                             <span className="text-sm">{shop.owner_name}</span>
                         </div>
                     )}
+                    {shop.distance !== null ? (
+                        <div className="flex items-center text-green-600 mt-2">
+                          <svg 
+                            xmlns="http://www.w3.org/2000/svg" 
+                            className="h-5 w-5 mr-2" 
+                            viewBox="0 0 20 20" 
+                            fill="currentColor"
+                          >
+                            <path 
+                              fillRule="evenodd" 
+                              d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" 
+                              clipRule="evenodd" 
+                            />
+                          </svg>
+                          <span className="text-sm font-medium">{shop.distance} km away</span>
+                        </div>
+                        ) : (
+                        <div className="flex items-center text-gray-500 mt-2">
+                          <svg 
+                            xmlns="http://www.w3.org/2000/svg" 
+                            className="h-5 w-5 mr-2" 
+                            viewBox="0 0 20 20" 
+                            fill="currentColor"
+                          >
+                            <path 
+                              fillRule="evenodd" 
+                              d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" 
+                              clipRule="evenodd" 
+                            />
+                          </svg>
+                          <span className="text-sm font-medium">Distance unavailable</span>
+                        </div>
+                        )}
                 </div>
             </div>
         </div>
     );   
     };
     
-    
-
     return (
       <div className="min-h-screen bg-gray-100 overflow-x-hidden">
       <NavBar handleLogout={ handleLogout } />
@@ -215,20 +250,23 @@ export default function Home() {
       <section className="py-12 bg-white">
         <div className="container mx-auto px-4">
             <h2 className="text-3xl font-semibold mb-8">Ration shops near you</h2>
-            {loading && (
-                <div className="flex justify-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
-                </div>
-            )}
-            {error && (
-                <div className="text-red-500 text-center mb-4">
-                    {error}
-                </div>
-            )}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {shops.map((shop) => (
-                    <ShopCard key={shop.shop_id} shop={shop} />
-                ))}
+                {loading ? (
+                    // Shimmer loader for multiple shop cards
+                    <>
+                        {[...Array(4)].map((_, index) => (
+                            <ShopCardShimmer key={index} />
+                        ))}
+                    </>
+                ) : error ? (
+                    <div className="col-span-full text-red-500 text-center mb-4">
+                        {error}
+                    </div>
+                ) : (
+                    sortedShops.map((shop) => (
+                        <ShopCard key={shop.shop_id} shop={shop} />
+                    ))
+                )}
             </div>
         </div>
     </section>

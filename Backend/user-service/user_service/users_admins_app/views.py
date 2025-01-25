@@ -9,6 +9,7 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.permissions import BasePermission
 from users_admins_app.models import Account
 import logging
+from .authentication import UserJWTAuthenticationCards
 from django.db.models import Count, Sum
 
 logger = logging.getLogger(__name__)
@@ -70,6 +71,21 @@ class LoginView(APIView):
             return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class UpdateLocationView(APIView):
+
+    authentication_classes = [UserJWTAuthenticationCards]
+    
+    def patch(self, request):
+        user = request.user
+        latitude = request.data.get('latitude')
+        longitude = request.data.get('longitude')
+        
+        user.latitude = latitude
+        user.longitude = longitude
+        user.save()
+        
+        return Response({'message': 'Location updated successfully'})
 
 class AdminLoginView(APIView):
     def post(self, request, *args, **kwargs):

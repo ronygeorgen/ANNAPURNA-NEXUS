@@ -25,7 +25,7 @@ function CreateRationShop() {
     const fetchOwners = async () => {
       try {
         const response = await api.get('/ration-shop/sub-admins/');
-        console.log('checking vaalues',response);
+        
         
         setOwners([
           { value: '', label: 'Select an owner' },
@@ -58,9 +58,9 @@ function CreateRationShop() {
             mobileNumber: values.mobileNumber,
             location: values.location
           });
-        setStatus({ success: response.data.message });
+        toast.success(response.data.message);
       } catch (error) {
-        setStatus({ error: error.response.data.error || 'Failed to create ration shop' });
+        toast.error(error.response.data.error);
       } finally {
         setSubmitting(false);
       }
@@ -134,17 +134,6 @@ function CreateRationShop() {
                 >
                   {isSubmitting ? 'Creating...' : 'Create Ration Shop'}
                 </Button>
-
-                {status?.success && (
-                  <div className="mt-4 p-3 bg-green-500 bg-opacity-20 border border-green-500 rounded text-green-400">
-                    {status.success}
-                  </div>
-                )}
-                {status?.error && (
-                  <div className="mt-4 p-3 bg-red-500 bg-opacity-20 border border-red-500 rounded text-red-400">
-                    {status.error}
-                  </div>
-                )}
               </Form>
             )}
           </Formik>

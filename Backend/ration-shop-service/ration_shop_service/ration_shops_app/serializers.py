@@ -1,5 +1,7 @@
 from rest_framework import serializers
 from .models import RationShop, AdminAuth, SubAdminAuth, ShopImage
+from math import radians, sin, cos, sqrt, atan2
+
 
 class ShopImageSerializer(serializers.ModelSerializer):
     """Serializer for the ShopImage model."""
@@ -44,7 +46,11 @@ class RationShopSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = RationShop
-        fields = ['shop_id', 'shopName', 'ownerId', 'mobileNumber', 'location']
+        fields = ['shop_id', 'shopName', 'ownerId', 'mobileNumber', 'location', 'latitude', 'longitude']
+        extra_kwargs = {
+            'latitude': {'read_only': True},
+            'longitude': {'read_only': True}
+        }
 
     def create(self, validated_data):
         owner_id = validated_data.pop('ownerId')
@@ -132,6 +138,7 @@ class PublicShopDisplaySerializer(serializers.ModelSerializer):
     owner_id = serializers.CharField(source='owner.sub_admin_id')
     profile_image = serializers.SerializerMethodField()
     shop_images = serializers.SerializerMethodField()
+    distance = serializers.SerializerMethodField()
 
     class Meta:
         model = RationShop
@@ -145,7 +152,8 @@ class PublicShopDisplaySerializer(serializers.ModelSerializer):
             'owner_name',
             'profile_image',
             'shop_images',
-            'owner_id'
+            'owner_id',
+            'distance'
         ]
 
     def get_profile_image(self, obj):
@@ -161,3 +169,25 @@ class PublicShopDisplaySerializer(serializers.ModelSerializer):
             is_active=True
         )
         return [img.image for img in shop_images]
+    
+    def get_distance(self, obj):
+        # Only calculate distance if user location is in context
+        if self.context.get('user_distance'):
+            user_lat = float(self.context.get('request').query_params.get('latitude'))
+            user_lon = float(self.context.get('request').query_params.get('longitude'))
+            
+            if obj.latitude and obj.longitude:
+                R = 6371.0  # Earth radius in kilometers
+                lat1, lon1, lat2, lon2 = map(radians, [
+                    user_lat, user_lon, 
+                    float(obj.latitude), float(obj.longitude)
+                ])
+                
+                dlat = lat2 - lat1
+                dlon = lon2 - lon1
+                
+                a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
+                c = 2 * atan2(sqrt(a), sqrt(1-a))
+                
+                return round(R * c, 2)
+        return None

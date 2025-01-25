@@ -33,7 +33,7 @@ const Signup = () => {
             dispatch(registeruser({ email: values.email, password: values.password }))
               .unwrap()
               .then(() => {
-                navigate('/home');
+                navigate('/location-permission');
                 toast.success('Registration successful')
               })
               .catch((error) => {

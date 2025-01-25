@@ -26,7 +26,6 @@ def jwt_middleware(get_response):
             return JsonResponse({'error': 'Authentication requiredddd'}, status=status.HTTP_401_UNAUTHORIZED)
 
         # Log the token structure to ensure it is well-formed
-        logger.info(f"Retrieved Token: {token}")
         
         try:
             # Decode with explicit algorithm; use the same secret key as user-service

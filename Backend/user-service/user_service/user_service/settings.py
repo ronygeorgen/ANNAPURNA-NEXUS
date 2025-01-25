@@ -97,8 +97,10 @@ AUTH_USER_MODEL = 'users_admins_app.Account'
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'users_admins_app.authentication.UserJWTAuthenticationCards',
     ),
 }
+
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),

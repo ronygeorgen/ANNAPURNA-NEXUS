@@ -37,6 +37,8 @@ class RationShop(models.Model):
     owner = models.ForeignKey(SubAdminAuth, on_delete=models.SET_NULL, null=True, related_name="shops_owned")
     mobile_number = models.CharField(max_length=15)  
     location = models.CharField(max_length=255)  
+    latitude = models.FloatField(null=True, blank=True)
+    longitude = models.FloatField(null=True, blank=True)
     description = models.TextField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
     is_open = models.BooleanField(default=True)

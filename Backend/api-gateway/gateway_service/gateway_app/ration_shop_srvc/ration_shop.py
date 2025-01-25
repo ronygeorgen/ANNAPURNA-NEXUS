@@ -324,13 +324,15 @@ def get_all_shops(request):
             # Get the ration shop service address from environment variables
             shop_service_url = os.environ.get('RATION_SHOP_SVC_ADDRESS', 'http://localhost:8002/ration-shop/shops/')
             
+            query_params = request.GET.copy()
+            
             # Set up headers with the access token
             headers = {
                 'Authorization': f'Bearer {access_token}',
             }
             
             # Forward the request to the shop service
-            response = requests.get(shop_service_url, headers=headers)
+            response = requests.get(shop_service_url, headers=headers, params=query_params)
             
             try:
                 response_data = response.json()

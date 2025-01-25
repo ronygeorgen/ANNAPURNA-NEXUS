@@ -4,6 +4,7 @@ import storage from 'redux-persist/lib/storage';
 import authReducer from '../features/auth/authSlice';
 import profileReducer from '../features/sub-admin-profile/profileSlice'
 import dashboardReducer from '../features/sub-admin-dashboard/dashboardSlice'
+import shopsReducer from '../features/fetch-nearbyshop-home/shopsSlice'
 
 // Auth persist config
 const persistConfig = {
@@ -23,15 +24,23 @@ const dashboardPersistConfig = {
     whitelist: ['metrics']
 }
 
+const shopsHomePersistConfig = {
+    key: 'shops',
+    storage,
+    whitelist: ['shops']
+}
+
 // Create persisted reducers
 const persistedReducer = persistReducer(persistConfig, authReducer);
 const persistedProfileReducer = persistReducer(profilePersistConfig, profileReducer);
 const persistedashboardReducer = persistReducer(dashboardPersistConfig, dashboardReducer);
+const persistedShopsHomedReducer = persistReducer(shopsHomePersistConfig, shopsReducer);
 
 const rootReducers = combineReducers({
     auth: persistedReducer,
     profile: persistedProfileReducer,
     dashboard: persistedashboardReducer,
+    shops: persistedShopsHomedReducer,
 });
 
 export  const store = configureStore({

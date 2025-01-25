@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { logoutUser } from '../../../features/auth/authSlice';
 import api from '../../../services/api';
 import NavBar from '../NavBar/NavBar';
+import RequestedCardsShimmer from './RequestedCardsShimmer';
 
 const statusOrder = ['REQUESTED', 'SHOP_VERIFIED', 'ADMIN_APPROVED'];
 
@@ -165,12 +166,15 @@ const RequestedCards = () => {
   return (
     <div className="min-h-screen bg-gray-100 overflow-x-hidden">
       <NavBar handleLogout={handleLogout} />
+      {isLoading ? (
+            <RequestedCardsShimmer />
+          ) : (
       <div className="min-h-screen bg-gray-50">
         <div className="container mx-auto px-4 py-8 mt-16">
           <div className="flex flex-col md:flex-row justify-between items-center mb-8">
             <h1 className="text-3xl font-bold text-gray-800">Ration Card Dashboard</h1>
             
-            {!isLoading && (
+           
               <div className="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-4 mt-4 md:mt-0">
                 <div className="relative w-full md:w-64">
                   <input
@@ -200,12 +204,9 @@ const RequestedCards = () => {
                   ))}
                 </div>
               </div>
-            )}
           </div>
 
-          {isLoading ? (
-            <LoadingSpinner />
-          ) : (
+          
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredCards.map((card) => (
               <div
@@ -236,7 +237,7 @@ const RequestedCards = () => {
               </div>
             ))}
           </div>
-          )}
+          
 
           {selectedCard && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -292,7 +293,9 @@ const RequestedCards = () => {
           )}
         </div>
       </div>
+       )}
     </div>
+       
   );
 };
 

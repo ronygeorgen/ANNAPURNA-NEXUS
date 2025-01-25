@@ -35,6 +35,7 @@ import CashOnDeliverySuccessPage from './pages/CashOnDeliverySuccess';
 import FaceAuthenticationComponentPage from './pages/FaceAuthenticationComponent';
 import OtpComponentPage from './pages/OtpComponent';
 import RequestedCardsPage from './pages/RequestedCards';
+import LocationPermissionPage from './pages/LocationPermission';
 
 const App = () => {
   const { isAuthenticated, user } = useSelector((state) => state.auth);
@@ -85,6 +86,7 @@ const App = () => {
         <Route path="/home/selected-shop/choose-subsidies/checkout-page/success" element={<ProtectedRoute allowAdmin={false} allowSubAdmin={false}> <StripeSuccessPage /> </ProtectedRoute>} />
         <Route path="/home/selected-shop/choose-subsidies/checkout-page/COD-success" element={<ProtectedRoute allowAdmin={false} allowSubAdmin={false}> <CashOnDeliverySuccessPage /> </ProtectedRoute>} />
         <Route path="/home/requested-cards" element={<ProtectedRoute allowAdmin={false} allowSubAdmin={false}> <RequestedCardsPage /> </ProtectedRoute>} />
+        <Route path="/location-permission" element={<ProtectedRoute allowAdmin={false} allowSubAdmin={false}> <LocationPermissionPage /> </ProtectedRoute>} />
           
           {/* sub-admin routes */}
         <Route path="/sub-admin-login" element={<GuestRoute> <SubAdminLoginPage /> </GuestRoute>} />
