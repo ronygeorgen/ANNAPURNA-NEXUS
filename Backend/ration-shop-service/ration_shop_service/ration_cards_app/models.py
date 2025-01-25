@@ -7,6 +7,11 @@ from ration_shops_app.models import SubAdminAuth, RationShop, ShopImage
 from stocks_app.models import Quota, ShopStock, Item
 import face_recognition
 import numpy as np
+from storages.backends.s3boto3 import S3Boto3Storage
+import boto3
+import io
+from django.conf import settings
+
 
 KERALA_CARD_TYPES = [
     ('antyodaya', 'Antyodaya Anna Yojana (AAY)'),
@@ -43,6 +48,14 @@ class CardType(models.Model):
 
     def __str__(self):
         return f"{self.get_color_code_display()}"
+    
+def custom_upload_to(instance, filename):
+    # Custom path for S3 uploads
+    if isinstance(instance, FamilyMember):
+        return f'family_member_images/{instance.aadhaar_number}/{filename}'
+    elif isinstance(instance, RationCard):
+        return f'ration_card_documents/{instance.card_number}/{filename}'
+    return filename
 
 class FamilyMember(models.Model):
     """Model to store family member details"""
@@ -61,7 +74,13 @@ class FamilyMember(models.Model):
     aadhaar_number = models.CharField(max_length=20, unique=True)
     is_active = models.BooleanField(default=True)
     face_encoding = models.BinaryField(null=True, blank=True)
-    face_image = models.ImageField(upload_to='face_images/', null=True, blank=True)
+    face_image_media = models.ImageField(upload_to='face_images/', null=True, blank=True)
+    face_image = models.ImageField(
+        upload_to=custom_upload_to, 
+        storage=S3Boto3Storage(), 
+        null=True, 
+        blank=True
+    )
     additional_details = models.JSONField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -80,18 +99,25 @@ class FamilyMember(models.Model):
         """
         Generate and save face encoding when image is uploaded
         """
-        if self.face_image:
-            # Load the image
-            image = face_recognition.load_image_file(self.face_image.path)
-            
-            # Detect face encodings
-            face_encodings = face_recognition.face_encodings(image)
-            
-            # If a face is found
-            if face_encodings:
-                # Convert to binary for storage
-                self.face_encoding = face_encodings[0].tobytes()
-                self.save()
+        try:
+            if self.face_image:
+                s3 = boto3.client('s3')
+                bucket_name = settings.AWS_STORAGE_BUCKET_NAME
+                response = s3.get_object(Bucket=bucket_name, Key=self.face_image.name)
+                image_bytes = response['Body'].read()
+                # Load the image
+                image = face_recognition.load_image_file(io.BytesIO(image_bytes))
+                
+                # Detect face encodings
+                face_encodings = face_recognition.face_encodings(image)
+                
+                # If a face is found
+                if face_encodings:
+                    # Convert to binary for storage
+                    self.face_encoding = face_encodings[0].tobytes()
+                    self.save()
+        except Exception as e:
+            print(f"Face encoding error: {e}")
         
         return self.face_encoding
 
@@ -153,9 +179,16 @@ class RationCard(models.Model):
     admin_verification_notes = models.TextField(null=True, blank=True)
     
     # Documents
-    supporting_document = models.FileField(
+    supporting_document_media = models.FileField(
         upload_to='ration_card_documents/',
-        help_text='Upload supporting documents (PDF/Images)'
+        help_text='Upload supporting documents (PDF/Images)',
+        null=True,
+        blank=True
+    )
+    supporting_document = models.FileField(
+        upload_to=custom_upload_to, 
+        storage=S3Boto3Storage(), 
+        help_text='Upload supporting documents'
     )
     max_quantities = models.IntegerField(
         null=True, 
@@ -179,6 +212,30 @@ class RationCard(models.Model):
 
     def __str__(self):
         return f"{self.card_number} - {self.head_name}"
+
+    def get_supporting_document_url(self):
+        if self.supporting_document:
+            s3 = boto3.client(
+                's3',
+                aws_access_key_id= settings.AWS_ACCESS_KEY_ID,
+                aws_secret_access_key= settings.AWS_SECRET_ACCESS_KEY,
+                region_name= settings.AWS_S3_REGION_NAME
+            )
+            try:
+                # Generate a pre-signed URL valid for 1 hour
+                url = s3.generate_presigned_url(
+                    'get_object',
+                    Params={
+                        'Bucket': settings.AWS_STORAGE_BUCKET_NAME,
+                        'Key': self.supporting_document.name,
+                    },
+                    ExpiresIn=3600  # URL expires in 1 hour
+                )
+                return url
+            except Exception as e:
+                print(f"Error generating pre-signed URL: {e}")
+                return None
+        return None
 
 
     def calculate_family_size(self):

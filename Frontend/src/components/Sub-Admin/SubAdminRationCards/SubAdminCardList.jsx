@@ -254,6 +254,24 @@ export default function SubAdminCardList() {
                     
                   </div>
                 </div>
+                <div>
+                  <h3 className="font-semibold mb-2">Supporting Document</h3>
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    {/* Check if the supporting_document_url exists */}
+                    {selectedCard.supporting_document_url ? (
+                      <a
+                        href={selectedCard.supporting_document_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-500 underline"
+                      >
+                        View Document
+                      </a>
+                    ) : (
+                      <p>No document available</p>
+                    )}
+                  </div>
+                </div>
 
               </div>
             )}

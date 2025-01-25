@@ -5,7 +5,7 @@ from ration_shops_app.models import RationShop
 class FamilyMemberSerializer(serializers.ModelSerializer):
     class Meta:
         model = FamilyMember
-        fields = ['name', 'age', 'relation', 'aadhaar_number', 'face_image']
+        fields = ['name', 'age', 'relation', 'aadhaar_number', 'face_image_media', 'face_image']
         
     def validate_aadhaar_number(self, value):
         if len(value) != 12 or not value.isdigit():
@@ -40,7 +40,7 @@ class RationCardSerializer(serializers.ModelSerializer):
         fields = [
             'card_number','household_address','status',
             'head_name', 'head_age', 'head_monthly_income',
-            'head_aadhaar', 'mobile_number', 'supporting_document', 'registered_shop',
+            'head_aadhaar', 'mobile_number', 'supporting_document_media', 'supporting_document', 'registered_shop',
             'requester_id', 'requester_email', 'max_quantities','shop_verification_notes',
             'admin_verification_notes','admin_verified_at',
         ]
@@ -78,6 +78,7 @@ class RationCardRetrieveSerializer(serializers.ModelSerializer):
     card_type = CardTypeSerializer(read_only=True)
     registered_shop = RationShopSerializer(read_only=True)
     status_display = serializers.SerializerMethodField()
+    supporting_document_url = serializers.SerializerMethodField()
     
     class Meta:
         model = RationCard
@@ -97,6 +98,7 @@ class RationCardRetrieveSerializer(serializers.ModelSerializer):
             'family_members',
             'created_at',
             'supporting_document',
+            'supporting_document_url',
             'shop_verification_notes',
             'admin_verification_notes'
         ]
@@ -110,6 +112,9 @@ class RationCardRetrieveSerializer(serializers.ModelSerializer):
             'ADMIN_REJECTED': 'Rejected by Admin'
         }
         return status_map.get(obj.status, obj.status)
+    
+    def get_supporting_document_url(self, obj):
+        return obj.get_supporting_document_url()
 
 class CardVerificationSerializer(serializers.ModelSerializer):
     family_members = FamilyMemberSerializer(many=True, read_only=True)

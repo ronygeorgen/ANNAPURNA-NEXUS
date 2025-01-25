@@ -179,14 +179,7 @@ class VerifyCardView(APIView):
                 is_active=True
             )
             
-            # # Check if the card is in a valid status
-            # valid_statuses = ['ACTIVE', 'ADMIN_APPROVED']
-            # if card.status not in valid_statuses:
-            #     return Response({
-            #         'message': f'Card is {card.get_status_display()}. Not active for use.',
-            #         'status': card.status,
-            #         'status_display': card.get_status_display()
-            #     }, status=status.HTTP_400_BAD_REQUEST)
+            
 
             # Serialize and return card data
             serializer = CardVerificationSerializer(card)
@@ -322,7 +315,7 @@ class RationCardShopVerificationView(APIView):
             return Response({
                 'message': 'Card verified successfully',
                 'card_number': ration_card.card_number,
-                'status': ration_card.status
+                'status': ration_card.status,
             }, status=200)
         
         except RationCard.DoesNotExist:
