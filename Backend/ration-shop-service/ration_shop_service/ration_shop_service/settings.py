@@ -15,6 +15,7 @@ import environ
 import os
 from pathlib import Path
 import cloudinary
+from celery.schedules import crontab
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -54,6 +55,8 @@ INSTALLED_APPS = [
     'cloudinary_storage',
     'cloudinary',
     'storages',
+    'django_celery_beat',
+    'django_celery_results',
 ]
 
 MIDDLEWARE = [
@@ -200,7 +203,26 @@ KAFKA_CLIENT_ID = 'ration_shop_service_provider'
 KAFKA_TOPIC_ORDER_EVENTS = 'order_events_topic'
 KAFKA_CONSUMER_GROUP_ORDERS = 'ration_shop_order_consumer'
 
+# Celery Configuration
+CELERY_BROKER_URL = REDIS_URL
+CELERY_RESULT_BACKEND = REDIS_URL
+CELERY_ACCEPT_CONTENT = ['application/json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'UTC' 
 
+CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
+
+CELERY_BEAT_SCHEDULE = {
+    'send-quota-sms-last-week': {
+        'task': 'ration_cards_app.tasks.send_remaining_quota_sms',
+        'schedule': crontab(day_of_month='22-31'),  # Last week of month
+    },
+    'reset-quota-quantities': {
+        'task': 'ration_cards_app.tasks.reset_remaining_quantities',
+        'schedule': crontab(day_of_month='last', hour=23, minute=59),  # Last second of month
+    },
+}
 
 # Model file paths
 SHAPE_PREDICTOR_PATH = os.path.join(BASE_DIR, 'ml_models', 'shape_predictor_68_face_landmarks.dat')

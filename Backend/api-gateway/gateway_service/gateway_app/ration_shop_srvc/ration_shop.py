@@ -371,7 +371,6 @@ def get_searched_shops(request):
             shop_service_url = os.environ.get('RATION_SHOP_SVC_ADDRESS', 'http://localhost:8002/ration-shop/search/')
             
             query_params = request.GET.copy()
-            print('Query params:', query_params)
             
             # Set up headers with the access token
             headers = {
