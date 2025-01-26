@@ -279,33 +279,61 @@ export default function Home() {
       <header className="relative bg-orange-100 h-[600px]">
       <div className="container mx-auto px-4 relative z-10 pt-60 ml-[30%]">
          <h1 className="text-4xl font-bold mb-4 text-gray-800">Website for ration subsidies!</h1>
-         <div className="flex max-w-md">
+          <div className="relative flex items-center max-w-md w-full">
+              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <svg 
+                      className="w-5 h-5 text-gray-400" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      viewBox="0 0 24 24" 
+                      xmlns="http://www.w3.org/2000/svg"
+                  >
+                      <path 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round" 
+                          strokeWidth={2} 
+                          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" 
+                      />
+                  </svg>
+              </div>
               <input
                   type="text"
                   placeholder="Search your shop"
                   value={searchQuery}
                   onChange={(e) => {
-                    setSearchQuery(e.target.value);
-                    setHasSearched(false);
-                    setSearchResults([]);
-                }}
-                  className="flex-grow px-4 py-2 rounded-l-lg border-t border-b border-l text-gray-800 border-gray-200 bg-white"
+                      setSearchQuery(e.target.value);
+                      setHasSearched(false);
+                      setSearchResults([]);
+                  }}
+                  className="w-full pl-10 pr-24 py-2.5 text-sm text-gray-900 bg-white rounded-lg border border-gray-300 focus:ring-2 focus:ring-orange-300 focus:border-orange-500 outline-none transition duration-300 ease-in-out"
               />
-              {hasSearched && searchResults.length === 0 ? (
+              { hasSearched && searchResults.length === 0 && (
                   <button 
                       onClick={clearSearch}
-                      className="px-6 py-3 bg-gray-300 text-gray-700 font-semibold hover:bg-gray-400"
+                      className="absolute right-20 text-gray-400 hover:text-gray-600 transition duration-200"
                   >
-                      Clear
-                  </button>
-              ) : (
-                  <button 
-                      onClick={handleSearch}
-                      className="px-6 py-3 bg-orange-500 text-white font-semibold hover:bg-orange-600"
-                  >
-                      Search
+                      <svg 
+                          xmlns="http://www.w3.org/2000/svg" 
+                          className="h-5 w-5" 
+                          fill="none" 
+                          viewBox="0 0 24 24" 
+                          stroke="currentColor"
+                      >
+                          <path 
+                              strokeLinecap="round" 
+                              strokeLinejoin="round" 
+                              strokeWidth={2} 
+                              d="M6 18L18 6M6 6l12 12" 
+                          />
+                      </svg>
                   </button>
               )}
+              <button 
+                  onClick={handleSearch}
+                  className="absolute right-0 top-0 bottom-0 px-4 bg-orange-500 text-white text-sm font-medium rounded-r-lg hover:bg-orange-600 focus:ring-2 focus:ring-orange-300 transition duration-300 ease-in-out"
+              >
+                  Search
+              </button>
           </div>
         </div>
         <img
@@ -358,56 +386,7 @@ export default function Home() {
                     </div>
                 </div>
             </section>
-      {/* <section className="py-12 bg-white">
-            <div className="container mx-auto px-4">
-                <h2 className="text-3xl font-semibold mb-8">
-                    {searchResults.length > 0 ? 'Search Results' : 'Ration shops near you'}
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {isCurrentlyLoading ? (
-                        // Shimmer loader for multiple shop cards
-                        <>
-                            {[...Array(4)].map((_, index) => (
-                                <ShopCardShimmer key={index} />
-                            ))}
-                        </>
-                    ) : error ? (
-                        <div className="col-span-full text-red-500 text-center mb-4">
-                            {error}
-                        </div>
-                    ) : (
-                        displayShops.map((shop) => (
-                            <ShopCard key={shop.shop_id} shop={shop} />
-                        ))
-                    )}
-                </div>
-            </div>
-        </section> */}
-      {/* <section className="py-12 bg-white">
-        <div className="container mx-auto px-4">
-            <h2 className="text-3xl font-semibold mb-8">Ration shops near you</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {loading ? (
-                    // Shimmer loader for multiple shop cards
-                    <>
-                        {[...Array(4)].map((_, index) => (
-                            <ShopCardShimmer key={index} />
-                        ))}
-                    </>
-                ) : error ? (
-                    <div className="col-span-full text-red-500 text-center mb-4">
-                        {error}
-                    </div>
-                ) : (
-                    sortedShops.map((shop) => (
-                        <ShopCard key={shop.shop_id} shop={shop} />
-                    ))
-                )}
-            </div>
-        </div>
-    </section> */}
-
-      <section className="py-12 bg-orange-50">
+          <section className="py-12 bg-orange-50">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-semibold mb-8">Ration Card Services</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
