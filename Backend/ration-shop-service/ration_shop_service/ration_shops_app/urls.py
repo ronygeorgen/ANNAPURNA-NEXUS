@@ -18,4 +18,5 @@ urlpatterns = [
     path('profile/delete_shop_image/<int:image_id>/', SubAdminShopImageDelete.as_view(), name='delete_shop_image'),
     path('shops/', ShopDisplayAtUser.as_view(), name='display-shop'),
     path('fetch-all-shops/', GetShopIDandName.as_view(), name='get-shop-id-name'),
+    path('search/', ShopSearchView.as_view(), name='search-shop'),
 ]

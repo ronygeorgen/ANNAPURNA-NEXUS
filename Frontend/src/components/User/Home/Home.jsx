@@ -27,8 +27,14 @@ export default function Home() {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const location = useLocation()
+    const [searchQuery, setSearchQuery] = useState('');
+    const [searchResults, setSearchResults] = useState([]);
+    const [searchLoading, setSearchLoading] = useState(false);
+    const [hasSearched, setHasSearched] = useState(false);
 
     const { shops, loading, error } = useSelector(state => state.shops);
+    const userLocation = useSelector(state => state.auth.location);
+
     
     const sortedShops = [...shops].sort((a, b) => 
       (a.distance || Infinity) - (b.distance || Infinity)
@@ -45,6 +51,49 @@ export default function Home() {
     
         requestLocationPermission();
       }, [dispatch, navigate]);
+
+      const handleSearch = async () => {
+        console.log('searchQuery:', searchQuery);
+        
+        if (!searchQuery.trim()) {
+            setSearchResults([]);
+            setHasSearched(true);
+            return;
+        }
+
+        try {
+            setSearchLoading(true);
+            
+            const response = await api.get('/ration-shop/search/', {
+                params: {
+                    q: searchQuery,
+                    latitude: userLocation.latitude,
+                    longitude: userLocation.longitude,
+                }
+            });
+
+            setSearchResults(response.data);
+            setHasSearched(true);
+        } catch (error) {
+            toast.error('Failed to search shops');
+            setSearchResults([]);
+        } finally {
+            setSearchLoading(false);
+        }
+    };
+
+    const displayShops = !searchQuery 
+    ? sortedShops 
+    : (hasSearched ? searchResults : sortedShops);
+    
+    const isCurrentlyLoading = searchLoading || loading;
+    
+    const clearSearch = () => {
+        setSearchQuery('');
+        setSearchResults([]);
+        setHasSearched(false);
+
+    };
     
     const handleLogout = async () => {
         try {
@@ -230,15 +279,33 @@ export default function Home() {
       <header className="relative bg-orange-100 h-[600px]">
       <div className="container mx-auto px-4 relative z-10 pt-60 ml-[30%]">
          <h1 className="text-4xl font-bold mb-4 text-gray-800">Website for ration subsidies!</h1>
-          <div className="flex max-w-md">
-            <input
-              type="text"
-              placeholder="Search your shop"
-              className="flex-grow px-4 py-2 rounded-l-lg border-t border-b border-l text-gray-800 border-gray-200 bg-white"
-            />
-            <button className="px-6 py-3 rounded-r-lg bg-orange-500 text-white font-semibold hover:bg-orange-600">
-              Search
-            </button>
+         <div className="flex max-w-md">
+              <input
+                  type="text"
+                  placeholder="Search your shop"
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setHasSearched(false);
+                    setSearchResults([]);
+                }}
+                  className="flex-grow px-4 py-2 rounded-l-lg border-t border-b border-l text-gray-800 border-gray-200 bg-white"
+              />
+              {hasSearched && searchResults.length === 0 ? (
+                  <button 
+                      onClick={clearSearch}
+                      className="px-6 py-3 bg-gray-300 text-gray-700 font-semibold hover:bg-gray-400"
+                  >
+                      Clear
+                  </button>
+              ) : (
+                  <button 
+                      onClick={handleSearch}
+                      className="px-6 py-3 bg-orange-500 text-white font-semibold hover:bg-orange-600"
+                  >
+                      Search
+                  </button>
+              )}
           </div>
         </div>
         <img
@@ -248,6 +315,75 @@ export default function Home() {
         />
       </header>
       <section className="py-12 bg-white">
+          <div className="container mx-auto px-4">
+              <h2 className="text-3xl font-semibold mb-8">
+                  {hasSearched  ? 'Search Results' : 'Ration shops near you'}
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    {isCurrentlyLoading ? (
+                            <>
+                                {[...Array(4)].map((_, index) => (
+                                    <ShopCardShimmer key={index} />
+                                ))}
+                            </>
+                        ) : error ? (
+                            <div className="col-span-full text-red-500 text-center mb-4">
+                                {error}
+                            </div>
+                        ) : hasSearched && displayShops.length === 0 ? (
+                          <div className="col-span-full text-center py-10">
+                          <svg 
+                              xmlns="http://www.w3.org/2000/svg" 
+                              className="h-16 w-16 mx-auto text-red-400 mb-4" 
+                              fill="none" 
+                              viewBox="0 0 24 24" 
+                              stroke="currentColor"
+                          >
+                              <path 
+                                  strokeLinecap="round" 
+                                  strokeLinejoin="round" 
+                                  strokeWidth={2} 
+                                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" 
+                              />
+                          </svg>
+                          <p className="text-xl text-gray-600">
+                              No shops found matching "{searchQuery}"
+                          </p>
+                      </div>
+                          ) : (
+                              displayShops.map((shop) => (
+                                  <ShopCard key={shop.shop_id} shop={shop} />
+                              ))
+                          )}
+                    </div>
+                </div>
+            </section>
+      {/* <section className="py-12 bg-white">
+            <div className="container mx-auto px-4">
+                <h2 className="text-3xl font-semibold mb-8">
+                    {searchResults.length > 0 ? 'Search Results' : 'Ration shops near you'}
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    {isCurrentlyLoading ? (
+                        // Shimmer loader for multiple shop cards
+                        <>
+                            {[...Array(4)].map((_, index) => (
+                                <ShopCardShimmer key={index} />
+                            ))}
+                        </>
+                    ) : error ? (
+                        <div className="col-span-full text-red-500 text-center mb-4">
+                            {error}
+                        </div>
+                    ) : (
+                        displayShops.map((shop) => (
+                            <ShopCard key={shop.shop_id} shop={shop} />
+                        ))
+                    )}
+                </div>
+            </div>
+        </section> */}
+      {/* <section className="py-12 bg-white">
         <div className="container mx-auto px-4">
             <h2 className="text-3xl font-semibold mb-8">Ration shops near you</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -269,7 +405,7 @@ export default function Home() {
                 )}
             </div>
         </div>
-    </section>
+    </section> */}
 
       <section className="py-12 bg-orange-50">
         <div className="container mx-auto px-4">

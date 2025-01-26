@@ -16,6 +16,7 @@ from django.db import models
 import cloudinary
 from cloudinary.exceptions import Error as CloudinaryError
 from .services import MapboxGeocoder
+from django.db.models import Q
 from math import radians, sin, cos, sqrt, atan2
 
 class SubAdminListView(APIView):
@@ -227,8 +228,6 @@ class ShopDisplayAtUser(APIView):
             # Get user's location from query params
             user_lat = request.query_params.get('latitude')
             user_lon = request.query_params.get('longitude')
-            print('user_lat:',user_lat)
-            print('user_lon:',user_lon)
             max_distance = float(request.query_params.get('max_distance', 10))
 
             # Base query with existing prefetching
@@ -276,6 +275,34 @@ class ShopDisplayAtUser(APIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
+class ShopSearchView(APIView):
+    authentication_classes = [UserJWTAuthentication]
+
+    def get(self, request):
+        query = request.query_params.get('q', '')
+        user_lat = request.query_params.get('latitude')
+        user_lon = request.query_params.get('longitude')
+
+        # Search by name or location, case-insensitive
+        shops = RationShop.objects.filter(
+            Q(name__istartswith=query) | 
+            Q(location__istartswith=query),
+            is_active=True
+        ).select_related('owner').prefetch_related('images')
+
+        # Apply context for distance calculation if location provided
+        context = {
+            'request': request,
+            'user_distance': bool(user_lat and user_lon)
+        }
+
+        serializer = PublicShopDisplaySerializer(
+            shops, 
+            many=True, 
+            context=context
+        )
+
+        return Response(serializer.data)
 
 class GetShopIDandName(APIView):
     authentication_classes = [UserJWTAuthentication]

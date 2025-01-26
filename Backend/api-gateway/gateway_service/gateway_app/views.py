@@ -40,6 +40,16 @@ class UpdateLocation(APIView):
             return response
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+class GetSearchedShops(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request, *args, **kwargs):
+        try:
+            response = ration_shop.get_searched_shops(request)
+            return response
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class AdminLoginView(APIView):

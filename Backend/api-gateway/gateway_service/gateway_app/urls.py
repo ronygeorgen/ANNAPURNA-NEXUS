@@ -20,6 +20,7 @@ urlpatterns = [
     path('ration-shop/profile/delete_shop_image/<int:image_id>/', SubAdminShopImageDeleteView.as_view()),
     path('ration-shop/shops/', GetRationShopsAtUserSide.as_view()),
     path('ration-shop/fetch-all-shops/', GetAllShops.as_view()),
+    path('ration-shop/search/', GetSearchedShops.as_view()),
 
     path('ration-card/create/', CreateRationCard.as_view()),
     path('ration-card/fetch/', GetRationCards.as_view()),
