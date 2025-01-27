@@ -1,7 +1,7 @@
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.views import APIView
-from .serializers import RegisterSerializer, LoginSerializer, CreateSubAdminSerializer
+from .serializers import RegisterSerializer, LoginSerializer, CreateSubAdminSerializer, GoogleAuthSerializer
 from rest_framework import status
 from django.http import JsonResponse
 from django.contrib.auth import authenticate
@@ -11,6 +11,10 @@ from users_admins_app.models import Account
 import logging
 from .authentication import UserJWTAuthenticationCards
 from django.db.models import Count, Sum
+from google.oauth2 import id_token
+from google.auth.transport import requests
+from django.conf import settings
+
 
 logger = logging.getLogger(__name__)
 
@@ -90,6 +94,61 @@ class UpdateLocationView(APIView):
             'latitude': latitude,
             'longitude': longitude
         })
+
+
+class GoogleAuthView(APIView):
+    def post(self, request):
+        GOOGLE_CLIENT_ID = settings.GOOGLE_CLIENT_ID
+        serializer = GoogleAuthSerializer(data=request.data)
+        if serializer.is_valid():
+            auth_token = serializer.validated_data['auth_token']
+            
+            try:
+                # Verify the token
+                idinfo = id_token.verify_oauth2_token(
+                    auth_token, 
+                    requests.Request(), 
+                    GOOGLE_CLIENT_ID  
+                )
+                print("Google user info:", idinfo)
+
+                # Get or create user
+                email = idinfo['email']
+                user, created = Account.objects.get_or_create(
+                    email=email,
+                    defaults={
+                        'google_id': idinfo['sub'],
+                        'first_name': idinfo.get('given_name', ''),
+                        'last_name': idinfo.get('family_name', ''),
+                        'is_active': True,
+                        'is_user': True
+                    }
+                )
+                
+
+                # Generate tokens
+                tokens = get_tokens_for_user(user)
+                
+                response_data = {
+                    "message": "Login successful",
+                    "user": {
+                        "id": user.id,
+                        "email": user.email,
+                        "first_name": user.first_name,
+                        "last_name": user.last_name,
+                    },
+                    "tokens": tokens
+                }
+
+                response = JsonResponse(response_data)
+                response.set_cookie('access_token', tokens['access'], httponly=True, secure=True, samesite='Strict')
+                response.set_cookie('refresh_token', tokens['refresh'], httponly=True, secure=True, samesite='Strict')
+                return response
+
+            except ValueError:
+                return Response({"error": "Invalid token"}, status=400)
+
+        return Response(serializer.errors, status=400)
 
 class AdminLoginView(APIView):
     def post(self, request, *args, **kwargs):

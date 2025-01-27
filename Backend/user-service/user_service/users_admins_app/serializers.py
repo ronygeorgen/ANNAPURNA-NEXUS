@@ -41,3 +41,17 @@ class CreateSubAdminSerializer(serializers.ModelSerializer):
             password = validated_data['password'],
         )
         return user
+
+class GoogleAuthSerializer(serializers.Serializer):
+    auth_token = serializers.CharField()
+    
+    def validate_auth_token(self, auth_token):
+        if not auth_token:
+            raise serializers.ValidationError("Auth token is required")
+        return auth_token
+
+class GoogleUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Account
+        fields = ['id', 'email', 'first_name', 'last_name', 'is_active', 'is_user']
+        read_only_fields = ['id', 'is_active', 'is_user']

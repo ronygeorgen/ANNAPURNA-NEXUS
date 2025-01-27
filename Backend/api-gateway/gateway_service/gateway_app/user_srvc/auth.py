@@ -60,6 +60,46 @@ def login(request):
     else:
         return JsonResponse({'error': 'Method not allowed'}, status=405)
 
+
+def google_auth(request):
+    if request.method == 'POST':
+        try:
+            json_data = json.loads(request.body)
+            auth_token = json_data.get('auth_token')  # Extract auth_token
+            
+            if not auth_token:
+                return JsonResponse({'error': 'Auth token is required'}, status=400)
+                
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+
+        try:
+            google_auth_service_url = os.environ.get('USER_SVC_ADDRESS', 'http://localhost:8000/user/google-auth/')
+            
+            # Forward the request with auth_token
+            response = requests.post(
+                google_auth_service_url, 
+                json={'auth_token': auth_token}  # Explicitly passing auth_token
+            )
+            
+            gateway_response = JsonResponse(response.json(), status=response.status_code)
+
+            # Forward cookies from the service response
+            for cookie in response.cookies:
+                gateway_response.set_cookie(
+                    key=cookie.name, 
+                    value=cookie.value, 
+                    httponly=cookie.has_nonstandard_attr('HttpOnly'),
+                    secure=cookie.secure,
+                    samesite=cookie.get_nonstandard_attr('SameSite')
+                )
+            
+            return gateway_response
+        except requests.RequestException as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    else:
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+
 def updatelocation(request):
     if request.method == 'PATCH':
         try:

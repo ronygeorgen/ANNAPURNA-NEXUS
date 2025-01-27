@@ -12,6 +12,7 @@ urlpatterns = [
     path('refresh-token/', RefreshView.as_view(), name='refresh-view'),
     path('user/user-count/', GetUsersCount.as_view(), name='refresh-view'),
     path('user/update-location/', UpdateLocation.as_view(), name='update-location'),
+    path('user/google-auth/', GoogleLoginView.as_view(), name='google-login'),
 
     path('ration-shop/profile/', SubAdminProfileView.as_view()),
     path('ration-shop/profile/update/', SubAdminProfileView.as_view()),

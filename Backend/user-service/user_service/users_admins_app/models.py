@@ -45,6 +45,7 @@ class Account(AbstractBaseUser):
     phone_number = models.CharField(max_length=50, blank=True)
     latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    google_id = models.CharField(max_length=150, blank=True, null=True)
 
     #required
     date_joined = models.DateTimeField(auto_now_add=True)

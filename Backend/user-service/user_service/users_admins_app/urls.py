@@ -10,4 +10,5 @@ urlpatterns = [
     path('refresh-token/', RefreshTokenView.as_view(), name='token_refresh'),
     path('user-count/', UserCountView.as_view(), name='token_refresh'),
     path('update-location/', UpdateLocationView.as_view(), name='update_location'),
+    path('google-auth/', GoogleAuthView.as_view(), name='google-auth'),
 ]

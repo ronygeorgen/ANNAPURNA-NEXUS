@@ -220,7 +220,7 @@ CELERY_BEAT_SCHEDULE = {
     },
     'reset-quota-quantities': {
         'task': 'ration_cards_app.tasks.reset_remaining_quantities',
-        'schedule': crontab(day_of_month='last', hour=23, minute=59),  # Last second of month
+        'schedule': crontab(day_of_month='28-31', hour=23, minute=59),  # Last second of month
     },
 }
 

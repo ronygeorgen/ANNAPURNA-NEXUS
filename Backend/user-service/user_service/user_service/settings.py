@@ -125,6 +125,8 @@ KAFKA_TOPIC_RATION_SHOP_CREATION_EVENTS = 'ration_shop_events'
 KAFKA_CONSUMER_GROUP = 'user_service_shop_consumer'
 KAFKA_CLIENT_ID = 'user_service_producer'
 
+GOOGLE_CLIENT_ID = env('GOOGLE_CLIENT_ID')
+GOOGLE_CLIENT_SECRET = env('GOOGLE_CLIENT_SECRET')
 
 LOGGING = {
     'version': 1,

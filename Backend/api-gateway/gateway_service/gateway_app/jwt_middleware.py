@@ -15,7 +15,8 @@ def jwt_middleware(get_response):
             '/logout/',
             '/admin-login/',
             '/sub-admin-login/',
-            '/refresh-token/'
+            '/refresh-token/',
+            '/google-auth/'
         ]
 
         if any(request.path.endswith(path) for path in exempt_paths):
