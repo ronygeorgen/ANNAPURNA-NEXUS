@@ -7,13 +7,18 @@ from django.http import JsonResponse
 from django.contrib.auth import authenticate
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.permissions import BasePermission
-from users_admins_app.models import Account
+from users_admins_app.models import Account, OTP
 import logging
 from .authentication import UserJWTAuthenticationCards
 from django.db.models import Count, Sum
 from google.oauth2 import id_token
 from google.auth.transport import requests
 from django.conf import settings
+from django.core.mail import send_mail
+from django.utils import timezone
+import random
+from datetime import timedelta
+
 
 
 logger = logging.getLogger(__name__)
@@ -28,53 +33,136 @@ def get_tokens_for_user(user):
         'access': str(refresh.access_token),
     }
 
+def generate_otp():
+    return ''.join([str(random.randint(0, 9)) for _ in range(6)])
+
+def send_otp_email(email, otp):
+    subject = 'Your OTP for Email Verification'
+    message = f'Your OTP is: {otp}\nThis OTP will expire in 2 minutes.'
+    from_email = settings.EMAIL_HOST_USER
+    recipient_list = [email]
+    
+    send_mail(subject, message, from_email, recipient_list)
+
 class RegisterView(APIView):
     def post(self, request, *args, **kwargs):
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
+            otp = generate_otp()
+            OTP.objects.create(user=user, otp=otp)
+            send_otp_email(user.email, otp)
+
+            user_data = {
+                "id": user.id,
+                "email": user.email,
+            }
+            response_data = {
+                "message": "Registration successful. Please verify OTP.",
+                "user": user_data,
+                # "tokens": tokens
+            }
+            response = JsonResponse(response_data, status=status.HTTP_201_CREATED)
+            return response
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class VerifyOTPView(APIView):
+    def post(self, request):
+        user_id = request.data.get('user_id')
+        otp_value = request.data.get('otp')
+        
+        try:
+            user = Account.objects.get(id=user_id)
+            otp_obj = OTP.objects.filter(user=user).latest('created_at')
+            
+            if not otp_obj.is_valid():
+                return Response({
+                    "error": "OTP has expired"
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            if otp_obj.otp != otp_value:
+                otp_obj.attempts += 1
+                otp_obj.save()
+                return Response({
+                    "error": "Invalid OTP"
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            user.email_verified = True
+            user.save()
+            
+            tokens = get_tokens_for_user(user)
+            return Response({
+                "message": "Email verified successfully",
+                "tokens": tokens
+            }, status=status.HTTP_200_OK)
+            
+        except Account.DoesNotExist:
+            return Response({
+                "error": "User not found"
+            }, status=status.HTTP_404_NOT_FOUND)
+        except OTP.DoesNotExist:
+            return Response({
+                "error": "No OTP found"
+            }, status=status.HTTP_404_NOT_FOUND)
+
+class ResendOTPView(APIView):
+    def post(self, request):
+        user_id = request.data.get('user_id')
+        
+        try:
+            user = Account.objects.get(id=user_id)
+            last_otp = OTP.objects.filter(user=user).latest('created_at')
+            
+            # Check if 30 seconds have passed since last OTP
+            time_diff = timezone.now() - last_otp.created_at
+            if time_diff.total_seconds() < 30:
+                return Response({
+                    "error": "Please wait before requesting new OTP",
+                    "wait_time": 30 - int(time_diff.total_seconds())
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Generate and send new OTP
+            new_otp = generate_otp()
+            OTP.objects.create(user=user, otp=new_otp)
+            send_otp_email(user.email, new_otp)
+            
+            return Response({
+                "message": "New OTP sent successfully"
+            }, status=status.HTTP_200_OK)
+            
+        except Account.DoesNotExist:
+            return Response({
+                "error": "User not found"
+            }, status=status.HTTP_404_NOT_FOUND)
+
+
+class LoginView(APIView):
+    def post(self, request, *args, **kwargs):
+        serializer = LoginSerializer(data=request.data)
+        if serializer.is_valid():
+            # Get the pre-authenticated user from serializer
+            user = serializer.validated_data['user']
+            
             tokens = get_tokens_for_user(user)
             user_data = {
                 "id": user.id,
                 "email": user.email,
             }
             response_data = {
-                "message": "Registration successful",
+                "message": "Login successful",
                 "user": user_data,
                 "tokens": tokens
             }
-            response = JsonResponse(response_data, status=status.HTTP_201_CREATED)
+            response = JsonResponse(response_data, status=status.HTTP_200_OK)
             response.set_cookie('access_token', tokens['access'], httponly=True, secure=True, samesite='Strict')
             response.set_cookie('refresh_token', tokens['refresh'], httponly=True, secure=True, samesite='Strict')
             return response
+            
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
 
-class LoginView(APIView):
-    def post(self, request, *args, **kwargs):
-        serializer = LoginSerializer(data=request.data)
-        if serializer.is_valid():
-            email = serializer.validated_data['email']
-            password = serializer.validated_data['password']
-            user = authenticate(request, email=email, password=password)
 
-            if user is not None:
-                tokens = get_tokens_for_user(user)
-                user_data = {
-                    "id": user.id,
-                    "email": user.email,
-                }
-                response_data = {
-                    "message": "Login successful",
-                    "user": user_data,
-                    "tokens": tokens
-                }
-                response = JsonResponse(response_data, status=status.HTTP_200_OK)
-                response.set_cookie('access_token', tokens['access'], httponly=True, secure=True, samesite='Strict')
-                response.set_cookie('refresh_token', tokens['refresh'], httponly=True, secure=True, samesite='Strict')
-                return response
-            return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
-        
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class UpdateLocationView(APIView):
 
@@ -110,7 +198,6 @@ class GoogleAuthView(APIView):
                     requests.Request(), 
                     GOOGLE_CLIENT_ID  
                 )
-                print("Google user info:", idinfo)
 
                 # Get or create user
                 email = idinfo['email']

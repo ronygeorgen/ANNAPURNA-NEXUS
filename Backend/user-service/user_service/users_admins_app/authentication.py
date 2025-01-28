@@ -19,7 +19,9 @@ class UserJWTAuthenticationCards(JWTAuthentication):
             '/admin-login/',
             '/sub-admin-login/',
             '/refresh-token/',
-            '/google-auth/'
+            '/google-auth/',
+            '/verify-otp/',
+            '/resend-otp/',
         ]
         if any(request.path.endswith(path) for path in exempt_paths):
             return None

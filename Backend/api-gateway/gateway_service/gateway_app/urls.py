@@ -13,6 +13,10 @@ urlpatterns = [
     path('user/user-count/', GetUsersCount.as_view(), name='refresh-view'),
     path('user/update-location/', UpdateLocation.as_view(), name='update-location'),
     path('user/google-auth/', GoogleLoginView.as_view(), name='google-login'),
+    path('user/verify-otp/', VerifySignupOtp.as_view()),
+    path('user/resend-otp/', ResendSignupOtp.as_view()),
+    
+
 
     path('ration-shop/profile/', SubAdminProfileView.as_view()),
     path('ration-shop/profile/update/', SubAdminProfileView.as_view()),

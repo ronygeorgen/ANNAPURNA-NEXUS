@@ -11,4 +11,6 @@ urlpatterns = [
     path('user-count/', UserCountView.as_view(), name='token_refresh'),
     path('update-location/', UpdateLocationView.as_view(), name='update_location'),
     path('google-auth/', GoogleAuthView.as_view(), name='google-auth'),
+    path('verify-otp/', VerifyOTPView.as_view(), name='verify-otp'),
+    path('resend-otp/', ResendOTPView.as_view(), name='resend-otp'),
 ]

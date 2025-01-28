@@ -1,3 +1,4 @@
+from django.utils import timezone
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.contrib.auth.hashers import make_password
@@ -46,6 +47,7 @@ class Account(AbstractBaseUser):
     latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     google_id = models.CharField(max_length=150, blank=True, null=True)
+    email_verified = models.BooleanField(default=False)
 
     #required
     date_joined = models.DateTimeField(auto_now_add=True)
@@ -59,6 +61,16 @@ class Account(AbstractBaseUser):
     REQUIRED_FIELDS = []
     
     objects = MyAccountManager()
+
+class OTP(models.Model):
+    user = models.ForeignKey(Account, on_delete=models.CASCADE)
+    otp = models.CharField(max_length=6)
+    created_at = models.DateTimeField(auto_now_add=True)
+    attempts = models.IntegerField(default=0)
+    
+    def is_valid(self):
+        time_diff = timezone.now() - self.created_at
+        return time_diff.total_seconds() <= 120  # 2 minutes
 
 
 class UserProfile(models.Model):

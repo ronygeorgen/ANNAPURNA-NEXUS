@@ -1,28 +1,34 @@
-import React from 'react';
+import React, { useState } from 'react'; 
 import { useDispatch, useSelector } from 'react-redux';
 import { Formik, Form } from 'formik';
 import { SignupSchema } from '../../../utils/validationSchemas';
 import FormInput from '../../common/FormInput';
 import Button from '../../common/Button';
 import GradientBackground from '../../common/GradientBackground';
-import { registeruser } from '../../../features/auth/authSlice';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { GoogleLogin } from '@react-oauth/google';
 import { googleLogin } from '../../../features/auth/authSlice';
+import SignupOtp from '../SignupOtp/SignupOtp';
+import api from '../../../services/api';
 
 
 const Signup = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { isLoading, error } = useSelector((state) => state.auth );
+  const [showOTP, setShowOTP] = useState(false);
+  const [userData, setUserData] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  console.log('Signup -> userData', userData);
+  console.log('Signup -> showOTP', showOTP);
+  
 
     const handleGoogleSuccess = (credentialResponse) => {
       dispatch(googleLogin(credentialResponse.credential))
         .unwrap()
         .then((response) => {
           if (response.user) {
-            navigate('/home');
+            navigate('/');
             toast.success('Google login successful');
           }
         })
@@ -35,6 +41,11 @@ const Signup = () => {
     const handleGoogleError = () => {
       toast.error('Google login failed');
     };
+
+    if (showOTP) {
+      return <SignupOtp user_id={userData.id} email={userData.email} />;
+    }
+  
 
   return (
     <div className="flex min-h-screen bg-white">
@@ -51,20 +62,27 @@ const Signup = () => {
         <Formik
           initialValues={{ email: '', password: '', repeatPassword: '' }}
           validationSchema={SignupSchema}
-          onSubmit={(values, { setSubmitting }) => {
-            dispatch(registeruser({ email: values.email, password: values.password }))
-              .unwrap()
-              .then(() => {
-                navigate('/location-permission');
-                toast.success('Registration successful')
-              })
-              .catch((error) => {
-                toast.error('Registration failed!')
-                console.error('Registration failed:', error);
-              })
-              .finally(() => {
-                setSubmitting(false);
+          onSubmit={ async (values, { setSubmitting }) => {
+            try {
+              setIsLoading(true);
+              const response = await api.post('/user/register/', {
+                email: values.email,
+                password: values.password
               });
+
+              console.log('Registration response:', response.data.user);
+              
+              
+              setUserData(response.data.user);
+              setShowOTP(true);
+              toast.success('Registration successful');
+            } catch (error) {
+              toast.error(error.response?.data?.message || 'Registration failed!');
+              console.error('Registration failed:', error);
+            } finally {
+              setIsLoading(false);
+              setSubmitting(false);
+            }
           }}
         >
           {({ isSubmitting }) => (

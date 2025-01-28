@@ -61,6 +61,85 @@ def login(request):
         return JsonResponse({'error': 'Method not allowed'}, status=405)
 
 
+def resend_otp(request):
+    if request.method == 'POST':
+        try:
+            json_data = json.loads(request.body)
+            user_id = json_data.get('user_id')  # Extract auth_token
+            
+            if not user_id:
+                return JsonResponse({'error': 'user id is required'}, status=400)
+                
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+
+        try:
+            url = os.environ.get('USER_SVC_ADDRESS', 'http://localhost:8000/user/resend-otp/')
+            
+            # Forward the request with auth_token
+            response = requests.post(
+                url, 
+                json={'user_id': user_id}  # Explicitly passing user_id
+            )
+            
+            gateway_response = JsonResponse(response.json(), status=response.status_code)
+
+            # Forward cookies from the service response
+            for cookie in response.cookies:
+                gateway_response.set_cookie(
+                    key=cookie.name, 
+                    value=cookie.value, 
+                    httponly=cookie.has_nonstandard_attr('HttpOnly'),
+                    secure=cookie.secure,
+                    samesite=cookie.get_nonstandard_attr('SameSite')
+                )
+            
+            return gateway_response
+        except requests.RequestException as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    else:
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+def verify_signup_otp(request):
+    if request.method == 'POST':
+        try:
+            json_data = json.loads(request.body)
+            user_id = json_data.get('user_id')   
+            otp = json_data.get('otp')  
+            
+            if not user_id or not otp:
+                return JsonResponse({'error': 'user id and otp is required'}, status=400)
+                
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+
+        try:
+            url = os.environ.get('USER_SVC_ADDRESS', 'http://localhost:8000/user/verify-otp/')
+            
+            # Forward the request with auth_token
+            response = requests.post(
+                url, 
+                json={'user_id': user_id, 'otp': otp  }  # Explicitly passing user_id and otp
+            )
+            
+            gateway_response = JsonResponse(response.json(), status=response.status_code)
+
+            # Forward cookies from the service response
+            for cookie in response.cookies:
+                gateway_response.set_cookie(
+                    key=cookie.name, 
+                    value=cookie.value, 
+                    httponly=cookie.has_nonstandard_attr('HttpOnly'),
+                    secure=cookie.secure,
+                    samesite=cookie.get_nonstandard_attr('SameSite')
+                )
+            
+            return gateway_response
+        except requests.RequestException as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    else:
+        return JsonResponse({'error': 'Method not allowed'}, status=405)
+    
 def google_auth(request):
     if request.method == 'POST':
         try:

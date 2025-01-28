@@ -3,17 +3,17 @@ import api from '../../services/api'
 import { fetchShops } from '../fetch-nearbyshop-home/shopsSlice';
 import { REHYDRATE } from 'redux-persist';
 
-export const registeruser = createAsyncThunk(
-    'auth/register',
-    async (userData, { rejectWithValue }) => {
-        try {
-            const response = await api.post('/user/register/', userData);
-            return response.data.user
-        } catch (error) {
-            return rejectWithValue(error.response.data);
-        }
-    }
-);
+// export const registeruser = createAsyncThunk(
+//     'auth/register',
+//     async (userData, { rejectWithValue }) => {
+//         try {
+//             const response = await api.post('/user/register/', userData);
+//             return response.data.user
+//         } catch (error) {
+//             return rejectWithValue(error.response.data);
+//         }
+//     }
+// );
 
 export const loginuser = createAsyncThunk(
     'auth/login',
@@ -145,20 +145,17 @@ const authSlice = createSlice({
       },
     extraReducers: (builder) => {
         builder
-            .addCase(registeruser.pending, (state) => {
-                state.isLoading = true;
-                state.error = null;
-            })
-            .addCase(registeruser.fulfilled, (state, action) => {
-                state.isLoading = false;
-                state.user = action.payload;
-                state.isAuthenticated = true;
-            })
-            .addCase(registeruser.rejected, (state, action) => {
-                state.isLoading = false;
-                state.error = action.payload;
-                state.isAuthenticated = false;
-            })
+            // .addCase(registeruser.pending, (state) => {
+            //     state.isLoading = true;
+            //     state.error = null;
+            // })
+            // .addCase(registeruser.fulfilled, (state, action) => {
+            //     state.isLoading = false;
+            // })
+            // .addCase(registeruser.rejected, (state, action) => {
+            //     state.isLoading = false;
+            //     state.isAuthenticated = false;
+            // })
         
             .addCase(loginuser.pending, (state) => {
               state.isLoading = true;

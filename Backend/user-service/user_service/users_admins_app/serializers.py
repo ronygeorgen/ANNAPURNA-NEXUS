@@ -24,10 +24,15 @@ class LoginSerializer(serializers.Serializer):
         user = authenticate(username=data['email'], password=data['password'])
         if not user:
             raise serializers.ValidationError("Invalid credentials")
-        elif not user.is_active:
+        if not user.is_active:
             raise serializers.ValidationError("User account is disabled")
-        return data
-
+        if not user.email_verified:  # Add email verification check here
+            raise serializers.ValidationError("Email not verified")
+        return {
+            'email': data['email'],
+            'password': data['password'],
+            'user': user  
+        }
 class CreateSubAdminSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
     

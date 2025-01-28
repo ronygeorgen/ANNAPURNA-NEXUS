@@ -35,7 +35,7 @@ import CashOnDeliverySuccessPage from './pages/CashOnDeliverySuccess';
 import FaceAuthenticationComponentPage from './pages/FaceAuthenticationComponent';
 import OtpComponentPage from './pages/OtpComponent';
 import RequestedCardsPage from './pages/RequestedCards';
-import LocationPermissionPage from './pages/LocationPermission';
+import SignupOtp from './components/User/SignupOtp/SignupOtp';
 
 const App = () => {
   const { isAuthenticated, user } = useSelector((state) => state.auth);
@@ -76,6 +76,7 @@ const App = () => {
           {/* user routes*/}
         <Route path="/signup"  element={<GuestRoute> <SignupPage /> </GuestRoute>} />
         <Route path="/login" element={<GuestRoute> <LoginPage /> </GuestRoute>} />
+        <Route path="/signup-otp" element={<GuestRoute> <SignupOtp /> </GuestRoute>} />
         <Route path="/home" element={<ProtectedRoute allowAdmin={false} allowSubAdmin={false}> <HomePage /> </ProtectedRoute>} />
         <Route path="/home/selected-shop/" element={<ProtectedRoute allowAdmin={false} allowSubAdmin={false}> <SelectedShopPage /> </ProtectedRoute>} />
         <Route path="/home/selected-shop/face-recognition/" element={<ProtectedRoute allowAdmin={false} allowSubAdmin={false}> <FaceAuthenticationComponentPage /> </ProtectedRoute>} />
@@ -86,7 +87,6 @@ const App = () => {
         <Route path="/home/selected-shop/choose-subsidies/checkout-page/success" element={<ProtectedRoute allowAdmin={false} allowSubAdmin={false}> <StripeSuccessPage /> </ProtectedRoute>} />
         <Route path="/home/selected-shop/choose-subsidies/checkout-page/COD-success" element={<ProtectedRoute allowAdmin={false} allowSubAdmin={false}> <CashOnDeliverySuccessPage /> </ProtectedRoute>} />
         <Route path="/home/requested-cards" element={<ProtectedRoute allowAdmin={false} allowSubAdmin={false}> <RequestedCardsPage /> </ProtectedRoute>} />
-        <Route path="/location-permission" element={<ProtectedRoute allowAdmin={false} allowSubAdmin={false}> <LocationPermissionPage /> </ProtectedRoute>} />
           
           {/* sub-admin routes */}
         <Route path="/sub-admin-login" element={<GuestRoute> <SubAdminLoginPage /> </GuestRoute>} />
