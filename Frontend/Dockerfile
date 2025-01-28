@@ -12,6 +12,7 @@ COPY tailwind.config.js ./
 COPY postcss.config.js ./
 COPY vite.config.js ./
 COPY index.html ./
+COPY .env ./  
 
 # Copy source files
 COPY src ./src
@@ -33,7 +34,7 @@ RUN npm install -g serve
 # Create non-root user and set permissions
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
-# Copy the dist directory
+# Copy only the dist directory
 COPY --from=build --chown=appuser:appgroup /app/dist ./dist
 
 # Ensure correct permissions
@@ -44,5 +45,5 @@ USER appuser
  
 EXPOSE 3000
 
-# Use serve directly instead of a script
+# Use serve directly
 CMD ["serve", "-s", "dist", "-l", "3000", "--no-clipboard", "--single"]

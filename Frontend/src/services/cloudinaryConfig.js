@@ -21,14 +21,12 @@ export const uploadToCloudinary = async (file) => {
     );
 
     const data = await response.json();
-    console.log('Cloudinary upload response:', data);
     
     return {
       url: data.secure_url,
       public_id: data.public_id
     };
   } catch (error) {
-    console.error('Cloudinary upload error:', error);
     throw error;
   }
 };

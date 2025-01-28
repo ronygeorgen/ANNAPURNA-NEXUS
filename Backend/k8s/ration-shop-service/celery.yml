@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ration-shop-celery-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ration-shop-celery-worker
+  template:
+    metadata:
+      labels:
+        app: ration-shop-celery-worker
+    spec:
+      containers:
+      - name: celery-worker
+        image: ronygeorgen/ration-shop-service:latest
+        command: ["celery", "-A", "ration_shop_service", "worker", "--pool=solo", "--loglevel=info"]
+        envFrom:
+        - configMapRef:
+            name: common-configmap
+        - secretRef:
+            name: common-secret
+        env:
+        - name: DATABASE_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: common-configmap
+              key: RATION_SHOP_DB
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "200m"
+---
+# celery-beat.yml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ration-shop-celery-beat
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ration-shop-celery-beat
+  template:
+    metadata:
+      labels:
+        app: ration-shop-celery-beat
+    spec:
+      containers:
+      - name: celery-beat
+        image: ronygeorgen/ration-shop-service:latest
+        command: ["celery", "-A", "ration_shop_service", "beat", "--loglevel=info"]
+        envFrom:
+        - configMapRef:
+            name: common-configmap
+        - secretRef:
+            name: common-secret
+        env:
+        - name: DATABASE_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: common-configmap
+              key: RATION_SHOP_DB
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
