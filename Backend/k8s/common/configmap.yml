@@ -35,3 +35,9 @@ data:
   ORDER_SERVICE_URL: "order-service:8003"
   RATION_SHOP_SERVICE_URL: "ration-shop-service:8002"
   NOTIFICATION_SERVICE_URL: "notification-service:8004"
+
+  DEFAULT_FILE_STORAGE: 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
+  # Storage Backend
+  DEFAULT_FILE_STORAGE: 'storages.backends.s3boto3.S3Boto3Storage'
+  STATICFILES_STORAGE: 'storages.backends.s3boto3.S3Boto3Storage'

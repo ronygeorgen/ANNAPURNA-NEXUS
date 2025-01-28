@@ -25,6 +25,7 @@ import math
 from scipy.spatial import distance
 from skimage.metrics import structural_similarity
 from .services.otp_services import OTPService
+from .tasks import send_otp_task
 from rest_framework.exceptions import NotFound
 
 
@@ -905,8 +906,9 @@ class OTPView(APIView):
             }, status=status.HTTP_400_BAD_REQUEST)
         
         try:
-            otp_service = OTPService()
-            otp_service.send_otp(user_email, card_number, phone_number)
+            # otp_service = OTPService()
+            # otp_service.send_otp(user_email, card_number, phone_number)
+            send_otp_task(user_email, card_number, phone_number)
             
             return Response({
                 'message': 'OTP sent successfully',

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { MyOrdersPopUp } from "../MyOrdersPopUp/MyOrdersPopUp";
 import { NotificationSideBar } from "../../common/NotificationSideBar";
 
@@ -7,6 +7,8 @@ function NavBar({ handleLogout }) {
   const [isOpen, setIsOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const profileDropdownRef = useRef(null);
+  const navigate = useNavigate();
+  
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -21,12 +23,33 @@ function NavBar({ handleLogout }) {
     };
   }, []);
 
+  const handleScroll = (sectionId) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      const navbarHeight = 80; // Approximate navbar height
+      const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
+      const offsetPosition = elementPosition - navbarHeight;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: "smooth"
+      });
+    }
+  };
+
+  const handleHomeClick = () => {
+    if (location.pathname !== "/home") {
+      navigate("/home");
+    } else {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
   const navItems = [
-    { name: "Home", href: "/home" },
-    { name: "Services", href: "#" },
+    { name: "Home", href: "/home", onClick: () => handleHomeClick() },
+    { name: "Services", href: "#", onClick: () => handleScroll("services-section") },
     { name: "Requested Cards", href: "/home/requested-cards" },
-    { name: "Contact", href: "#" },
-    { name: "About", href: "#" },
+    { name: "About", href: "#", onClick: () => handleScroll("about-section") },
   ];
 
   return (
@@ -43,7 +66,7 @@ function NavBar({ handleLogout }) {
 
           <div className="hidden md:flex  items-center space-x-4">
             {navItems.map((item) => (
-              <NavLink key={item.name} to={item.href}>
+              <NavLink key={item.name} to={item.href} onClick={item.onClick}>
                 {item.name}
               </NavLink>
             ))}
@@ -51,11 +74,11 @@ function NavBar({ handleLogout }) {
           </div>
 
           <div className="hidden md:flex items-center space-x-4">
-            <button className="text-gray-600 hover:text-orange-500 transition-colors duration-200">
+            {/* <button className="text-gray-600 hover:text-orange-500 transition-colors duration-200">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd" />
               </svg>
-            </button>
+            </button> */}
             
               <NotificationSideBar />
             <div className="relative" ref={profileDropdownRef}>
@@ -130,10 +153,17 @@ function NavBar({ handleLogout }) {
   );
 }
 
-function NavLink({ to, children }) {
+function NavLink({ to, children, onClick }) {
+  const handleClick = (e) => {
+    if (onClick) {
+      e.preventDefault();
+      onClick();
+    }
+  };
   return (
     <Link
       to={to}
+      onClick={handleClick}
       className="text-gray-600 hover:text-orange-500 transition-colors duration-200 font-medium"
     >
       {children}
@@ -141,7 +171,13 @@ function NavLink({ to, children }) {
   );
 }
 
-function MobileNavLink({ to, children }) {
+function MobileNavLink({ to, children, onClick }) {
+  const handleClick = (e) => {
+    if (onClick) {
+      e.preventDefault();
+      onClick();
+    }
+  };
   return (
     <Link
       to={to}

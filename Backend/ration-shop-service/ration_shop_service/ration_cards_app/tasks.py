@@ -5,6 +5,7 @@ from twilio.rest import Client
 from .models import RationCard, QuotaAllocation
 from datetime import datetime
 import calendar
+from .services.otp_services import OTPService
 
 @shared_task
 def send_remaining_quota_sms():
@@ -89,3 +90,9 @@ def reset_remaining_quantities():
         )
 
         return "Remaining quantities reset for the month"
+
+
+@shared_task
+def send_otp_task(user_email, card_number, phone_number):
+    otp_service = OTPService()
+    return otp_service.send_otp(user_email, card_number, phone_number)

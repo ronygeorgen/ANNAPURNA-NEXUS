@@ -276,7 +276,7 @@ export default function Home() {
       <div className="min-h-screen bg-gray-100 overflow-x-hidden">
       <NavBar handleLogout={ handleLogout } />
 
-      <header className="relative bg-orange-100 h-[600px]">
+      <header id="home-section" className="relative bg-orange-100 h-[600px]">
       <div className="container mx-auto px-4 relative z-10 pt-60 ml-[30%]">
          <h1 className="text-4xl font-bold mb-4 text-gray-800">Website for ration subsidies!</h1>
           <div className="relative flex items-center max-w-md w-full">
@@ -386,25 +386,91 @@ export default function Home() {
                     </div>
                 </div>
             </section>
-          <section className="py-12 bg-orange-50">
-        <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-semibold mb-8">Ration Card Services</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* , 'Update Ration Card', 'Add Member', 'Remove Member' */}
-            {['New Ration Card'].map((action) => (
-              <button
-                key={action}
-                onClick={() => handleActionClick(action)}
-                className="bg-orange-500 text-white font-semibold py-2 px-4 rounded hover:bg-orange-600 transition duration-300"
+            <section id="services-section" className="py-6 bg-orange-50">
+      <div className="container mx-auto px-4">
+        <h2 className="text-3xl font-semibold mb-6 text-gray-800">Ration Card Services</h2>
+        
+        <div className="flex flex-col md:flex-row items-center justify-between gap-2">
+          {/* Left side with description and button */}
+          <div className="w-full md:w-1/2 space-y-4">
+            <p className="text-gray-600 mb-4">
+              Apply for a new ration card and manage your existing card details through our online services. 
+              Get started by selecting the service you need.
+            </p>
+            <div className="p-4 rounded-lg">
+              <h3 className="text-lg font-medium text-gray-700 mb-4">Available Services</h3>
+              <div className="flex flex-col gap-3">
+                {['New Ration Card'].map((action) => (
+                  <button
+                    key={action}
+                    onClick={() => handleActionClick(action)}
+                    className="bg-orange-500 text-white font-medium py-2.5 px-5 rounded hover:bg-orange-600 transition duration-300 flex items-center gap-2 w-fit"
+                  >
+                    <svg 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      viewBox="0 0 24 24" 
+                      className="w-5 h-5"
+                    >
+                      <rect x="4" y="3" width="16" height="18" rx="2" fill="#FFF3E0"/>
+                      <rect x="4" y="3" width="16" height="18" rx="2" fill="none" stroke="currentColor" strokeWidth="1.5"/>
+                      <line x1="7" y1="8" x2="17" y2="8" stroke="currentColor" strokeWidth="1.5"/>
+                      <line x1="7" y1="12" x2="17" y2="12" stroke="currentColor" strokeWidth="1.5"/>
+                      <line x1="7" y1="16" x2="13" y2="16" stroke="currentColor" strokeWidth="1.5"/>
+                    </svg>
+                    {action}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+          
+          {/* Right side with stacked SVG cards */}
+          <div className="hidden md:flex w-full md:w-1/2 justify-center items-start -mt-8">
+            <div className="p-4">
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                viewBox="0 0 400 400" 
+                className="w-80 h-80"
               >
-                {action}
-              </button>
-            ))}
+                {/* Back card */}
+                <g transform="translate(160, 80)">
+                  <rect x="0" y="0" width="200" height="240" rx="16" fill="#FFF3E0" />
+                  <rect x="0" y="0" width="200" height="240" rx="16" fill="none" stroke="#FB923C" strokeWidth="10" />
+                  <line x1="30" y1="60" x2="170" y2="60" stroke="#FB923C" strokeWidth="3.5" />
+                  <line x1="30" y1="120" x2="170" y2="120" stroke="#FB923C" strokeWidth="3.5" />
+                  <line x1="30" y1="180" x2="120" y2="180" stroke="#FB923C" strokeWidth="3" />
+                </g>
+
+                {/* Middle card */}
+                <g transform="translate(120, 60)">
+                  <rect x="0" y="0" width="200" height="240" rx="16" fill="#FFF3E0" />
+                  <rect x="0" y="0" width="200" height="240" rx="16" fill="none" stroke="#FB923C" strokeWidth="10" />
+                  <line x1="30" y1="60" x2="170" y2="60" stroke="#FB923C" strokeWidth="3.5" />
+                  <line x1="30" y1="120" x2="170" y2="120" stroke="#FB923C" strokeWidth="3.5" />
+                  <line x1="30" y1="180" x2="120" y2="180" stroke="#FB923C" strokeWidth="3.5" />
+                </g>
+
+                {/* Front card */}
+                <g transform="translate(80, 40)">
+                  <rect x="0" y="0" width="200" height="240" rx="16" fill="#FFF3E0" />
+                  <rect x="0" y="0" width="200" height="240" rx="16" fill="none" stroke="#FB923C" strokeWidth="10" />
+                  <line x1="30" y1="60" x2="170" y2="60" stroke="#FB923C" strokeWidth="3.5" />
+                  <line x1="30" y1="120" x2="170" y2="120" stroke="#FB923C" strokeWidth="3.5" />
+                  <line x1="30" y1="180" x2="120" y2="180" stroke="#FB923C" strokeWidth="3.5" />
+                </g>
+              </svg>
+            </div>
           </div>
         </div>
-      </section>
+      </div>
+    </section>
+    <section className="py-12 bg-white">
+    <div className="container mx-auto px-4">
+      </div>
+    </section>
 
-      <section className="py-12 bg-white">
+
+      {/* <section className="py-12 bg-white">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-semibold mb-8">Upcoming Offers and Announcements</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -429,7 +495,9 @@ export default function Home() {
         <div className="container mx-auto px-4 flex items-center">
           <div className="w-1/2">
             <h2 className="text-3xl font-semibold mb-4">We are ready to hear your grievance</h2>
-            <p className="mb-4">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut elit tellus, luctus nec ullamcorper mattis.</p>
+            <p className="mb-4">
+              If you’re facing any issues or have concerns, we’re here to help. Please share your grievances with us, and our team will work diligently to address them promptly.
+            </p>
             <button className="bg-orange-500 text-white font-semibold py-2 px-4 rounded hover:bg-orange-600 transition duration-300">
               Contact Us
             </button>
@@ -438,9 +506,9 @@ export default function Home() {
             <img src="/placeholder.svg?height=400&width=400" alt="Customer Support" className="w-full h-auto" />
           </div>
         </div>
-      </section>
+      </section> */}
 
-      <footer className="bg-gray-800 text-white py-8">
+      <footer id="about-section" className="bg-gray-800 text-white py-8">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div>

@@ -83,12 +83,17 @@ EMAIL_HOST_USER = env('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL')
 
+
+# Redis Configuration
+REDIS_URL = env('REDIS_URL') 
+
 # Celery Configuration
-CELERY_BROKER_URL = 'redis://localhost:6379/0'
-CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
-CELERY_ACCEPT_CONTENT = ['json']
+CELERY_BROKER_URL = REDIS_URL
+CELERY_RESULT_BACKEND = REDIS_URL
+CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'UTC' 
 
 
 # Database
@@ -108,10 +113,10 @@ DATABASES = {
 STRIPE_SECRET_KEY = env('STRIPE_API_KEY')
 
 # below kafka for dockerized containers
-# KAFKA_BOOTSTRAP_SERVERS = 'kafka.default.svc.cluster.local:9092'
+KAFKA_BOOTSTRAP_SERVERS = 'kafka.default.svc.cluster.local:9092'
 
 # below kafka for local
-KAFKA_BOOTSTRAP_SERVERS = 'localhost:9092'
+# KAFKA_BOOTSTRAP_SERVERS = 'localhost:9092'
 KAFKA_TOPIC_ORDER_EVENTS = 'order_events_topic'
 KAFKA_CLIENT_ID = 'order_service_producer'
 

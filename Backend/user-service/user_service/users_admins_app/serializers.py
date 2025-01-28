@@ -44,6 +44,7 @@ class CreateSubAdminSerializer(serializers.ModelSerializer):
         user = Account.objects.create_subuser(
             email = validated_data['email'],
             password = validated_data['password'],
+            email_verified = True
         )
         return user
 

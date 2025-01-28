@@ -188,10 +188,10 @@ SIMPLE_JWT = {
 }
 
 # below kafka for dockerized containers
-# KAFKA_BOOTSTRAP_SERVERS = 'kafka.default.svc.cluster.local:9092'
+KAFKA_BOOTSTRAP_SERVERS = 'kafka.default.svc.cluster.local:9092'
 
 # below kafka for local
-KAFKA_BOOTSTRAP_SERVERS = 'localhost:9092'
+# KAFKA_BOOTSTRAP_SERVERS = 'localhost:9092'
 
 KAFKA_TOPIC_USER_EVENTS = 'user_events'
 KAFKA_TOPIC_RATION_SHOP_CREATION_EVENTS = 'ration_shop_events'
@@ -211,12 +211,12 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'UTC' 
 
-CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
+
 
 CELERY_BEAT_SCHEDULE = {
     'send-quota-sms-last-week': {
         'task': 'ration_cards_app.tasks.send_remaining_quota_sms',
-        'schedule': crontab(day_of_month='22-31'),  # Last week of month
+        'schedule': crontab(day_of_month='25', hour=9, minute=0),  
     },
     'reset-quota-quantities': {
         'task': 'ration_cards_app.tasks.reset_remaining_quantities',

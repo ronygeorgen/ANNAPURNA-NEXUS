@@ -24,6 +24,7 @@ class MyAccountManager(BaseUserManager):
         user.is_superadmin = True
         user.is_user = True
         user.is_active = True
+        user.email_verified = True
         user.save(using=self._db)
         return user
 
@@ -35,6 +36,7 @@ class MyAccountManager(BaseUserManager):
         user.is_subadmin = True
         user.is_user = True
         user.is_active = True
+        user.email_verified = True
         user.save(using=self._db)
         return user
     
