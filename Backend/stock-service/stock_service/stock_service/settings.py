@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'product_management',
 ]
 
 MIDDLEWARE = [
@@ -76,6 +77,37 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'stock_service.wsgi.application'
 
+# Kafka 
+KAFKA_BOOTSTRAP_SERVERS = 'localhost:9092'
+
+KAFKA_TOPIC_STOCK_EVENTS = 'stock_events_topic'
+
+KAFKA_CLIENT_ID = 'stock_sync_producer'
+
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        '': {
+            'handlers': ['console'],
+            'level': 'INFO',
+        },
+    },
+}
+
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
@@ -91,6 +123,8 @@ DATABASES = {
     }
 }
 
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators

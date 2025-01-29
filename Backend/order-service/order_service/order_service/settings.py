@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'order_management',
 ]
 
 MIDDLEWARE = [
@@ -73,6 +74,27 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'order_service.wsgi.application'
 
+# Email Configuration
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = env('EMAIL_HOST')
+EMAIL_PORT = env.int('EMAIL_PORT')
+EMAIL_USE_TLS = env.bool('EMAIL_USE_TLS')
+EMAIL_HOST_USER = env('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL')
+
+
+# Redis Configuration
+REDIS_URL = env('REDIS_URL') 
+
+# Celery Configuration
+CELERY_BROKER_URL = REDIS_URL
+CELERY_RESULT_BACKEND = REDIS_URL
+CELERY_ACCEPT_CONTENT = ['application/json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'UTC' 
+
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
@@ -88,6 +110,15 @@ DATABASES = {
     }
 }
 
+STRIPE_SECRET_KEY = env('STRIPE_API_KEY')
+
+# below kafka for dockerized containers
+KAFKA_BOOTSTRAP_SERVERS = 'kafka.default.svc.cluster.local:9092'
+
+# below kafka for local
+# KAFKA_BOOTSTRAP_SERVERS = 'localhost:9092'
+KAFKA_TOPIC_ORDER_EVENTS = 'order_events_topic'
+KAFKA_CLIENT_ID = 'order_service_producer'
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators

@@ -22,3 +22,14 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+node_modules
+npm-debug.log
+build
+.git
+*.md
+.gitignore
+.env.local
+.env.development
+.env.test
+.env.production

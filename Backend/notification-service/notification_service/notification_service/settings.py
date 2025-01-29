@@ -35,12 +35,17 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'notifications',
+    'channels',
+    'chat',
+    'videocall',
 ]
 
 MIDDLEWARE = [
@@ -72,6 +77,44 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'notification_service.wsgi.application'
+ASGI_APPLICATION = 'notification_service.asgi.application'
+
+
+# below channel layers for docker containers
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [(os.getenv('REDIS_HOST', 'redis'), int(os.getenv('REDIS_PORT', 6379)))],
+        },
+    },
+}
+
+# below channel layers for local
+# CHANNEL_LAYERS = {
+#     'default': {
+#         'BACKEND': 'channels_redis.core.RedisChannelLayer',
+#         'CONFIG': {
+#             "hosts": [('127.0.0.1', 6379)],
+#         },
+#     },
+# }
+
+# below kafka for docker containers
+KAFKA_BOOTSTRAP_SERVERS = 'kafka.default.svc.cluster.local:9092'
+
+# below kafka for local
+# KAFKA_BOOTSTRAP_SERVERS = 'localhost:9092'
+KAFKA_TOPIC_ORDER_EVENTS = 'order_events_topic'
+KAFKA_CONSUMER_GROUP = 'notification_service_group'
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_METHODS = ['GET', 'POST', 'PATCH','PUT', 'DELETE', 'OPTIONS']
+CORS_ALLOW_HEADERS = ['Authorization', 'Content-Type'] 
 
 
 # Database

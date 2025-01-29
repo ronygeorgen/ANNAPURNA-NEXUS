@@ -1,0 +1,91 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ration-shop-service
+  labels:
+    app: ration-shop-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ration-shop-service
+  template:
+    metadata:
+      labels:
+        app: ration-shop-service
+    spec:
+      containers:
+      - name: ration-shop-service
+        image: ronygeorgen/ration-shop-service:l1
+        ports:
+        - containerPort: 8002
+        envFrom:
+        - configMapRef:
+            name: common-configmap
+        - secretRef:
+            name: common-secret
+        env:
+        - name: DATABASE_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: common-configmap
+              key: RATION_SHOP_DB
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "200m"
+      
+      - name: order-events-consumer
+        image: ronygeorgen/ration-shop-service:l1
+        command: ["python", "manage.py", "run_order_consumer"]
+        envFrom:
+        - configMapRef:
+            name: common-configmap
+        - secretRef:
+            name: common-secret
+        env:
+        - name: DATABASE_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: common-configmap
+              key: RATION_SHOP_DB
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+        lifecycle:
+          preStop:
+            exec:
+              command: ["/bin/sh", "-c", "sleep 10"]
+      
+      - name: user-events-consumer
+        image: ronygeorgen/ration-shop-service:l1
+        command: ["python", "manage.py", "run_kafka_consumer"]
+        envFrom:
+        - configMapRef:
+            name: common-configmap
+        - secretRef:
+            name: common-secret
+        env:
+        - name: DATABASE_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: common-configmap
+              key: RATION_SHOP_DB
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+        lifecycle:
+          preStop:
+            exec:
+              command: ["/bin/sh", "-c", "sleep 10"]

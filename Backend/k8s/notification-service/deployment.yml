@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+ name: notification-service
+ labels:
+   app: notification-service
+spec:
+ replicas: 1
+ selector:
+   matchLabels:
+     app: notification-service
+ template:
+   metadata:
+     labels:
+       app: notification-service
+   spec:
+     containers:
+     - name: notification-service
+       image: ronygeorgen/notification-service:latest
+       ports:
+       - containerPort: 8004
+       envFrom:
+       - configMapRef:
+           name: common-configmap
+       - secretRef:
+           name: common-secret
+       env:
+       - name: DATABASE_NAME
+         valueFrom:
+           configMapKeyRef:
+             name: common-configmap
+             key: NOTIFICATION_DB
+       - name: RUN_MAIN
+         value: "true"
+       - name: REDIS_HOST
+         value: "redis"
+       - name: REDIS_PORT
+         value: "6379"
+       resources:
+         requests:
+           memory: "256Mi"
+           cpu: "100m"
+         limits:
+           memory: "512Mi"
+           cpu: "200m"
+
+     - name: notification-consumer
+       image: ronygeorgen/notification-service:latest
+       command: ["python", "manage.py", "run_notification_consumer"]
+       envFrom:
+       - configMapRef:
+           name: common-configmap
+       - secretRef:
+           name: common-secret
+       env:
+       - name: DATABASE_NAME
+         valueFrom:
+           configMapKeyRef:
+             name: common-configmap
+             key: NOTIFICATION_DB
+       - name: REDIS_HOST
+         value: "redis"
+       - name: REDIS_PORT
+         value: "6379"
+       resources:
+         requests:
+           memory: "128Mi"
+           cpu: "100m"
+         limits:
+           memory: "256Mi"
+           cpu: "200m"
+       lifecycle:
+         preStop:
+           exec:
+             command: ["/bin/sh", "-c", "sleep 10"]

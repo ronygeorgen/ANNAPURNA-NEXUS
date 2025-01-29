@@ -1,0 +1,81 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-service-celery-worker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: order-service-celery-worker
+  template:
+    metadata:
+      labels:
+        app: order-service-celery-worker
+    spec:
+      containers:
+      - name: celery-worker
+        image: ronygeorgen/order-service:latest
+        command: ["celery", "-A", "order_service", "worker", "--pool=solo", "--loglevel=info", "-E"]
+        envFrom:
+        - configMapRef:
+            name: common-configmap
+        - secretRef:
+            name: common-secret
+        env:
+        - name: DATABASE_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: common-configmap
+              key: ORDER_SERVICE_DB
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "200m"
+        # readinessProbe:
+        #   exec:
+        #     command:
+        #     - /bin/sh
+        #     - -c
+        #     - celery -A order_service inspect ping -d celery@$HOSTNAME
+        #   initialDelaySeconds: 30
+        #   periodSeconds: 30
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-service-celery-beat
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: order-service-celery-beat
+  template:
+    metadata:
+      labels:
+        app: order-service-celery-beat
+    spec:
+      containers:
+      - name: celery-beat
+        image: ronygeorgen/order-service:latest
+        command: ["celery", "-A", "order_service", "beat", "--loglevel=info"]
+        envFrom:
+        - configMapRef:
+            name: common-configmap
+        - secretRef:
+            name: common-secret
+        env:
+        - name: DATABASE_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: common-configmap
+              key: ORDER_SERVICE_DB
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"

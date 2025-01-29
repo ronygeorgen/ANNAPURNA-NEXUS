@@ -1,0 +1,29 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ration-shop-service-migrations
+spec:
+  template:
+    spec:
+      containers:
+      - name: migrations
+        image: ronygeorgen/ration-shop-service:l1
+        command: 
+        - /bin/sh
+        - -c
+        - |
+          python manage.py makemigrations
+          python manage.py migrate
+        envFrom:
+        - configMapRef:
+            name: common-configmap
+        - secretRef:
+            name: common-secret
+        env:
+        - name: DATABASE_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: common-configmap
+              key: RATION_SHOP_DB
+      restartPolicy: Never
+  backoffLimit: 4

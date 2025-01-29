@@ -1,0 +1,195 @@
+from rest_framework import serializers
+from .models import RationShop, AdminAuth, SubAdminAuth, ShopImage
+from math import radians, sin, cos, sqrt, atan2
+
+
+class ShopImageSerializer(serializers.ModelSerializer):
+    """Serializer for the ShopImage model."""
+    class Meta:
+        model = ShopImage
+        fields = ['id', 'image_media', 'image', 'cloudinary_public_id', 'image_type', 'is_active']
+
+
+class SubAdminSerializer(serializers.ModelSerializer):
+    """Simple serializer for SubAdmin to represent in dropdowns."""
+    value = serializers.CharField(source='sub_admin_id')
+    label = serializers.CharField(source='email')
+
+    class Meta:
+        model = SubAdminAuth
+        fields = ['value', 'label']
+        
+
+class SubAdminProfileSerializer(serializers.ModelSerializer):
+    """Serializer for displaying and updating sub-admin profile details."""
+
+    email = serializers.EmailField(read_only=True)
+    owner_name = serializers.CharField(required=False, allow_null=True)
+
+    class Meta:
+        model = SubAdminAuth
+        fields = ['sub_admin_id', 'email', 'owner_name']
+
+    def update(self, instance, validated_data):
+        """Update the owner_name field"""
+
+        instance.owner_name = validated_data.get('owner_name', instance.owner_name)
+        instance.save()
+        return instance
+
+class RationShopSerializer(serializers.ModelSerializer):
+    """Serializer for creating and updating RationShop basic details."""
+
+    shopName = serializers.CharField(source='name')
+    ownerId = serializers.IntegerField(write_only=True)
+    mobileNumber = serializers.CharField(source='mobile_number')
+    
+    class Meta:
+        model = RationShop
+        fields = ['shop_id', 'shopName', 'ownerId', 'mobileNumber', 'location', 'latitude', 'longitude']
+        extra_kwargs = {
+            'latitude': {'read_only': True},
+            'longitude': {'read_only': True}
+        }
+
+    def create(self, validated_data):
+        owner_id = validated_data.pop('ownerId')
+        name = validated_data.pop('name')
+        mobile_number = validated_data.pop('mobile_number')
+        created_by = validated_data.pop('created_by', None)
+
+        try:
+            owner = SubAdminAuth.objects.get(sub_admin_id=owner_id)
+        except SubAdminAuth.DoesNotExist:
+            raise serializers.ValidationError({'ownerId':'Invalid owner ID'})
+        
+        return RationShop.objects.create(
+            name=name,
+            owner=owner,
+            mobile_number=mobile_number,
+            created_by=created_by,
+            **validated_data
+        )
+
+class RationShopProfileSerializer(serializers.ModelSerializer):
+    """Extended serializer for detailed RationShop profile view, including images and owner details."""
+    shopName = serializers.CharField(source='name')
+    shopDescription = serializers.CharField(source='description', required=False, allow_blank=True)
+    isOpen = serializers.BooleanField(source='is_open')
+    profile_picture = serializers.SerializerMethodField()
+    shop_images = serializers.SerializerMethodField()
+    owner_details = SubAdminProfileSerializer(source='owner', read_only=True)
+    ownerName = serializers.CharField(write_only=True, required=False)
+
+    class Meta:
+        model = RationShop
+        fields = [
+            'shop_id', 'shopName', 'shopDescription', 'location', 
+            'isOpen', 'profile_picture', 'shop_images', 'owner_details',
+            'ownerName',
+        ]
+    
+    
+    def update(self, instance, validated_data):
+        """Updates shop details for fields that are allowed to change."""
+
+        owner_name = validated_data.pop('ownerName', None)
+        if owner_name and instance.owner:
+            instance.owner.owner_name = owner_name
+            instance.owner.save()
+
+
+        if 'name' in validated_data:
+            instance.name = validated_data['name']
+        if 'description' in validated_data:
+            instance.description = validated_data['description']
+        if 'location' in validated_data:
+            instance.location = validated_data['location']
+        if 'is_open' in validated_data:
+            instance.is_open = validated_data['is_open']
+        
+        instance.save()
+        return instance
+    
+
+    def get_profile_picture(self, obj):
+        """Fetches the active profile picture URL for the shop, if available."""
+        profile_pic = obj.images.filter(image_type='PROFILE', is_active=True).first()
+        if profile_pic:
+            return {
+                'id': profile_pic.id,
+                'url': profile_pic.image
+            }
+        return None
+    
+    def get_shop_images(self, obj):
+        """Fetches active shop image URLs for the shop."""
+        shop_images = obj.images.filter(image_type='SHOP', is_active=True)
+        return [
+            {
+                'id': img.id,
+                'url': img.image
+            }
+            for img in shop_images
+        ]
+
+class PublicShopDisplaySerializer(serializers.ModelSerializer):
+    owner_name = serializers.CharField(source='owner.owner_name')
+    owner_id = serializers.CharField(source='owner.sub_admin_id')
+    profile_image = serializers.SerializerMethodField()
+    shop_images = serializers.SerializerMethodField()
+    distance = serializers.SerializerMethodField()
+
+    class Meta:
+        model = RationShop
+        fields = [
+            'shop_id', 
+            'name',
+            'location',
+            'description',
+            'is_open',
+            'mobile_number',
+            'owner_name',
+            'profile_image',
+            'shop_images',
+            'owner_id',
+            'distance',
+            'latitude',
+            'longitude'
+        ]
+
+    def get_profile_image(self, obj):
+        profile_pic = obj.images.filter(
+            image_type='PROFILE', 
+            is_active=True
+        ).first()
+        return profile_pic.image if profile_pic else None
+    
+    def get_shop_images(self, obj):
+        shop_images = obj.images.filter(
+            image_type='SHOP',
+            is_active=True
+        )
+        return [img.image for img in shop_images]
+    
+    def get_distance(self, obj):
+        # Only calculate distance if user location is in context
+        if self.context.get('user_distance'):
+            user_lat = float(self.context.get('request').query_params.get('latitude'))
+            user_lon = float(self.context.get('request').query_params.get('longitude'))
+            
+            if obj.latitude and obj.longitude:
+                R = 6371.0  # Earth radius in kilometers
+                lat1, lon1, lat2, lon2 = map(radians, [
+                    user_lat, user_lon, 
+                    float(obj.latitude), float(obj.longitude)
+                ])
+                
+                dlat = lat2 - lat1
+                dlon = lon2 - lon1
+                
+                a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
+                c = 2 * atan2(sqrt(a), sqrt(1-a))
+                
+                return round(R * c, 2)
+        return None

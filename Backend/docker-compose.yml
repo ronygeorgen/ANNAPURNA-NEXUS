@@ -1,0 +1,315 @@
+networks:
+  app-network:
+    driver: bridge
+
+services:
+  postgres:
+    networks:
+      - app-network
+    image: postgres:latest
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=Rony@2001
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  zookeeper:
+    networks:
+      - app-network
+    image: confluentinc/cp-zookeeper:latest
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    healthcheck:
+      test: ["CMD-SHELL", "echo stat | nc localhost 2181"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  kafka:
+    networks:
+      - app-network
+    image: confluentinc/cp-kafka:latest
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+      KAFKA_LOG_RETENTION_HOURS: "168"
+      KAFKA_NUM_PARTITIONS: "3"
+      KAFKA_DEFAULT_REPLICATION_FACTOR: "1"
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-topics --bootstrap-server kafka:9092 --list"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    ports:
+      - "9092:9092"
+
+  redis:
+    networks:
+      - app-network
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api-gateway:
+    networks:
+      - app-network
+    build: ./api-gateway/gateway_service
+    image: ronygeorgen/api-gateway:latest
+    profiles: ["push"]
+    ports:
+      - "8005:8005"
+    environment:
+      - DEBUG=True
+      - ALLOWED_HOSTS=*
+      - SECRET_KEY=django-insecure-gkcv)b3abp%(orrp2fk7dw7(nt9vm)ss!64mq6x-mh&tw4m$b
+      - DATABASE_USER=postgres
+      - DATABASE_NAME=an_api_gateway
+      - DATABASE_PASSWORD=Rony@2001
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5432
+      - KAFKA_HOST=kafka:9092
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    command: >
+      sh -c "
+        while ! nc -z postgres 5432; do
+          echo 'Waiting for PostgreSQL to be ready...'
+          sleep 1
+        done &&
+        while ! nc -z kafka 9092; do
+          echo 'Waiting for Kafka to be ready...'
+          sleep 1
+        done &&
+        while ! nc -z redis 6379; do
+          echo 'Waiting for Redis to be ready...'
+          sleep 1
+        done &&
+        python manage.py migrate &&
+        python manage.py runserver 0.0.0.0:8005
+      "
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  user-service:
+    networks:
+      - app-network
+    build: ./user-service/user_service
+    image: ronygeorgen/user-service:latest
+    profiles: ["push"]
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=True
+      - DATABASE_NAME=an_user_service
+      - DATABASE_USER=postgres
+      - DATABASE_PASSWORD=Rony@2001
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5432
+      - ALLOWED_HOSTS=*
+      - SECRET_KEY=django-insecure-gkcv)b3abp%(orrp2fk7dw7(nt9vm)ss!64mq6x-mh&tw4m$b
+      - KAFKA_HOST=kafka:9092
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    command: >
+      sh -c "
+        while ! nc -z postgres 5432; do
+          echo 'Waiting for PostgreSQL to be ready...'
+          sleep 1
+        done &&
+        while ! nc -z kafka 9092; do
+          echo 'Waiting for Kafka to be ready...'
+          sleep 1
+        done &&
+        while ! nc -z redis 6379; do
+          echo 'Waiting for Redis to be ready...'
+          sleep 1
+        done &&
+        python manage.py migrate &&
+        python manage.py runserver 0.0.0.0:8000
+      "
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  notification-service:
+    networks:
+      - app-network
+    build: ./notification-service/notification_service
+    image: ronygeorgen/notification-service:latest
+    profiles: ["push"]
+    ports:
+      - "8004:8004"
+    environment:
+      - DEBUG=True
+      - DATABASE_NAME=an_notification_service
+      - DATABASE_USER=postgres
+      - DATABASE_PASSWORD=Rony@2001
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5432
+      - ALLOWED_HOSTS=*
+      - SECRET_KEY=django-insecure-gkcv)b3abp%(orrp2fk7dw7(nt9vm)ss!64mq6x-mh&tw4m$b
+      - KAFKA_HOST=kafka:9092
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    command: >
+      sh -c "
+        while ! nc -z postgres 5432; do
+          echo 'Waiting for PostgreSQL to be ready...'
+          sleep 1
+        done &&
+        while ! nc -z kafka 9092; do
+          echo 'Waiting for Kafka to be ready...'
+          sleep 1
+        done &&
+        while ! nc -z redis 6379; do
+          echo 'Waiting for Redis to be ready...'
+          sleep 1
+        done &&
+        python manage.py migrate &&
+        daphne -b 0.0.0.0 -p 8004 notification_service.asgi:application
+      "
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  ration-shop-service:
+    networks:
+      - app-network
+    build: ./ration-shop-service/ration_shop_service
+    image: ronygeorgen/ration-shop-service:latest
+    profiles: ["push"]
+    ports:
+      - "8002:8002"
+    environment:
+      - DEBUG=True
+      - DATABASE_NAME=an_ration_shop_service
+      - DATABASE_USER=postgres
+      - DATABASE_PASSWORD=Rony@2001
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5432
+      - ALLOWED_HOSTS=*
+      - SECRET_KEY=django-insecure-gkcv)b3abp%(orrp2fk7dw7(nt9vm)ss!64mq6x-mh&tw4m$b
+      - KAFKA_HOST=kafka:9092
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    command: >
+      sh -c "
+        while ! nc -z postgres 5432; do
+          echo 'Waiting for PostgreSQL to be ready...'
+          sleep 1
+        done &&
+        while ! nc -z kafka 9092; do
+          echo 'Waiting for Kafka to be ready...'
+          sleep 1
+        done &&
+        while ! nc -z redis 6379; do
+          echo 'Waiting for Redis to be ready...'
+          sleep 1
+        done &&
+        python manage.py migrate &&
+        python manage.py runserver 0.0.0.0:8002
+      "
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  order-service:
+    networks:
+      - app-network
+    build: ./order-service/order_service
+    image: ronygeorgen/order-service:latest
+    profiles: ["push"]
+    ports:
+      - "8003:8003"
+    environment:
+      - DEBUG=True
+      - DATABASE_NAME=an_order_service
+      - DATABASE_USER=postgres
+      - DATABASE_PASSWORD=Rony@2001
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5432
+      - ALLOWED_HOSTS=*
+      - SECRET_KEY=django-insecure-gkcv)b3abp%(orrp2fk7dw7(nt9vm)ss!64mq6x-mh&tw4m$b
+      - KAFKA_HOST=kafka:9092
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    command: >
+      sh -c "
+        while ! nc -z postgres 5432; do
+          echo 'Waiting for PostgreSQL to be ready...'
+          sleep 1
+        done &&
+        while ! nc -z kafka 9092; do
+          echo 'Waiting for Kafka to be ready...'
+          sleep 1
+        done &&
+        while ! nc -z redis 6379; do
+          echo 'Waiting for Redis to be ready...'
+          sleep 1
+        done &&
+        python manage.py migrate &&
+        python manage.py runserver 0.0.0.0:8003
+      "
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  kafka-init:
+    networks:
+      - app-network
+    image: confluentinc/cp-kafka:latest
+    environment:
+      KAFKA_BROKER_ID: 2
+    depends_on:
+      kafka:
+        condition: service_healthy
+    volumes:
+      - ./init-kafka-topics.sh:/init-kafka-topics.sh
+    command: ["sh", "/init-kafka-topics.sh"]
+    restart: on-failure
+
+volumes:
+  postgres_data:

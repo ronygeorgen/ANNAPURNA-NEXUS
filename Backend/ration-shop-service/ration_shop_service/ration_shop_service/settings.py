@@ -9,9 +9,13 @@ https://docs.djangoproject.com/en/5.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
+
+from datetime import timedelta
 import environ
 import os
 from pathlib import Path
+import cloudinary
+from celery.schedules import crontab
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -41,9 +45,22 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
+    'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
+    'corsheaders',
+    'ration_shops_app',
+    'ration_cards_app',
+    'stocks_app',
+    'cloudinary_storage',
+    'cloudinary',
+    'storages',
+    'django_celery_beat',
+    'django_celery_results',
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -73,6 +90,175 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'ration_shop_service.wsgi.application'
 
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_METHODS = ['GET', 'POST', 'PATCH','PUT', 'DELETE', 'OPTIONS']
+CORS_ALLOW_HEADERS = ['Authorization', 'Content-Type'] 
+
+# ration-cards-app
+RATION_CARDS_APP_REST_FRAMEWORK = {
+'DEFAULT_AUTHENTICATION_CLASSES': [
+'ration_cards_app.authentication.SubAdminJWTAuthentication',
+'ration_cards_app.authentication.UserJWTAuthenticationCards',
+]
+}
+# ration-shops-app 
+RATION_SHOPS_APP_REST_FRAMEWORK = {
+'DEFAULT_AUTHENTICATION_CLASSES': [
+'ration_shops_app.authentication.CookieJWTAuthentication',
+'ration_shops_app.authentication.UserJWTAuthentication',
+]
+}
+# stocks-app 
+STOCKS_APP_REST_FRAMEWORK = {
+'DEFAULT_AUTHENTICATION_CLASSES': [
+'stocks_app.authentication.CookieJWTAuthenticationStock',
+'stocks_app.authentication.UserJWTAuthenticationStock',
+]
+}
+
+# Redis Configuration
+REDIS_URL = env('REDIS_URL')  # Adjust as per your Redis setup
+
+# Twilio Configuration
+TWILIO_ACCOUNT_SID = env('TWILIO_ACCOUNT_SID')
+TWILIO_AUTH_TOKEN = env('TWILIO_AUTH_TOKEN')
+TWILIO_PHONE_NUMBER = env('TWILIO_PHONE_NUMBER')
+
+# OTP Configuration
+OTP_EXPIRATION_TIME = 300  
+OTP_RESEND_COOLDOWN = 30   
+MAX_OTP_ATTEMPTS = 3
+
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': env('CLOUD_NAME'),
+    'API_KEY': env('API_KEY'),
+    'API_SECRET': env('API_SECRET')
+}
+
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
+# Cloudinary SDK Configuration
+cloudinary.config(
+    cloud_name = env('CLOUD_NAME'), 
+    api_key = env('API_KEY'), 
+    api_secret = env('API_SECRET')
+)
+
+
+# S3 Configuration
+AWS_ACCESS_KEY_ID = env('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY = env('AWS_SECRET_ACCESS_KEY')
+AWS_STORAGE_BUCKET_NAME = env('AWS_STORAGE_BUCKET_NAME')
+AWS_S3_REGION_NAME = 'ap-south-1'
+AWS_S3_FILE_OVERWRITE = False
+AWS_DEFAULT_ACL = None
+AWS_S3_VERIFY = True
+
+# Storage Backend
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+STATICFILES_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+
+# Optional: CORS Configuration
+AWS_CORS_CONFIG = {
+    'CORSRules': [{
+        'AllowedHeaders': ['*'],
+        'AllowedMethods': ['GET', 'PUT', 'POST'],
+        'AllowedOrigins': ['http://localhost:5173'],
+        'ExposeHeaders': []
+    }]
+}
+
+
+MAPBOX_ACCESS_TOKEN = env('MAPBOX_ACCESS_TOKEN')
+MAPBOX_URL = env('MAPBOX_URL')
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    'SIGNING_KEY': os.environ.get('SECRET_KEY'),
+    'VERIFYING_KEY': None,
+    'ALGORITHM': 'HS256',
+}
+
+# below kafka for dockerized containers
+KAFKA_BOOTSTRAP_SERVERS = 'kafka.default.svc.cluster.local:9092'
+
+# below kafka for local
+# KAFKA_BOOTSTRAP_SERVERS = 'localhost:9092'
+
+KAFKA_TOPIC_USER_EVENTS = 'user_events'
+KAFKA_TOPIC_RATION_SHOP_CREATION_EVENTS = 'ration_shop_events'
+
+KAFKA_CONSUMER_GROUP = 'ration_shop_service_user_consumer'
+KAFKA_CLIENT_ID = 'ration_shop_service_provider'
+
+# below kafka for ration card
+KAFKA_TOPIC_ORDER_EVENTS = 'order_events_topic'
+KAFKA_CONSUMER_GROUP_ORDERS = 'ration_shop_order_consumer'
+
+# Celery Configuration
+CELERY_BROKER_URL = REDIS_URL
+CELERY_RESULT_BACKEND = REDIS_URL
+CELERY_ACCEPT_CONTENT = ['application/json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'UTC' 
+
+
+
+CELERY_BEAT_SCHEDULE = {
+    'send-quota-sms-last-week': {
+        'task': 'ration_cards_app.tasks.send_remaining_quota_sms',
+        'schedule': crontab(day_of_month='25', hour=9, minute=0),  
+    },
+    'reset-quota-quantities': {
+        'task': 'ration_cards_app.tasks.reset_remaining_quantities',
+        'schedule': crontab(day_of_month='28-31', hour=23, minute=59),  # Last second of month
+    },
+}
+
+# Model file paths
+SHAPE_PREDICTOR_PATH = os.path.join(BASE_DIR, 'ml_models', 'shape_predictor_68_face_landmarks.dat')
+LIVENESS_MODEL_PATH = os.path.join(BASE_DIR, 'ml_models', 'model.h5')
+
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# Subdirectories for specific file types
+VIDEO_DIR = os.path.join(MEDIA_ROOT, 'liveness_videos')  # Video storage
+IMAGE_DIR = os.path.join(MEDIA_ROOT, 'liveness_images')  # Image storage
+TEMP_FRAME_DIR = os.path.join(MEDIA_ROOT, 'temp_frames')  # Temporary frame storage
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        '': {
+            'handlers': ['console'],
+            'level': 'INFO',
+        },
+    },
+}
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases

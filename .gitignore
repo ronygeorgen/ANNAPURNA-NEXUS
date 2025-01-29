@@ -2,6 +2,7 @@
 venv/
 Backend/api-gateway/venvapi/
 
+Backend/ration-shop-service/ration_shop_service/media/
 
 # Python cache files
 __pycache__/
@@ -26,3 +27,20 @@ __pycache__/
 .DS_Store
 Thumbs.db
 
+# ML model
+Backend/ration-shop-service/ration_shop_service/ml_models/
+
+Backend/k8s/common/secret.yml
+
+Backend/k8s/frontend/frontend-secret.yml
+
+node_modules
+npm-debug.log
+build
+.git
+*.md
+.gitignore
+.env.local
+.env.development
+.env.test
+.env.production

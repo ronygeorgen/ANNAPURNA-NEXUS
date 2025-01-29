@@ -7,4 +7,3 @@ data:
   ALLOWED_HOSTS: "*"
   DATABASE_HOST: "host.docker.internal"
   DATABASE_PORT: "5432"
-  CSRF_COOKIE_DOMAIN: ".yourdomain.com"
