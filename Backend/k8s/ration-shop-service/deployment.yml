@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: ration-shop-service
-        image: ronygeorgen/ration-shop-service:latest
+        image: ronygeorgen/ration-shop-service:l1
         ports:
         - containerPort: 8002
         envFrom:
@@ -39,7 +39,7 @@ spec:
             cpu: "200m"
       
       - name: order-events-consumer
-        image: ronygeorgen/ration-shop-service:latest
+        image: ronygeorgen/ration-shop-service:l1
         command: ["python", "manage.py", "run_order_consumer"]
         envFrom:
         - configMapRef:
@@ -65,7 +65,7 @@ spec:
               command: ["/bin/sh", "-c", "sleep 10"]
       
       - name: user-events-consumer
-        image: ronygeorgen/ration-shop-service:latest
+        image: ronygeorgen/ration-shop-service:l1
         command: ["python", "manage.py", "run_kafka_consumer"]
         envFrom:
         - configMapRef:

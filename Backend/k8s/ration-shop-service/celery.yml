@@ -14,8 +14,8 @@ spec:
     spec:
       containers:
       - name: celery-worker
-        image: ronygeorgen/ration-shop-service:latest
-        command: ["celery", "-A", "ration_shop_service", "worker", "--pool=solo", "--loglevel=info"]
+        image: ronygeorgen/ration-shop-service:l1
+        command: ["celery", "-A", "ration_shop_service", "worker", "--pool=solo", "--loglevel=info", "-E"]
         envFrom:
         - configMapRef:
             name: common-configmap
@@ -52,7 +52,7 @@ spec:
     spec:
       containers:
       - name: celery-beat
-        image: ronygeorgen/ration-shop-service:latest
+        image: ronygeorgen/ration-shop-service:l1
         command: ["celery", "-A", "ration_shop_service", "beat", "--loglevel=info"]
         envFrom:
         - configMapRef:

@@ -15,7 +15,7 @@ spec:
       containers:
       - name: celery-worker
         image: ronygeorgen/order-service:latest
-        command: ["celery", "-A", "order_service", "worker", "--pool=solo", "--loglevel=info"]
+        command: ["celery", "-A", "order_service", "worker", "--pool=solo", "--loglevel=info", "-E"]
         envFrom:
         - configMapRef:
             name: common-configmap

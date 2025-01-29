@@ -16,7 +16,7 @@ spec:
    spec:
      containers:
      - name: notification-service
-       image: ronygeorgen/notification-service:l1
+       image: ronygeorgen/notification-service:latest
        ports:
        - containerPort: 8004
        envFrom:
@@ -45,7 +45,7 @@ spec:
            cpu: "200m"
 
      - name: notification-consumer
-       image: ronygeorgen/notification-service:l1
+       image: ronygeorgen/notification-service:latest
        command: ["python", "manage.py", "run_notification_consumer"]
        envFrom:
        - configMapRef:

@@ -42,7 +42,7 @@ RUN pip install --no-cache-dir numpy==1.26.4 scipy==1.14.1 && \
     pip install --no-cache-dir face-recognition==1.3.0
 
 # Install Celery and Redis
-RUN pip install --no-cache-dir "celery>=5.3.6" "redis>=5.0.1"
+RUN pip install --no-cache-dir "celery>=5.3.6" "redis>=5.0.1" "django-celery-results>=2.5.1"
 
 # Install remaining requirements with retry mechanism
 RUN pip install --no-cache-dir -r requirements.txt || \

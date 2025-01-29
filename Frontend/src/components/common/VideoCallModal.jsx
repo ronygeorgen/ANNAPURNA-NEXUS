@@ -18,6 +18,7 @@ const VideoCallModal = ({
   useEffect(() => {
     const setupLocalVideo = async () => {
       if (localVideoRef.current && localStream) {
+        console.log('Setting up local video...');
         try {
           localVideoRef.current.srcObject = null;
           localVideoRef.current.srcObject = localStream;
@@ -33,12 +34,12 @@ const VideoCallModal = ({
 
           try {
             await localVideoRef.current.play();
-            // console.log('Local video playing successfully');
+            console.log('Local video playing successfully');
           } catch (playError) {
-            // console.error('Local video play error:', playError);
+            console.error('Local video play error:', playError);
           }
         } catch (err) {
-          // console.error('Local video setup error:', err);
+          console.error('Local video setup error:', err);
         }
       }
     };
@@ -78,12 +79,12 @@ const VideoCallModal = ({
 
           try {
             await remoteVideoRef.current.play();
-            // console.log('Remote video playing successfully');
+            console.log('Remote video playing successfully');
           } catch (playError) {
-            // console.error('Remote video play error:', playError);
+            console.error('Remote video play error:', playError);
           }
         } catch (err) {
-          // console.error('Remote video setup error:', err);
+          console.error('Remote video setup error:', err);
         }
       }
     };
@@ -106,7 +107,7 @@ const VideoCallModal = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-150">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 w-full max-w-4xl">
         <div className="flex flex-col space-y-4">
           <div className="grid grid-cols-2 gap-4">
@@ -159,10 +160,10 @@ const VideoCallModal = ({
           </div> */}
 
           {/* Debug Information */}
-          {/* <div className="text-xs text-gray-500 space-y-1">
-            <p>Local Tracks: {localStream?.getTracks().length || 0}</p>
-            <p>Remote Tracks: {remoteStream?.getTracks().length || 0}</p>
-            {remoteStream?.getTracks().map((track, i) => (
+          {/* <div className="text-xs text-gray-500 space-y-1"> */}
+            {/* <p>Local Tracks: {localStream?.getTracks().length || 0}</p>
+            <p>Remote Tracks: {remoteStream?.getTracks().length || 0}</p> */}
+            {/* {remoteStream?.getTracks().map((track, i) => (
               <p key={i}>
                 Remote {track.kind}: enabled={String(track.enabled)} state={track.readyState}
               </p>
